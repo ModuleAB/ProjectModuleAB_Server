@@ -10,7 +10,9 @@ type Oas struct {
 	Id         string `orm:"pk;size(36)"`
 	Region     string
 	VaultName  string        `orm:"size(32)"`
+	VaultId    string        `orm:"size(32)"`
 	BackupSets []*BackupSets `orm:"reverse(many)"`
+	Jobs       []*OasJobs    `orm:"reverse(many)"`
 }
 
 func init() {

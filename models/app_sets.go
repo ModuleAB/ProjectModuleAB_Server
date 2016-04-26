@@ -12,6 +12,7 @@ type AppSets struct {
 	Desc     string      `orm:"size(128);null"`
 	Policies []*Policies `orm:"reverse(many)"`
 	Hosts    []*Hosts    `orm:"reverse(many)"`
+	Records  []*Records  `orm:"reverse(many)"`
 }
 
 func init() {

@@ -19,10 +19,11 @@ type Records struct {
 	BackupSets   *BackupSets `orm:"rel(fk)"`
 	AppSets      *AppSets    `orm:"rel(fk)"`
 	Path         string
-	Type         int       // 0 - Backup, 1 - Archive
-	ArchiveId    string    `orm:"null"` // 如果Type是1（归档）时，这里应该有数据
-	BackupTime   time.Time `orm:"type(datetime)"`
-	ArchivedTime time.Time `orm:"type(datatime);null"`
+	Type         int        // 0 - Backup, 1 - Archive
+	ArchiveId    string     `orm:"null"` // 如果Type是1（归档）时，这里应该有数据
+	BackupTime   time.Time  `orm:"type(datetime)"`
+	ArchivedTime time.Time  `orm:"type(datatime);null"`
+	Jobs         []*OasJobs `orm:"reverse(many);null"`
 }
 
 func (r *Records) TableEngine() string {
