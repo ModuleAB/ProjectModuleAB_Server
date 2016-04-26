@@ -14,7 +14,7 @@ type Users struct {
 }
 
 func init() {
-	if prefix := beego.AppConfig.String("mysqlprefex"); prefix != "" {
+	if prefix := beego.AppConfig.String("database::mysqlprefex"); prefix != "" {
 		orm.RegisterModelWithPrefix(prefix, new(Users))
 	} else {
 		orm.RegisterModel(new(Users))

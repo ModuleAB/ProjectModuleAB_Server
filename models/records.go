@@ -16,8 +16,8 @@ const (
 type Records struct {
 	Id           string      `orm:"pk;size(36)"`
 	Host         *Hosts      `orm:"rel(fk)"`
-	BackupSets   *BackupSets `orm:"rel(fk)"`
-	AppSets      *AppSets    `orm:"rel(fk)"`
+	BackupSet    *BackupSets `orm:"rel(fk)"`
+	AppSet       *AppSets    `orm:"rel(fk)"`
 	Path         string
 	Type         int        // 0 - Backup, 1 - Archive
 	ArchiveId    string     `orm:"null"` // 如果Type是1（归档）时，这里应该有数据
@@ -31,7 +31,7 @@ func (r *Records) TableEngine() string {
 }
 
 func init() {
-	if prefix := beego.AppConfig.String("mysqlprefex"); prefix != "" {
+	if prefix := beego.AppConfig.String("database::mysqlprefex"); prefix != "" {
 		orm.RegisterModelWithPrefix(prefix, new(Records))
 	} else {
 		orm.RegisterModel(new(Records))

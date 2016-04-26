@@ -1,5 +1,5 @@
 // @APIVersion 1.0.0
-// @Title beego Test API
+// @Title ModulesAB API
 // @Description beego has a very cool tools to autogenerate documents for your API
 // @Contact astaxie@gmail.com
 // @TermsOfServiceUrl http://beego.me/
@@ -14,15 +14,25 @@ import (
 )
 
 func init() {
-	ns := beego.NewNamespace("/v1",
-		beego.NSNamespace("/object",
+	ns := beego.NewNamespace("/api/v1",
+		beego.NSNamespace("/hosts",
 			beego.NSInclude(
-				&controllers.ObjectController{},
+				&controllers.HostsController{},
 			),
 		),
-		beego.NSNamespace("/user",
+		beego.NSNamespace("/client",
 			beego.NSInclude(
-				&controllers.UserController{},
+				&controllers.ClientController{},
+			),
+		),
+		beego.NSNamespace("/appSets",
+			beego.NSInclude(
+				&controllers.AppSetsController{},
+			),
+		),
+		beego.NSNamespace("/oss",
+			beego.NSInclude(
+				&controllers.OssController{},
 			),
 		),
 	)

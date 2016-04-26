@@ -27,8 +27,8 @@ type Policies struct {
 	Id            string      `orm:"pk;size(36)"`
 	Name          string      `orm:"size(32)"`
 	Desc          string      `orm:"size(128);null"`
-	BackupSetsId  *BackupSets `orm:"rel(fk)"`
-	AppSetsId     *AppSets    `orm:"rel(fk);null"` // null means all
+	BackupSet     *BackupSets `orm:"rel(fk)"`
+	AppSet        *AppSets    `orm:"rel(fk);null"` // null means all
 	Target        int
 	Action        int
 	TargetStart   int `orm:"default(0)"`  // Seconds, 0 means now
@@ -37,7 +37,7 @@ type Policies struct {
 }
 
 func init() {
-	if prefix := beego.AppConfig.String("mysqlprefex"); prefix != "" {
+	if prefix := beego.AppConfig.String("database::mysqlprefex"); prefix != "" {
 		orm.RegisterModelWithPrefix(prefix, new(Policies))
 	} else {
 		orm.RegisterModel(new(Policies))

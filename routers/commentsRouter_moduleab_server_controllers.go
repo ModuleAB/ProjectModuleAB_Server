@@ -6,88 +6,116 @@ import (
 
 func init() {
 
-	beego.GlobalControllerRouter["moduleab_server/controllers:ObjectController"] = append(beego.GlobalControllerRouter["moduleab_server/controllers:ObjectController"],
+	beego.GlobalControllerRouter["moduleab_server/controllers:AppSetsController"] = append(beego.GlobalControllerRouter["moduleab_server/controllers:AppSetsController"],
 		beego.ControllerComments{
 			"Post",
 			`/`,
 			[]string{"post"},
 			nil})
 
-	beego.GlobalControllerRouter["moduleab_server/controllers:ObjectController"] = append(beego.GlobalControllerRouter["moduleab_server/controllers:ObjectController"],
+	beego.GlobalControllerRouter["moduleab_server/controllers:AppSetsController"] = append(beego.GlobalControllerRouter["moduleab_server/controllers:AppSetsController"],
 		beego.ControllerComments{
 			"Get",
-			`/:objectId`,
+			`/:name`,
 			[]string{"get"},
 			nil})
 
-	beego.GlobalControllerRouter["moduleab_server/controllers:ObjectController"] = append(beego.GlobalControllerRouter["moduleab_server/controllers:ObjectController"],
+	beego.GlobalControllerRouter["moduleab_server/controllers:AppSetsController"] = append(beego.GlobalControllerRouter["moduleab_server/controllers:AppSetsController"],
 		beego.ControllerComments{
 			"GetAll",
 			`/`,
 			[]string{"get"},
 			nil})
 
-	beego.GlobalControllerRouter["moduleab_server/controllers:ObjectController"] = append(beego.GlobalControllerRouter["moduleab_server/controllers:ObjectController"],
-		beego.ControllerComments{
-			"Put",
-			`/:objectId`,
-			[]string{"put"},
-			nil})
-
-	beego.GlobalControllerRouter["moduleab_server/controllers:ObjectController"] = append(beego.GlobalControllerRouter["moduleab_server/controllers:ObjectController"],
+	beego.GlobalControllerRouter["moduleab_server/controllers:AppSetsController"] = append(beego.GlobalControllerRouter["moduleab_server/controllers:AppSetsController"],
 		beego.ControllerComments{
 			"Delete",
-			`/:objectId`,
+			`/:name`,
 			[]string{"delete"},
 			nil})
 
-	beego.GlobalControllerRouter["moduleab_server/controllers:UserController"] = append(beego.GlobalControllerRouter["moduleab_server/controllers:UserController"],
+	beego.GlobalControllerRouter["moduleab_server/controllers:AppSetsController"] = append(beego.GlobalControllerRouter["moduleab_server/controllers:AppSetsController"],
+		beego.ControllerComments{
+			"Put",
+			`/:name`,
+			[]string{"put"},
+			nil})
+
+	beego.GlobalControllerRouter["moduleab_server/controllers:ClientController"] = append(beego.GlobalControllerRouter["moduleab_server/controllers:ClientController"],
+		beego.ControllerComments{
+			"Get",
+			`/`,
+			[]string{"get"},
+			nil})
+
+	beego.GlobalControllerRouter["moduleab_server/controllers:HostsController"] = append(beego.GlobalControllerRouter["moduleab_server/controllers:HostsController"],
 		beego.ControllerComments{
 			"Post",
 			`/`,
 			[]string{"post"},
 			nil})
 
-	beego.GlobalControllerRouter["moduleab_server/controllers:UserController"] = append(beego.GlobalControllerRouter["moduleab_server/controllers:UserController"],
+	beego.GlobalControllerRouter["moduleab_server/controllers:HostsController"] = append(beego.GlobalControllerRouter["moduleab_server/controllers:HostsController"],
+		beego.ControllerComments{
+			"Get",
+			`/:name`,
+			[]string{"get"},
+			nil})
+
+	beego.GlobalControllerRouter["moduleab_server/controllers:HostsController"] = append(beego.GlobalControllerRouter["moduleab_server/controllers:HostsController"],
 		beego.ControllerComments{
 			"GetAll",
 			`/`,
 			[]string{"get"},
 			nil})
 
-	beego.GlobalControllerRouter["moduleab_server/controllers:UserController"] = append(beego.GlobalControllerRouter["moduleab_server/controllers:UserController"],
-		beego.ControllerComments{
-			"Get",
-			`/:uid`,
-			[]string{"get"},
-			nil})
-
-	beego.GlobalControllerRouter["moduleab_server/controllers:UserController"] = append(beego.GlobalControllerRouter["moduleab_server/controllers:UserController"],
-		beego.ControllerComments{
-			"Put",
-			`/:uid`,
-			[]string{"put"},
-			nil})
-
-	beego.GlobalControllerRouter["moduleab_server/controllers:UserController"] = append(beego.GlobalControllerRouter["moduleab_server/controllers:UserController"],
+	beego.GlobalControllerRouter["moduleab_server/controllers:HostsController"] = append(beego.GlobalControllerRouter["moduleab_server/controllers:HostsController"],
 		beego.ControllerComments{
 			"Delete",
-			`/:uid`,
+			`/:name`,
 			[]string{"delete"},
 			nil})
 
-	beego.GlobalControllerRouter["moduleab_server/controllers:UserController"] = append(beego.GlobalControllerRouter["moduleab_server/controllers:UserController"],
+	beego.GlobalControllerRouter["moduleab_server/controllers:HostsController"] = append(beego.GlobalControllerRouter["moduleab_server/controllers:HostsController"],
 		beego.ControllerComments{
-			"Login",
-			`/login`,
+			"Put",
+			`/:name`,
+			[]string{"put"},
+			nil})
+
+	beego.GlobalControllerRouter["moduleab_server/controllers:OssController"] = append(beego.GlobalControllerRouter["moduleab_server/controllers:OssController"],
+		beego.ControllerComments{
+			"Post",
+			`/`,
+			[]string{"post"},
+			nil})
+
+	beego.GlobalControllerRouter["moduleab_server/controllers:OssController"] = append(beego.GlobalControllerRouter["moduleab_server/controllers:OssController"],
+		beego.ControllerComments{
+			"Get",
+			`/:name`,
 			[]string{"get"},
 			nil})
 
-	beego.GlobalControllerRouter["moduleab_server/controllers:UserController"] = append(beego.GlobalControllerRouter["moduleab_server/controllers:UserController"],
+	beego.GlobalControllerRouter["moduleab_server/controllers:OssController"] = append(beego.GlobalControllerRouter["moduleab_server/controllers:OssController"],
 		beego.ControllerComments{
-			"Logout",
-			`/logout`,
+			"GetAll",
+			`/`,
 			[]string{"get"},
+			nil})
+
+	beego.GlobalControllerRouter["moduleab_server/controllers:OssController"] = append(beego.GlobalControllerRouter["moduleab_server/controllers:OssController"],
+		beego.ControllerComments{
+			"Delete",
+			`/:name`,
+			[]string{"delete"},
+			nil})
+
+	beego.GlobalControllerRouter["moduleab_server/controllers:OssController"] = append(beego.GlobalControllerRouter["moduleab_server/controllers:OssController"],
+		beego.ControllerComments{
+			"Put",
+			`/:name`,
+			[]string{"put"},
 			nil})
 
 }

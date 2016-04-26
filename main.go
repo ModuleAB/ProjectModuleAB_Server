@@ -37,7 +37,7 @@ func main() {
 
 	beego.Info("Hello!")
 
-	err := make(error)
+	err := fmt.Errorf("")
 	switch beego.BConfig.RunMode {
 	case "newdb":
 		err = orm.RunSyncdb("default", true, true)
@@ -58,7 +58,7 @@ func main() {
 		beego.SetLevel(beego.LevelDebug)
 
 		beego.Debug("Now import database")
-		dberr = orm.RunSyncdb("default", false, true)
+		err = orm.RunSyncdb("default", false, true)
 
 	default:
 		err = orm.RunSyncdb("default", false, false)

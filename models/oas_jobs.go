@@ -13,18 +13,17 @@ const (
 	OasJobTypeDeleteArchive
 )
 
-//目前只做记录用，先调用oascmd来操作OAS
 type OasJobs struct {
 	Id        string `orm:"pk;size(36)"`
 	Vault     *Oas   `orm:"rel(fk)"`
 	RequestId string
 	JobId     string
 	JobType   int
-	Record    *Records `orm:"rek(fk);null"`
+	Records   *Records `orm:"rel(fk);null"`
 }
 
 func init() {
-	if prefix := beego.AppConfig.String("mysqlprefex"); prefix != "" {
+	if prefix := beego.AppConfig.String("database::mysqlprefex"); prefix != "" {
 		orm.RegisterModelWithPrefix(prefix, new(OasJobs))
 	} else {
 		orm.RegisterModel(new(OasJobs))

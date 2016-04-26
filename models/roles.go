@@ -20,7 +20,7 @@ type Roles struct {
 }
 
 func init() {
-	if prefix := beego.AppConfig.String("mysqlprefex"); prefix != "" {
+	if prefix := beego.AppConfig.String("database::mysqlprefex"); prefix != "" {
 		orm.RegisterModelWithPrefix(prefix, new(Roles))
 	} else {
 		orm.RegisterModel(new(Roles))
