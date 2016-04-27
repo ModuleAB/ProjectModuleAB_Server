@@ -1,10 +1,9 @@
 // @APIVersion 1.0.0
-// @Title ModulesAB API
-// @Description beego has a very cool tools to autogenerate documents for your API
-// @Contact astaxie@gmail.com
-// @TermsOfServiceUrl http://beego.me/
-// @License Apache 2.0
-// @LicenseUrl http://www.apache.org/licenses/LICENSE-2.0.html
+// @Title ModuleAB API
+// @Description ModuleAB server API
+// @Contact tonychyi1989@gmail.com
+// @License GPLv3
+// @LicenseUrl http://www.gnu.org/licenses/gpl-3.0.html
 package routers
 
 import (

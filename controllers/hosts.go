@@ -13,7 +13,7 @@ type HostsController struct {
 	beego.Controller
 }
 
-// @Title registerHost
+// @Title createHost
 // @Description create Host
 // @Param	body		body 	models.Hosts	true		"body for host content"
 // @Success 201 {string} models.Hosts.Id
