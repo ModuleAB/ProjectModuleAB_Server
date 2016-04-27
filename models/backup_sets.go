@@ -8,12 +8,12 @@ import (
 //备份集
 type BackupSets struct {
 	Id       string      `orm:"pk;size(36)"`
-	Name     string      `orm:"size(32)"`
+	Name     string      `orm:"size(32);unique;index"`
 	Desc     string      `orm:"size(128);null"`
 	Oss      *Oss        `orm:"null;rel(fk);on_delete(set_null)"`
 	Oas      *Oas        `orm:"null;rel(fk);on_delete(set_null)"`
 	Policies []*Policies `orm:"reverse(many)"`
-	Hosts    []*Hosts    `orm:"null;rel(m2m);rel_table(backupsets_to_hosts)"`
+	Hosts    []*Hosts    `orm:"null;rel(m2m)"`
 }
 
 func init() {

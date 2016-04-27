@@ -148,8 +148,8 @@ func GetOas(cond *Oas, limit, index int) ([]*Oas, error) {
 		return nil, err
 	}
 	for _, v := range r {
-		o.QueryTable("backup_sets").RelatedSel().All(&v.BackupSets)
-		o.QueryTable("jobs").RelatedSel().All(&v.Jobs)
+		o.LoadRelated(v, "BackupSets")
+		o.LoadRelated(v, "Jobs")
 	}
 	return r, nil
 }

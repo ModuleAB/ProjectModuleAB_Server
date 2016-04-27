@@ -145,8 +145,8 @@ func GetAppSets(cond *AppSets, limit, index int) ([]*AppSets, error) {
 		return nil, err
 	}
 	for _, v := range r {
-		o.QueryTable("hosts").RelatedSel().All(&v.Hosts)
-		o.QueryTable("policies").RelatedSel().All(&v.Policies)
+		o.LoadRelated(v, "Hosts")
+		o.LoadRelated(v, "Policies")
 	}
 	return r, nil
 }

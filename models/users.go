@@ -8,9 +8,9 @@ import (
 //用户
 type Users struct {
 	Id       string `orm:"pk;size(36)"`
-	Name     string `orm:"size(32)"`
+	Name     string `orm:"size(32);unique;index"`
 	Password string
-	Roles    []*Roles `orm:"rel(m2m);rel_table(users_to_roles)"`
+	Roles    []*Roles `orm:"rel(m2m)"`
 }
 
 func init() {

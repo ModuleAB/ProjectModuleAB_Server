@@ -14,7 +14,7 @@ const (
 //角色
 type Roles struct {
 	Id       string `orm:"pk;size(36)"`
-	Name     string `orm:"size(32)"`
+	Name     string `orm:"size(32);unique"`
 	RoleFlag int
 	Users    []*Users `orm:"reverse(many)"`
 }

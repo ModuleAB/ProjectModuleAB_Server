@@ -149,7 +149,7 @@ func GetHosts(cond *Hosts, limit, index int) ([]*Hosts, error) {
 		return nil, err
 	}
 	for _, v := range r {
-		o.QueryTable("backup_sets").RelatedSel().All(&v.BackupSets)
+		o.LoadRelated(v, "BackupSets")
 	}
 	return r, nil
 }
