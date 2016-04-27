@@ -35,6 +35,11 @@ func init() {
 				&controllers.OssController{},
 			),
 		),
+		beego.NSNamespace("/oas",
+			beego.NSInclude(
+				&controllers.OasController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }

@@ -15,9 +15,10 @@ type HostsController struct {
 
 // @Title createHost
 // @Description create Host
-// @Param	body		body 	models.Hosts	true		"body for host content"
-// @Success 201 {string} models.Hosts.Id
-// @Failure 403 body is empty
+// @Param	host 	body 	object true	"host"
+// @Success 201 {object} models.Hosts
+// @Failure 400 Hostname or IP missing
+// @Failure 500 Failure on writing database
 // @router / [post]
 func (h *HostsController) Post() {
 	host := new(models.Hosts)

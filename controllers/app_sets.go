@@ -13,6 +13,7 @@ type AppSetsController struct {
 	beego.Controller
 }
 
+// @Title createAppSet
 // @router / [post]
 func (a *AppSetsController) Post() {
 	appSet := new(models.AppSets)
@@ -49,6 +50,7 @@ func (a *AppSetsController) Post() {
 	return
 }
 
+// @Title getAppSet
 // @router /:name [get]
 func (a *AppSetsController) Get() {
 	name := a.GetString(":name")
@@ -82,6 +84,7 @@ func (a *AppSetsController) Get() {
 	}
 }
 
+// @Title listAppSets
 // @router / [get]
 func (a *AppSetsController) GetAll() {
 	limit, _ := a.GetInt("limit", 0)
@@ -112,6 +115,7 @@ func (a *AppSetsController) GetAll() {
 	}
 }
 
+// @Title deleteAppSet
 // @router /:name [delete]
 func (a *AppSetsController) Delete() {
 	name := a.GetString(":name")
@@ -155,6 +159,7 @@ func (a *AppSetsController) Delete() {
 	}
 }
 
+// @Title updateAppSet
 // @router /:name [put]
 func (a *AppSetsController) Put() {
 	name := a.GetString(":name")

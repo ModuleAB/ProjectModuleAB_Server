@@ -27,6 +27,7 @@ func (c *ClientController) GetAliConfig() {
 	c.ServeJSON()
 }
 
+// @Title getSignals
 // @router /signal/:name [get]
 func (c *ClientController) GetSignals() {
 	name := c.GetString(":name")
@@ -60,6 +61,7 @@ func (c *ClientController) GetSignals() {
 	}
 }
 
+// @Title getSignal
 // @router /signal/:name/:id [get]
 func (c *ClientController) GetSignal() {
 	name := c.GetString(":name")
@@ -106,6 +108,7 @@ func (c *ClientController) GetSignal() {
 	}
 }
 
+// @Title createSignal
 // @router /signal/:name [post]
 func (c *ClientController) PostSignal() {
 	name := c.GetString(":name")
@@ -164,6 +167,7 @@ func (c *ClientController) PostSignal() {
 	}
 }
 
+// @Title deleteSignal
 // @router /signal/:name/:id [delete]
 func (c *ClientController) DeleteSignal() {
 	name := c.GetString(":name")

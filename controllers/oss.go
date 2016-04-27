@@ -13,6 +13,7 @@ type OssController struct {
 	beego.Controller
 }
 
+// @Title createOSS
 // @router / [post]
 func (a *OssController) Post() {
 	oss := new(models.Oss)
@@ -49,6 +50,7 @@ func (a *OssController) Post() {
 	return
 }
 
+// @Title getOSS
 // @router /:name [get]
 func (a *OssController) Get() {
 	name := a.GetString(":name")
@@ -82,6 +84,7 @@ func (a *OssController) Get() {
 	}
 }
 
+// @Title listOSS
 // @router / [get]
 func (a *OssController) GetAll() {
 	limit, _ := a.GetInt("limit", 0)
@@ -112,6 +115,7 @@ func (a *OssController) GetAll() {
 	}
 }
 
+// @Title deleteOSS
 // @router /:name [delete]
 func (a *OssController) Delete() {
 	name := a.GetString(":name")
@@ -155,6 +159,7 @@ func (a *OssController) Delete() {
 	}
 }
 
+// @Title updateOSS
 // @router /:name [put]
 func (a *OssController) Put() {
 	name := a.GetString(":name")

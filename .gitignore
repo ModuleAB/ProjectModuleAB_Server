@@ -4,3 +4,4 @@ moduleab_server
 routers/commentsRouter_moduleab_server_controllers.go
 swagger/
 cpu-*
+doc/docs.go

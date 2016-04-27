@@ -15,6 +15,7 @@ type OasController struct {
 	beego.Controller
 }
 
+// @Title createOAS
 // @router / [post]
 func (a *OasController) Post() {
 	oas := new(models.Oas)
@@ -74,6 +75,7 @@ func (a *OasController) Post() {
 	a.ServeJSON()
 }
 
+// @Title getOAS
 // @router /:name [get]
 func (a *OasController) Get() {
 	name := a.GetString(":name")
@@ -107,6 +109,7 @@ func (a *OasController) Get() {
 	}
 }
 
+// @Title listOAS
 // @router / [get]
 func (a *OasController) GetAll() {
 	limit, _ := a.GetInt("limit", 0)
@@ -137,6 +140,7 @@ func (a *OasController) GetAll() {
 	}
 }
 
+// @Title deleteOAS
 // @router /:name [delete]
 func (a *OasController) Delete() {
 	name := a.GetString(":name")
@@ -180,6 +184,7 @@ func (a *OasController) Delete() {
 	}
 }
 
+// @Title updateOAS
 // @router /:name [put]
 func (a *OasController) Put() {
 	name := a.GetString(":name")
