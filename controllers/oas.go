@@ -3,20 +3,22 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"moduleab_server/common"
 	"moduleab_server/models"
+
 	"net/http"
 
 	"github.com/astaxie/beego"
 )
 
-type OssController struct {
+type OasController struct {
 	beego.Controller
 }
 
 // @router / [post]
-func (a *OssController) Post() {
-	oss := new(models.Oss)
-	err := json.Unmarshal(a.Ctx.Input.RequestBody, oss)
+func (a *OasController) Post() {
+	oas := new(models.Oas)
+	err := json.Unmarshal(a.Ctx.Input.RequestBody, oas)
 	if err != nil {
 		beego.Warn("[C] Got error:", err)
 		a.Data["json"] = map[string]string{
@@ -27,8 +29,32 @@ func (a *OssController) Post() {
 		a.ServeJSON()
 		return
 	}
-	beego.Debug("[C] Got data:", oss)
-	id, err := models.AddOss(oss)
+
+	err = common.InitOasClient(oas.Endpoint)
+	if err != nil {
+		beego.Warn("[C] Got error:", err)
+		a.Data["json"] = map[string]string{
+			"message": "Bad config",
+			"error":   err.Error(),
+		}
+		a.Ctx.Output.SetStatus(http.StatusInternalServerError)
+		a.ServeJSON()
+		return
+	}
+	oas.VaultId, err = common.GetOasVaultId(oas.VaultName)
+	if err != nil {
+		beego.Warn("[C] Got error:", err)
+		a.Data["json"] = map[string]string{
+			"message": "Failed to access OAS",
+			"error":   err.Error(),
+		}
+		a.Ctx.Output.SetStatus(http.StatusInternalServerError)
+		a.ServeJSON()
+		return
+	}
+
+	beego.Debug("[C] Got data:", oas)
+	id, err := models.AddOas(oas)
 	if err != nil {
 		beego.Warn("[C] Got error:", err)
 		a.Data["json"] = map[string]string{
@@ -46,18 +72,17 @@ func (a *OssController) Post() {
 	}
 	a.Ctx.Output.SetStatus(http.StatusCreated)
 	a.ServeJSON()
-	return
 }
 
 // @router /:name [get]
-func (a *OssController) Get() {
+func (a *OasController) Get() {
 	name := a.GetString(":name")
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
-		oss := &models.Oss{
+		oas := &models.Oas{
 			BucketName: name,
 		}
-		osss, err := models.GetOss(oss)
+		oass, err := models.GetOas(oas)
 		if err != nil {
 			a.Data["json"] = map[string]string{
 				"message": fmt.Sprint("Failed to get  with name:", name),
@@ -68,8 +93,8 @@ func (a *OssController) Get() {
 			a.ServeJSON()
 			return
 		}
-		a.Data["json"] = osss
-		if len(osss) == 0 {
+		a.Data["json"] = oass
+		if len(oass) == 0 {
 			beego.Debug("[C] Got nothing with name:", name)
 			a.Ctx.Output.SetStatus(http.StatusNotFound)
 			a.ServeJSON()
@@ -83,9 +108,9 @@ func (a *OssController) Get() {
 }
 
 // @router / [get]
-func (a *OssController) GetAll() {
-	oss := &models.Oss{}
-	osss, err := models.GetOss(oss)
+func (a *OasController) GetAll() {
+	oas := &models.Oas{}
+	oass, err := models.GetOas(oas)
 	if err != nil {
 		a.Data["json"] = map[string]string{
 			"message": fmt.Sprint("Failed to get"),
@@ -96,8 +121,8 @@ func (a *OssController) GetAll() {
 		a.ServeJSON()
 		return
 	}
-	a.Data["json"] = osss
-	if len(osss) == 0 {
+	a.Data["json"] = oass
+	if len(oass) == 0 {
 		beego.Debug("[C] Got nothing")
 		a.Ctx.Output.SetStatus(http.StatusNotFound)
 		a.ServeJSON()
@@ -110,14 +135,14 @@ func (a *OssController) GetAll() {
 }
 
 // @router /:name [delete]
-func (a *OssController) Delete() {
+func (a *OasController) Delete() {
 	name := a.GetString(":name")
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
-		oss := &models.Oss{
+		oas := &models.Oas{
 			BucketName: name,
 		}
-		osss, err := models.GetOss(oss)
+		oass, err := models.GetOas(oas)
 		if err != nil {
 			a.Data["json"] = map[string]string{
 				"message": fmt.Sprint("Failed to get with name:", name),
@@ -128,13 +153,13 @@ func (a *OssController) Delete() {
 			a.ServeJSON()
 			return
 		}
-		if len(osss) == 0 {
+		if len(oass) == 0 {
 			beego.Debug("[C] Got nothing with name:", name)
 			a.Ctx.Output.SetStatus(http.StatusNotFound)
 			a.ServeJSON()
 			return
 		}
-		err = models.DeleteOss(osss[0])
+		err = models.DeleteOas(oass[0])
 		if err != nil {
 			a.Data["json"] = map[string]string{
 				"message": fmt.Sprint("Failed to delete with name:", name),
@@ -153,14 +178,14 @@ func (a *OssController) Delete() {
 }
 
 // @router /:name [put]
-func (a *OssController) Put() {
+func (a *OasController) Put() {
 	name := a.GetString(":name")
-	beego.Debug("[C] Got oss name:", name)
+	beego.Debug("[C] Got oas name:", name)
 	if name != "" {
-		oss := &models.Oss{
+		oas := &models.Oas{
 			BucketName: name,
 		}
-		osss, err := models.GetOss(oss)
+		oass, err := models.GetOas(oas)
 		if err != nil {
 			a.Data["json"] = map[string]string{
 				"message": fmt.Sprint("Failed to get with name:", name),
@@ -171,15 +196,15 @@ func (a *OssController) Put() {
 			a.ServeJSON()
 			return
 		}
-		if len(osss) == 0 {
+		if len(oass) == 0 {
 			beego.Debug("[C] Got nothing with name:", name)
 			a.Ctx.Output.SetStatus(http.StatusNotFound)
 			a.ServeJSON()
 			return
 		}
 
-		err = json.Unmarshal(a.Ctx.Input.RequestBody, oss)
-		oss.Id = osss[0].Id
+		err = json.Unmarshal(a.Ctx.Input.RequestBody, oas)
+		oas.Id = oass[0].Id
 		if err != nil {
 			beego.Warn("[C] Got error:", err)
 			a.Data["json"] = map[string]string{
@@ -190,8 +215,8 @@ func (a *OssController) Put() {
 			a.ServeJSON()
 			return
 		}
-		beego.Debug("[C] Got oss data:", oss)
-		err = models.UpdateOss(oss)
+		beego.Debug("[C] Got oas data:", oas)
+		err = models.UpdateOas(oas)
 		if err != nil {
 			a.Data["json"] = map[string]string{
 				"message": fmt.Sprint("Failed to update with name:", name),

@@ -30,6 +30,7 @@ func (h *HostsController) Post() {
 		}
 		h.Ctx.Output.SetStatus(http.StatusBadRequest)
 		h.ServeJSON()
+		return
 	}
 	beego.Debug("[C] Got data:", host)
 	id, err := models.AddHost(host)
@@ -41,6 +42,7 @@ func (h *HostsController) Post() {
 		}
 		h.Ctx.Output.SetStatus(http.StatusInternalServerError)
 		h.ServeJSON()
+		return
 	}
 
 	beego.Debug("[C] Got id:", id)
@@ -49,6 +51,7 @@ func (h *HostsController) Post() {
 	}
 	h.Ctx.Output.SetStatus(http.StatusCreated)
 	h.ServeJSON()
+	return
 }
 
 // @Title getHost
@@ -73,15 +76,18 @@ func (h *HostsController) Get() {
 			beego.Warn("[C] Got error:", err)
 			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
 			h.ServeJSON()
+			return
 		}
 		h.Data["json"] = hosts
 		if len(hosts) == 0 {
 			beego.Debug("[C] Got nothing with name:", name)
 			h.Ctx.Output.SetStatus(http.StatusNotFound)
 			h.ServeJSON()
+			return
 		} else {
 			h.Ctx.Output.SetStatus(http.StatusOK)
 			h.ServeJSON()
+			return
 		}
 	}
 }
@@ -101,15 +107,18 @@ func (h *HostsController) GetAll() {
 		beego.Warn("[C] Got error:", err)
 		h.Ctx.Output.SetStatus(http.StatusInternalServerError)
 		h.ServeJSON()
+		return
 	}
 	h.Data["json"] = hosts
 	if len(hosts) == 0 {
 		beego.Debug("[C] Got nothing")
 		h.Ctx.Output.SetStatus(http.StatusNotFound)
 		h.ServeJSON()
+		return
 	} else {
 		h.Ctx.Output.SetStatus(http.StatusOK)
 		h.ServeJSON()
+		return
 	}
 }
 
@@ -134,11 +143,13 @@ func (h *HostsController) Delete() {
 			beego.Warn("[C] Got error:", err)
 			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
 			h.ServeJSON()
+			return
 		}
 		if len(hosts) == 0 {
 			beego.Debug("[C] Got nothing with name:", name)
 			h.Ctx.Output.SetStatus(http.StatusNotFound)
 			h.ServeJSON()
+			return
 		}
 		err = models.DeleteHost(hosts[0])
 		if err != nil {
@@ -149,10 +160,12 @@ func (h *HostsController) Delete() {
 			beego.Warn("[C] Got error:", err)
 			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
 			h.ServeJSON()
+			return
 
 		}
 		h.Ctx.Output.SetStatus(http.StatusNoContent)
 		h.ServeJSON()
+		return
 	}
 }
 
@@ -167,6 +180,8 @@ func (h *HostsController) Put() {
 	if name != "" {
 		host := &models.Hosts{
 			Name: name,
+			// 外键关系也需要初始化，否则会出现问题，反向关系则不用
+			AppSet: new(models.AppSets),
 		}
 		hosts, err := models.GetHosts(host)
 		if err != nil {
@@ -177,15 +192,16 @@ func (h *HostsController) Put() {
 			beego.Warn("[C] Got error:", err)
 			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
 			h.ServeJSON()
+			return
 		}
 		if len(hosts) == 0 {
 			beego.Debug("[C] Got nothing with name:", name)
 			h.Ctx.Output.SetStatus(http.StatusNotFound)
 			h.ServeJSON()
+			return
 		}
 
 		err = json.Unmarshal(h.Ctx.Input.RequestBody, host)
-		host.Id = hosts[0].Id
 		if err != nil {
 			beego.Warn("[C] Got error:", err)
 			h.Data["json"] = map[string]string{
@@ -194,6 +210,11 @@ func (h *HostsController) Put() {
 			}
 			h.Ctx.Output.SetStatus(http.StatusBadRequest)
 			h.ServeJSON()
+			return
+		}
+		host.Id = hosts[0].Id
+		if host.AppSet != nil {
+			host.AppSet = hosts[0].AppSet
 		}
 		beego.Debug("[C] Got host data:", host)
 		err = models.UpdateHost(host)
@@ -205,9 +226,11 @@ func (h *HostsController) Put() {
 			beego.Warn("[C] Got error:", err)
 			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
 			h.ServeJSON()
+			return
 
 		}
 		h.Ctx.Output.SetStatus(http.StatusAccepted)
 		h.ServeJSON()
+		return
 	}
 }

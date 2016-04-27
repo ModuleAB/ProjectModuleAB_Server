@@ -14,6 +14,7 @@ import (
 )
 
 func init() {
+	beego.ErrorController(&controllers.ErrorController{})
 	ns := beego.NewNamespace("/api/v1",
 		beego.NSNamespace("/hosts",
 			beego.NSInclude(
