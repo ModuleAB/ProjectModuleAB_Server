@@ -19,8 +19,8 @@ func InitOasClient(endpoint string) error {
 		return fmt.Errorf("Bad config value type (expect bool): apiapi::oasport")
 	}
 
-	DefaultClient = oas.NewOasClient(
-		a.Endpoint,
+	DefaultOasClient = oas.NewOasClient(
+		endpoint,
 		beego.AppConfig.String("aliapi::apikey"),
 		beego.AppConfig.String("aliapi::secret"),
 		oasPort,
@@ -32,7 +32,7 @@ func InitOasClient(endpoint string) error {
 func GetOasVaultId(name string) (string, error) {
 	v := new(oas.VaultsList)
 	for {
-		id, v, err := DefaultClient.ListVaults(-1, v.Marker)
+		id, v, err := DefaultOasClient.ListVaults(-1, v.Marker)
 		beego.Debug("OAS request ID:", id)
 		if err != nil {
 

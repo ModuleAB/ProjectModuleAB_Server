@@ -57,7 +57,7 @@ func (a *OssController) Get() {
 		oss := &models.Oss{
 			BucketName: name,
 		}
-		osss, err := models.GetOss(oss)
+		osss, err := models.GetOss(oss, 0, 0)
 		if err != nil {
 			a.Data["json"] = map[string]string{
 				"message": fmt.Sprint("Failed to get  with name:", name),
@@ -84,8 +84,11 @@ func (a *OssController) Get() {
 
 // @router / [get]
 func (a *OssController) GetAll() {
+	limit, _ := a.GetInt("limit", 0)
+	index, _ := a.GetInt("index", 0)
+
 	oss := &models.Oss{}
-	osss, err := models.GetOss(oss)
+	osss, err := models.GetOss(oss, limit, index)
 	if err != nil {
 		a.Data["json"] = map[string]string{
 			"message": fmt.Sprint("Failed to get"),
@@ -117,7 +120,7 @@ func (a *OssController) Delete() {
 		oss := &models.Oss{
 			BucketName: name,
 		}
-		osss, err := models.GetOss(oss)
+		osss, err := models.GetOss(oss, 0, 0)
 		if err != nil {
 			a.Data["json"] = map[string]string{
 				"message": fmt.Sprint("Failed to get with name:", name),
@@ -160,7 +163,7 @@ func (a *OssController) Put() {
 		oss := &models.Oss{
 			BucketName: name,
 		}
-		osss, err := models.GetOss(oss)
+		osss, err := models.GetOss(oss, 0, 0)
 		if err != nil {
 			a.Data["json"] = map[string]string{
 				"message": fmt.Sprint("Failed to get with name:", name),

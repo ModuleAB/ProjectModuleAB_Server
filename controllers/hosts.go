@@ -67,7 +67,7 @@ func (h *HostsController) Get() {
 		host := &models.Hosts{
 			Name: name,
 		}
-		hosts, err := models.GetHosts(host)
+		hosts, err := models.GetHosts(host, 0, 0)
 		if err != nil {
 			h.Data["json"] = map[string]string{
 				"message": fmt.Sprint("Failed to get with name:", name),
@@ -97,8 +97,11 @@ func (h *HostsController) Get() {
 // @Success 200
 // @router / [get]
 func (h *HostsController) GetAll() {
+	limit, _ := h.GetInt("limit", 0)
+	index, _ := h.GetInt("index", 0)
+
 	host := &models.Hosts{}
-	hosts, err := models.GetHosts(host)
+	hosts, err := models.GetHosts(host, limit, index)
 	if err != nil {
 		h.Data["json"] = map[string]string{
 			"message": fmt.Sprint("Failed to get"),
@@ -134,7 +137,7 @@ func (h *HostsController) Delete() {
 		host := &models.Hosts{
 			Name: name,
 		}
-		hosts, err := models.GetHosts(host)
+		hosts, err := models.GetHosts(host, 0, 0)
 		if err != nil {
 			h.Data["json"] = map[string]string{
 				"message": fmt.Sprint("Failed to get with name:", name),
@@ -176,14 +179,14 @@ func (h *HostsController) Delete() {
 // @router /:name [put]
 func (h *HostsController) Put() {
 	name := h.GetString(":name")
-	beego.Debug("[C] Got host name:", name)
+	beego.Debug("[C] Got name:", name)
 	if name != "" {
 		host := &models.Hosts{
 			Name: name,
 			// 外键关系也需要初始化，否则会出现问题，反向关系则不用
 			AppSet: new(models.AppSets),
 		}
-		hosts, err := models.GetHosts(host)
+		hosts, err := models.GetHosts(host, 0, 0)
 		if err != nil {
 			h.Data["json"] = map[string]string{
 				"message": fmt.Sprint("Failed to get with name:", name),

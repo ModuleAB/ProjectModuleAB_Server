@@ -123,7 +123,7 @@ func UpdateOas(a *Oas) error {
 }
 
 // If get all, just use &Oas{}
-func GetOas(cond *Oas) ([]*Oas, error) {
+func GetOas(cond *Oas, limit, index int) ([]*Oas, error) {
 	r := make([]*Oas, 0)
 	o := orm.NewOrm()
 	q := o.QueryTable("oas")
@@ -133,8 +133,14 @@ func GetOas(cond *Oas) ([]*Oas, error) {
 	if cond.Endpoint != "" {
 		q = q.Filter("endpoint", cond.Id)
 	}
-	if cond.BucketName != "" {
-		q = q.Filter("name", cond.BucketName)
+	if cond.VaultName != "" {
+		q = q.Filter("name", cond.VaultName)
+	}
+	if limit > 0 {
+		q = q.Limit(limit)
+	}
+	if index > 0 {
+		q = q.Offset(index)
 	}
 	_, err := q.All(&r)
 

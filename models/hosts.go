@@ -124,7 +124,7 @@ func UpdateHost(h *Hosts) error {
 }
 
 // If get all, just use &Host{}
-func GetHosts(cond *Hosts) ([]*Hosts, error) {
+func GetHosts(cond *Hosts, limit, index int) ([]*Hosts, error) {
 	r := make([]*Hosts, 0)
 	o := orm.NewOrm()
 	q := o.QueryTable("hosts")
@@ -137,6 +137,13 @@ func GetHosts(cond *Hosts) ([]*Hosts, error) {
 	if cond.IpAddr != "" {
 		q = q.Filter("ip_addr", cond.IpAddr)
 	}
+	if limit > 0 {
+		q = q.Limit(limit)
+	}
+	if index > 0 {
+		q = q.Offset(index)
+	}
+
 	_, err := q.RelatedSel().All(&r)
 	if err != nil {
 		return nil, err

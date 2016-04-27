@@ -57,7 +57,7 @@ func (a *AppSetsController) Get() {
 		appSet := &models.AppSets{
 			Name: name,
 		}
-		appSets, err := models.GetAppSets(appSet)
+		appSets, err := models.GetAppSets(appSet, 0, 0)
 		if err != nil {
 			a.Data["json"] = map[string]string{
 				"message": fmt.Sprint("Failed to get  with name:", name),
@@ -84,8 +84,11 @@ func (a *AppSetsController) Get() {
 
 // @router / [get]
 func (a *AppSetsController) GetAll() {
+	limit, _ := a.GetInt("limit", 0)
+	index, _ := a.GetInt("index", 0)
+
 	appSet := &models.AppSets{}
-	appSets, err := models.GetAppSets(appSet)
+	appSets, err := models.GetAppSets(appSet, limit, index)
 	if err != nil {
 		a.Data["json"] = map[string]string{
 			"message": fmt.Sprint("Failed to get"),
@@ -117,7 +120,7 @@ func (a *AppSetsController) Delete() {
 		appSet := &models.AppSets{
 			Name: name,
 		}
-		appSets, err := models.GetAppSets(appSet)
+		appSets, err := models.GetAppSets(appSet, 0, 0)
 		if err != nil {
 			a.Data["json"] = map[string]string{
 				"message": fmt.Sprint("Failed to get with name:", name),
@@ -160,7 +163,7 @@ func (a *AppSetsController) Put() {
 		appSet := &models.AppSets{
 			Name: name,
 		}
-		appSets, err := models.GetAppSets(appSet)
+		appSets, err := models.GetAppSets(appSet, 0, 0)
 		if err != nil {
 			a.Data["json"] = map[string]string{
 				"message": fmt.Sprint("Failed to get with name:", name),

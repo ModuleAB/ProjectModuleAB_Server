@@ -1,17 +1,15 @@
 package models
 
 import (
-	"encoding/json"
+	"errors"
 	"fmt"
+	"moduleab_server/common"
 	"time"
 
-	"github.com/astaxie/beego"
-	"github.com/astaxie/beego/cache"
-	_ "github.com/astaxie/beego/cache/redis"
+	"github.com/pborman/uuid"
 )
 
 const (
-	defaultRedisKey   = "ModuleAB"
 	CacheSignalPrefix = "Signal_"
 )
 
@@ -20,46 +18,38 @@ const (
 	SignalTypeDownload
 )
 
-var redis cache.Cache
-
-func init() {
-	var err error
-	redisConf := make(map[string]string)
-	redisConf["conn"] = beego.AppConfig.String("redis::host")
-	redisConf["password"] = beego.AppConfig.String("reids::password")
-	redisConf["key"] = beego.AppConfig.String("redis::key")
-	b, _ := json.Marshal(redisConf)
-	redis, err = cache.NewCache("redis", string(b))
-	if err != nil {
-		beego.Alert("Connect to redis failed:", err)
-	}
-}
+var (
+	ErrorSignalNotFound    = errors.New("Signal Not Found")
+	ErrorSignalBadDataType = errors.New("Bad data type")
+)
 
 type Signal map[string]interface{}
 
-func AddSignal(hostId string, signal Signal) error {
-	keyName := fmt.Sprintf("%s%s", defaultRedisKey, hostId)
-	if !redis.IsExist(keyName) {
+func AddSignal(hostId string, signal Signal) (string, error) {
+	keyName := fmt.Sprintf("%s%s", common.DefaultRedisKey, hostId)
+	newId := uuid.New()
+	signal["id"] = newId
+	if !common.DefaultRedisClient.IsExist(keyName) {
 		v := make([]Signal, 0)
 		v = append(v, signal)
 		// You have 30 minutes to take it out, or failed
-		return redis.Put(keyName, v, 30*time.Minute)
+		return newId, common.DefaultRedisClient.Put(keyName, v, 30*time.Minute)
 
 	} else {
-		v := redis.Get(keyName)
+		v := common.DefaultRedisClient.Get(keyName)
 		n, ok := v.([]Signal)
 		if !ok {
-			return fmt.Errorf("Bad DataType")
+			return "", ErrorSignalBadDataType
 		}
 		n = append(n, signal)
-		return redis.Put(keyName, v, 30*time.Minute)
+		return newId, common.DefaultRedisClient.Put(keyName, v, 30*time.Minute)
 	}
-	return nil
+	return "", nil
 }
 
 func GetSignals(hostId string) []Signal {
-	keyName := fmt.Sprintf("%s%s", defaultRedisKey, hostId)
-	v := redis.Get(keyName)
+	keyName := fmt.Sprintf("%s%s", common.DefaultRedisKey, hostId)
+	v := common.DefaultRedisClient.Get(keyName)
 	n, ok := v.([]Signal)
 	if !ok {
 		return nil
@@ -68,37 +58,25 @@ func GetSignals(hostId string) []Signal {
 }
 
 func TruncateSignals(hostId string) {
-	keyName := fmt.Sprintf("%s%s", defaultRedisKey, hostId)
-	redis.Delete(keyName)
+	keyName := fmt.Sprintf("%s%s", common.DefaultRedisKey, hostId)
+	common.DefaultRedisClient.Delete(keyName)
 }
 
-func DeleteSignal(hostId string, signal Signal) error {
-	keyName := fmt.Sprintf("%s%s", defaultRedisKey, hostId)
-	if redis.IsExist(keyName) {
-		v := redis.Get(keyName)
+func DeleteSignal(hostId string, signalId string) error {
+	keyName := fmt.Sprintf("%s%s", common.DefaultRedisKey, hostId)
+	if common.DefaultRedisClient.IsExist(keyName) {
+		v := common.DefaultRedisClient.Get(keyName)
 		n, ok := v.([]Signal)
 		if !ok {
-			return fmt.Errorf("Bad DataType")
+			return ErrorSignalBadDataType
 		}
 		a := make([]Signal, 0)
 		for _, v := range n {
-			if equal(v, signal) {
+			if v["id"] != signalId {
 				a = append(a, v)
 			}
 		}
-		return redis.Put(keyName, a, 30*time.Minute)
+		return common.DefaultRedisClient.Put(keyName, a, 30*time.Minute)
 	}
-	return nil
-}
-
-func equal(x, y Signal) bool {
-	if len(x) != len(y) {
-		return false
-	}
-	for k, xv := range x {
-		if yv, ok := y[k]; !ok || yv != xv {
-			return false
-		}
-	}
-	return true
+	return ErrorSignalNotFound
 }

@@ -123,7 +123,7 @@ func UpdateAppSet(a *AppSets) error {
 }
 
 // If get all, just use &Host{}
-func GetAppSets(cond *AppSets) ([]*AppSets, error) {
+func GetAppSets(cond *AppSets, limit, index int) ([]*AppSets, error) {
 	r := make([]*AppSets, 0)
 	o := orm.NewOrm()
 	q := o.QueryTable("app_sets")
@@ -132,6 +132,12 @@ func GetAppSets(cond *AppSets) ([]*AppSets, error) {
 	}
 	if cond.Name != "" {
 		q = q.Filter("name", cond.Name)
+	}
+	if limit > 0 {
+		q = q.Limit(limit)
+	}
+	if index > 0 {
+		q = q.Offset(index)
 	}
 	_, err := q.All(&r)
 

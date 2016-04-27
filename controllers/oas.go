@@ -80,9 +80,9 @@ func (a *OasController) Get() {
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
 		oas := &models.Oas{
-			BucketName: name,
+			VaultName: name,
 		}
-		oass, err := models.GetOas(oas)
+		oass, err := models.GetOas(oas, 0, 0)
 		if err != nil {
 			a.Data["json"] = map[string]string{
 				"message": fmt.Sprint("Failed to get  with name:", name),
@@ -109,8 +109,11 @@ func (a *OasController) Get() {
 
 // @router / [get]
 func (a *OasController) GetAll() {
+	limit, _ := a.GetInt("limit", 0)
+	index, _ := a.GetInt("index", 0)
+
 	oas := &models.Oas{}
-	oass, err := models.GetOas(oas)
+	oass, err := models.GetOas(oas, limit, index)
 	if err != nil {
 		a.Data["json"] = map[string]string{
 			"message": fmt.Sprint("Failed to get"),
@@ -140,9 +143,9 @@ func (a *OasController) Delete() {
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
 		oas := &models.Oas{
-			BucketName: name,
+			VaultName: name,
 		}
-		oass, err := models.GetOas(oas)
+		oass, err := models.GetOas(oas, 0, 0)
 		if err != nil {
 			a.Data["json"] = map[string]string{
 				"message": fmt.Sprint("Failed to get with name:", name),
@@ -183,9 +186,9 @@ func (a *OasController) Put() {
 	beego.Debug("[C] Got oas name:", name)
 	if name != "" {
 		oas := &models.Oas{
-			BucketName: name,
+			VaultName: name,
 		}
-		oass, err := models.GetOas(oas)
+		oass, err := models.GetOas(oas, 0, 0)
 		if err != nil {
 			a.Data["json"] = map[string]string{
 				"message": fmt.Sprint("Failed to get with name:", name),
