@@ -16,6 +16,7 @@ type Hosts struct {
 	IpAddr     string        `orm:"index;unique;size(15)" json:"ip" valid:"Required;IP"`
 	AppSet     *AppSets      `orm:"rel(fk);on_delete(set_null);null" json:"app_set"`
 	BackupSets []*BackupSets `orm:"reverse(many)" json:"backup_sets"`
+	Paths      []*Paths      `orm:"rel(m2m)" json:"path"`
 }
 
 func init() {
@@ -150,6 +151,7 @@ func GetHosts(cond *Hosts, limit, index int) ([]*Hosts, error) {
 	}
 	for _, v := range r {
 		o.LoadRelated(v, "BackupSets")
+		o.LoadRelated(v, "Paths")
 	}
 	return r, nil
 }

@@ -7,7 +7,6 @@ package main
 import (
 	"fmt"
 
-	"moduleab_server/common"
 	_ "moduleab_server/docs"
 	"moduleab_server/models"
 	_ "moduleab_server/routers"
@@ -99,7 +98,7 @@ func initDb() {
 			RoleFlag: models.RoleFlagUser,
 		},
 	}
-	o.Begin() // TODO 用AddRole函数改写
+	o.Begin()
 	_, err := o.InsertMulti(1, role)
 	if err != nil {
 		o.Rollback()
@@ -111,22 +110,17 @@ func initDb() {
 	user := &models.Users{
 		Id:       uuid.New(),
 		Name:     "admin",
-		Password: common.EncryptPassword("admin"),
+		ShowName: "Administrator",
+		Password: "admin",
+		Roles: []*models.Roles{
+			&role[0],
+		},
 	}
-	o.Begin() // TODO 用AddUser函数改写
-	_, err = o.Insert(user)
+	_, err = models.AddUser(user)
 	if err != nil {
-		o.Rollback()
 		beego.Alert("Error on inserting user:", err)
 		os.Exit(1)
 	}
-	_, err = o.QueryM2M(user, "Roles").Add(&role[0])
-	if err != nil {
-		o.Rollback()
-		beego.Alert("Error on relating user and role:", err)
-		os.Exit(1)
-	}
-	o.Commit()
 
 	appSet := &models.AppSets{
 		Name: "Default",
@@ -143,12 +137,10 @@ func initDb() {
 		Name: "Default",
 		Desc: "Default backup set",
 	}
-	o.Begin()
-	_, err = o.Insert(backupSet) // TODO 用AddBackupSet函数改写
+	_, err = models.AddBackupSet(backupSet)
 	if err != nil {
 		o.Rollback()
 		beego.Alert("Error on inserting default backup set:", err)
 		os.Exit(1)
 	}
-	o.Commit()
 }

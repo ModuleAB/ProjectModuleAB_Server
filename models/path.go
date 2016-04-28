@@ -9,33 +9,34 @@ import (
 	"github.com/pborman/uuid"
 )
 
-type Oss struct {
-	Id         string        `orm:"pk;size(36)" json:"id" valid:"Match(/^[A-Fa-f0-9]{8}-([A-Fa-f0-9]{4}-){3}[A-Fa-f0-9]{12}$/)"`
-	Endpoint   string        `json:"endpoint" valid:"Required"`
-	BucketName string        `orm:"size(32);index;unique" json:"name" valid:"Required"`
-	BackupSets []*BackupSets `orm:"reverse(many)"`
+type Paths struct {
+	Id        string      `orm:"pk;size(36)" json:"id" valid:"Match(/^[A-Fa-f0-9]{8}-([A-Fa-f0-9]{4}-){3}[A-Fa-f0-9]{12}$/)"`
+	Path      string      `orm:"unique;index" json:"path" valid:"Required"`
+	Host      []*Hosts    `orm:"reverse(many)" json:"host"`
+	AppSet    *AppSets    `orm:"rel(fk)" json:"app_set"`
+	BackupSet *BackupSets `orm:"rel(fk)" json:"backup_set"`
 }
 
 func init() {
 	if prefix := beego.AppConfig.String("database::mysqlprefex"); prefix != "" {
-		orm.RegisterModelWithPrefix(prefix, new(Oss))
+		orm.RegisterModelWithPrefix(prefix, new(Paths))
 	} else {
-		orm.RegisterModel(new(Oss))
+		orm.RegisterModel(new(Paths))
 	}
 }
 
-func AddOss(a *Oss) (string, error) {
-	beego.Debug("[M] Got data:", a)
+func AddPath(path *Paths) (string, error) {
+	beego.Debug("[M] Got data:", path)
 	o := orm.NewOrm()
 	err := o.Begin()
 	if err != nil {
 		return "", err
 	}
 
-	a.Id = uuid.New()
-	beego.Debug("[M] Got new id:", a.Id)
+	path.Id = uuid.New()
+	beego.Debug("[M] Got id:", path.Id)
 	validator := new(validation.Validation)
-	valid, err := validator.Valid(a)
+	valid, err := validator.Valid(path)
 	if err != nil {
 		o.Rollback()
 		return "", err
@@ -48,26 +49,28 @@ func AddOss(a *Oss) (string, error) {
 		}
 		return "", fmt.Errorf("Bad info: %s", errS)
 	}
-	beego.Debug("[M] Got new data:", a)
-	_, err = o.Insert(a)
+
+	beego.Debug("[M] Got new data:", path)
+	_, err = o.Insert(path)
 	if err != nil {
 		o.Rollback()
 		return "", err
 	}
-	beego.Debug("[M] Oss info saved")
+	beego.Debug("[M] Path data saved")
 	o.Commit()
-	return a.Id, nil
+	return path.Id, nil
+
 }
 
-func DeleteOss(a *Oss) error {
-	beego.Debug("[M] Got data:", a)
+func DeletePath(h *Paths) error {
+	beego.Debug("[M] Got data:", h)
 	o := orm.NewOrm()
 	err := o.Begin()
 	if err != nil {
 		return err
 	}
 	validator := new(validation.Validation)
-	valid, err := validator.Valid(a)
+	valid, err := validator.Valid(h)
 	if err != nil {
 		o.Rollback()
 		return err
@@ -80,7 +83,7 @@ func DeleteOss(a *Oss) error {
 		}
 		return fmt.Errorf("Bad info: %s", errS)
 	}
-	_, err = o.Delete(a)
+	_, err = o.Delete(h)
 	if err != nil {
 		o.Rollback()
 		return err
@@ -89,15 +92,15 @@ func DeleteOss(a *Oss) error {
 	return nil
 }
 
-func UpdateOss(a *Oss) error {
-	beego.Debug("[M] Got data:", a)
+func UpdatePath(h *Paths) error {
+	beego.Debug("[M] Got data:", h)
 	o := orm.NewOrm()
 	err := o.Begin()
 	if err != nil {
 		return err
 	}
 	validator := new(validation.Validation)
-	valid, err := validator.Valid(a)
+	valid, err := validator.Valid(h)
 	if err != nil {
 		o.Rollback()
 		return err
@@ -110,7 +113,7 @@ func UpdateOss(a *Oss) error {
 		}
 		return fmt.Errorf("Bad info: %s", errS)
 	}
-	_, err = o.Update(a)
+	_, err = o.Update(h)
 	if err != nil {
 		o.Rollback()
 		return err
@@ -119,19 +122,16 @@ func UpdateOss(a *Oss) error {
 	return nil
 }
 
-// If get all, just use &Oss{}
-func GetOss(cond *Oss, limit, index int) ([]*Oss, error) {
-	r := make([]*Oss, 0)
+// If get all, just use &Path{}
+func GetPaths(cond *Paths, limit, index int) ([]*Paths, error) {
+	r := make([]*Paths, 0)
 	o := orm.NewOrm()
-	q := o.QueryTable("oss")
+	q := o.QueryTable("paths")
 	if cond.Id != "" {
 		q = q.Filter("id", cond.Id)
 	}
-	if cond.Endpoint != "" {
-		q = q.Filter("endpoint", cond.Id)
-	}
-	if cond.BucketName != "" {
-		q = q.Filter("name", cond.BucketName)
+	if cond.Path != "" {
+		q = q.Filter("path", cond.Path)
 	}
 	if limit > 0 {
 		q = q.Limit(limit)
@@ -139,13 +139,14 @@ func GetOss(cond *Oss, limit, index int) ([]*Oss, error) {
 	if index > 0 {
 		q = q.Offset(index)
 	}
-	_, err := q.All(&r)
 
+	_, err := q.RelatedSel().All(&r)
 	if err != nil {
 		return nil, err
 	}
 	for _, v := range r {
 		o.LoadRelated(v, "BackupSets")
+		o.LoadRelated(v, "Paths")
 	}
 	return r, nil
 }

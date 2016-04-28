@@ -16,6 +16,7 @@ type AppSets struct {
 	Desc     string      `orm:"size(128);null" json:"description"`
 	Policies []*Policies `orm:"reverse(many)"`
 	Hosts    []*Hosts    `orm:"reverse(many)"`
+	Paths    []*Paths    `orm:"reverse(many)"`
 	Records  []*Records  `orm:"reverse(many)"`
 }
 
@@ -147,6 +148,7 @@ func GetAppSets(cond *AppSets, limit, index int) ([]*AppSets, error) {
 	for _, v := range r {
 		o.LoadRelated(v, "Hosts")
 		o.LoadRelated(v, "Policies")
+		o.LoadRelated(v, "Paths")
 	}
 	return r, nil
 }
