@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"moduleab_server/common"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
@@ -151,7 +152,7 @@ func GetRole(cond *Roles, limit, index int) ([]*Roles, error) {
 		return nil, err
 	}
 	for _, v := range r {
-		o.LoadRelated(v, "Users")
+		o.LoadRelated(v, "Users", common.RelDepth)
 	}
 	return r, nil
 }

@@ -153,7 +153,7 @@ func GetUser(cond *Users, limit, index int) ([]*Users, error) {
 		return nil, err
 	}
 	for _, v := range r {
-		o.LoadRelated(v, "Roles")
+		o.LoadRelated(v, "Roles", common.RelDepth)
 	}
 	return r, nil
 }

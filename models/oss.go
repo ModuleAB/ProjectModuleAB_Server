@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"moduleab_server/common"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
@@ -145,7 +146,7 @@ func GetOss(cond *Oss, limit, index int) ([]*Oss, error) {
 		return nil, err
 	}
 	for _, v := range r {
-		o.LoadRelated(v, "BackupSets")
+		o.LoadRelated(v, "BackupSets", common.RelDepth)
 	}
 	return r, nil
 }

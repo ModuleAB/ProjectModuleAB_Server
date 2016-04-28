@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"moduleab_server/common"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
@@ -141,15 +142,15 @@ func GetBackupSets(cond *BackupSets, limit, index int) ([]*BackupSets, error) {
 	if index > 0 {
 		q = q.Offset(index)
 	}
-	_, err := q.RelatedSel().All(&r)
+	_, err := q.RelatedSel(common.RelDepth).All(&r)
 
 	if err != nil {
 		return nil, err
 	}
 	for _, v := range r {
-		o.LoadRelated(v, "Hosts")
-		o.LoadRelated(v, "Policies")
-		o.LoadRelated(v, "Paths")
+		o.LoadRelated(v, "Hosts", common.RelDepth)
+		o.LoadRelated(v, "Policies", common.RelDepth)
+		o.LoadRelated(v, "Paths", common.RelDepth)
 	}
 	return r, nil
 }

@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"moduleab_server/common"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
@@ -148,8 +149,8 @@ func GetOas(cond *Oas, limit, index int) ([]*Oas, error) {
 		return nil, err
 	}
 	for _, v := range r {
-		o.LoadRelated(v, "BackupSets")
-		o.LoadRelated(v, "Jobs")
+		o.LoadRelated(v, "BackupSets", common.RelDepth)
+		o.LoadRelated(v, "Jobs", common.RelDepth)
 	}
 	return r, nil
 }

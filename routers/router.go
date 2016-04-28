@@ -45,12 +45,12 @@ func init() {
 				&controllers.OasController{},
 			),
 		),
-		beego.NSNamespace("/user",
+		beego.NSNamespace("/users",
 			beego.NSInclude(
 				&controllers.UserController{},
 			),
 		),
-		beego.NSNamespace("/path",
+		beego.NSNamespace("/paths",
 			beego.NSInclude(
 				&controllers.PathsController{},
 			),

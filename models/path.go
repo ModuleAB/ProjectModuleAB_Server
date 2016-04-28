@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"moduleab_server/common"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
@@ -124,6 +125,7 @@ func UpdatePath(h *Paths) error {
 
 // If get all, just use &Path{}
 func GetPaths(cond *Paths, limit, index int) ([]*Paths, error) {
+
 	r := make([]*Paths, 0)
 	o := orm.NewOrm()
 	q := o.QueryTable("paths")
@@ -140,13 +142,12 @@ func GetPaths(cond *Paths, limit, index int) ([]*Paths, error) {
 		q = q.Offset(index)
 	}
 
-	_, err := q.RelatedSel().All(&r)
+	_, err := q.RelatedSel(common.RelDepth).All(&r)
 	if err != nil {
 		return nil, err
 	}
 	for _, v := range r {
-		o.LoadRelated(v, "BackupSets")
-		o.LoadRelated(v, "Paths")
+		o.LoadRelated(v, "Host", common.RelDepth)
 	}
 	return r, nil
 }

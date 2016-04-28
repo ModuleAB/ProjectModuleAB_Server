@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"moduleab_server/common"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
@@ -145,13 +146,13 @@ func GetHosts(cond *Hosts, limit, index int) ([]*Hosts, error) {
 		q = q.Offset(index)
 	}
 
-	_, err := q.RelatedSel().All(&r)
+	_, err := q.RelatedSel(common.RelDepth).All(&r)
 	if err != nil {
 		return nil, err
 	}
 	for _, v := range r {
-		o.LoadRelated(v, "BackupSets")
-		o.LoadRelated(v, "Paths")
+		o.LoadRelated(v, "BackupSets", common.RelDepth)
+		o.LoadRelated(v, "Paths", common.RelDepth)
 	}
 	return r, nil
 }
