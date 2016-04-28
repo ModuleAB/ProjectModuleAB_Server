@@ -5,4 +5,4 @@ routers/commentsRouter_moduleab_server_controllers.go
 swagger/
 cpu-*
 mem-*
-doc/docs.go
+docs/docs.go
