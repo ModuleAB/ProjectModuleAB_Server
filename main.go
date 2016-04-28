@@ -6,6 +6,9 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os/signal"
+	"time"
 
 	_ "moduleab_server/docs"
 	"moduleab_server/models"
@@ -21,7 +24,7 @@ import (
 const DBS = "%s:%s@tcp(%s)/%s?charset=utf8"
 
 func init() {
-	orm.RegisterDataBase(
+	err := orm.RegisterDataBase(
 		"default",
 		"mysql",
 		fmt.Sprintf(DBS,
@@ -31,6 +34,9 @@ func init() {
 			beego.AppConfig.String("database::mysqldb"),
 		),
 	)
+	if err != nil {
+		beego.Alert(err)
+	}
 }
 
 func main() {
@@ -39,6 +45,11 @@ func main() {
 
 	beego.Info("Hello!")
 
+	// 别用root运行我！
+	if os.Getuid() == 0 {
+		beego.Alert("Hey! You're running this server with user root!")
+		panic("Don't run me with root!")
+	}
 	err := fmt.Errorf("")
 	switch beego.BConfig.RunMode {
 	case "initdb":
@@ -74,8 +85,43 @@ func main() {
 		beego.Alert("Database error:", err, ". go exit.")
 		os.Exit(1)
 	}
+	beego.Debug("Current PID:", os.Getpid())
+	ioutil.WriteFile(
+		beego.AppConfig.String("pidFile"),
+		[]byte(fmt.Sprint(os.Getpid())),
+		0600,
+	)
+	beego.Info("Run signal notifier...")
+	go signalNotifier()
 	beego.Info("All is ready, go running...")
 	beego.Run()
+}
+
+func signalNotifier() {
+	beego.Info("Signal notifier started.")
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, os.Kill)
+	for {
+		select {
+		case s := <-c:
+			beego.Info(
+				fmt.Sprintf(
+					"Received Signal: %s, stop in 10 seconds...", s,
+				),
+			)
+			time.Sleep(10 * time.Second)
+			db, err := orm.GetDB("default")
+			if err != nil {
+				beego.Warn("Got error:", err)
+				os.Exit(1)
+			} else {
+				db.Close()
+				os.Exit(0)
+			}
+		default:
+			continue
+		}
+	}
 }
 
 func initDb() {
