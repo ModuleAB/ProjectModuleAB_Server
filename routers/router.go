@@ -35,6 +35,11 @@ func init() {
 				&controllers.BackupSetsController{},
 			),
 		),
+		beego.NSNamespace("/clientJobs",
+			beego.NSInclude(
+				&controllers.ClientJobsController{},
+			),
+		),
 		beego.NSNamespace("/oss",
 			beego.NSInclude(
 				&controllers.OssController{},
@@ -45,6 +50,11 @@ func init() {
 				&controllers.OasController{},
 			),
 		),
+		beego.NSNamespace("/oasJobs",
+			beego.NSInclude(
+				&controllers.OasJobsController{},
+			),
+		),
 		beego.NSNamespace("/users",
 			beego.NSInclude(
 				&controllers.UserController{},
@@ -53,6 +63,16 @@ func init() {
 		beego.NSNamespace("/paths",
 			beego.NSInclude(
 				&controllers.PathsController{},
+			),
+		),
+		beego.NSNamespace("/policies",
+			beego.NSInclude(
+				&controllers.PolicyController{},
+			),
+		),
+		beego.NSNamespace("/records",
+			beego.NSInclude(
+				&controllers.RecordsController{},
 			),
 		),
 	)

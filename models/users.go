@@ -12,11 +12,12 @@ import (
 
 //用户
 type Users struct {
-	Id       string   `orm:"pk;size(36)" json:"id" valid:"Match(/^[A-Fa-f0-9]{8}-([A-Fa-f0-9]{4}-){3}[A-Fa-f0-9]{12}$/)"`
-	Name     string   `orm:"size(32);unique;index" json:"loginname" valid:"Required"`
-	ShowName string   `json:"name" valid:"Required"`
-	Password string   `valid:"Required" json:"password" valid:"Base64"`
-	Roles    []*Roles `orm:"rel(m2m)" valid:"Required"`
+	Id        string   `orm:"pk;size(36)" json:"id" valid:"Match(/^[A-Fa-f0-9]{8}-([A-Fa-f0-9]{4}-){3}[A-Fa-f0-9]{12}$/)"`
+	Name      string   `orm:"size(32);unique;index" json:"loginname" valid:"Required"`
+	ShowName  string   `json:"name" valid:"Required"`
+	Password  string   `valid:"Required" json:"password" valid:"Base64"`
+	Roles     []*Roles `orm:"rel(m2m)" valid:"Required"`
+	Removable bool     `orm:"default(1)" json:"removable"`
 }
 
 func init() {
@@ -58,7 +59,11 @@ func AddUser(a *Users) (string, error) {
 		o.Rollback()
 		return "", err
 	}
-	_, err = o.QueryM2M(a, "Roles").Add(a.Roles)
+	err = AddUsersRoles(a, a.Roles)
+	if err != nil {
+		o.Rollback()
+		return "", err
+	}
 	beego.Debug("[M] User info saved")
 	o.Commit()
 	return a.Id, nil
@@ -85,7 +90,13 @@ func DeleteUser(a *Users) error {
 		}
 		return fmt.Errorf("Bad info: %s", errS)
 	}
-	_, err = o.Delete(a)
+	err = ClearUsersRoles(a)
+	if err != nil {
+		o.Rollback()
+		return err
+	}
+	_, err = o.QueryTable("users").Filter("removable", true).
+		Filter("id", a.Id).Filter("name", a.Name).Delete()
 	if err != nil {
 		o.Rollback()
 		return err
@@ -156,4 +167,53 @@ func GetUser(cond *Users, limit, index int) ([]*Users, error) {
 		o.LoadRelated(v, "Roles", common.RelDepth)
 	}
 	return r, nil
+}
+
+func AddUsersRoles(user *Users, roles []*Roles) error {
+	o := orm.NewOrm()
+	err := o.Begin()
+	if err != nil {
+		return err
+	}
+	if roles != nil {
+		_, err = o.QueryM2M(user, "Roles").Add(roles)
+		if err != nil {
+			o.Rollback()
+			return err
+		}
+	}
+	o.Commit()
+	return nil
+}
+
+func DeleteUsersRoles(user *Users, roles []*Roles) error {
+	o := orm.NewOrm()
+	err := o.Begin()
+	if err != nil {
+		return err
+	}
+	if roles != nil {
+		_, err = o.QueryM2M(user, "Roles").Remove(roles)
+		if err != nil {
+			o.Rollback()
+			return err
+		}
+	}
+	o.Commit()
+	return nil
+}
+
+func ClearUsersRoles(user *Users) error {
+	o := orm.NewOrm()
+	err := o.Begin()
+	if err != nil {
+		return err
+	}
+	_, err = o.QueryM2M(user, "Roles").Clear()
+	if err != nil {
+		o.Rollback()
+		return err
+	}
+	o.Commit()
+	return nil
 }

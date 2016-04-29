@@ -238,3 +238,243 @@ func (h *HostsController) Put() {
 		return
 	}
 }
+
+/*****************************************/
+
+// @router /:name/paths [post]
+func (h *HostsController) AddHostPaths() {
+	name := h.GetString(":name")
+	beego.Debug("[C] Got name:", name)
+	if name != "" {
+		host := &models.Hosts{
+			Name: name,
+			// 外键关系也需要初始化，否则会出现问题，反向关系则不用
+			AppSet: new(models.AppSets),
+		}
+		hosts, err := models.GetHosts(host, 0, 0)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"message": fmt.Sprint("Failed to get with name:", name),
+				"error":   err.Error(),
+			}
+			beego.Warn("[C] Got error:", err)
+			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
+			h.ServeJSON()
+			return
+		}
+		if len(hosts) == 0 {
+			beego.Debug("[C] Got nothing with name:", name)
+			h.Ctx.Output.SetStatus(http.StatusNotFound)
+			h.ServeJSON()
+			return
+		}
+
+		paths := make([]*models.Paths, 0)
+		err = json.Unmarshal(h.Ctx.Input.RequestBody, paths)
+		if err != nil {
+			beego.Warn("[C] Got error:", err)
+			h.Data["json"] = map[string]string{
+				"message": "Bad request",
+				"error":   err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusBadRequest)
+			h.ServeJSON()
+			return
+		}
+		beego.Debug("[C] Got data:", paths)
+		err = models.AddHostPaths(hosts[0], paths)
+		if err != nil {
+			beego.Warn("[C] Got error:", err)
+			h.Data["json"] = map[string]string{
+				"message": "Failed to add new path",
+				"error":   err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
+			h.ServeJSON()
+			return
+		}
+
+		h.Ctx.Output.SetStatus(http.StatusCreated)
+		h.ServeJSON()
+		return
+	}
+}
+
+// @router /:name/paths [delete]
+func (h *HostsController) DeleteHostPaths() {
+	name := h.GetString(":name")
+	beego.Debug("[C] Got name:", name)
+	if name != "" {
+		host := &models.Hosts{
+			Name: name,
+			// 外键关系也需要初始化，否则会出现问题，反向关系则不用
+			AppSet: new(models.AppSets),
+		}
+		hosts, err := models.GetHosts(host, 0, 0)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"message": fmt.Sprint("Failed to get with name:", name),
+				"error":   err.Error(),
+			}
+			beego.Warn("[C] Got error:", err)
+			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
+			h.ServeJSON()
+			return
+		}
+		if len(hosts) == 0 {
+			beego.Debug("[C] Got nothing with name:", name)
+			h.Ctx.Output.SetStatus(http.StatusNotFound)
+			h.ServeJSON()
+			return
+		}
+
+		paths := make([]*models.Paths, 0)
+		err = json.Unmarshal(h.Ctx.Input.RequestBody, paths)
+		if err != nil {
+			beego.Warn("[C] Got error:", err)
+			h.Data["json"] = map[string]string{
+				"message": "Bad request",
+				"error":   err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusBadRequest)
+			h.ServeJSON()
+			return
+		}
+		beego.Debug("[C] Got data:", paths)
+		err = models.DeleteHostPaths(hosts[0], paths)
+		if err != nil {
+			beego.Warn("[C] Got error:", err)
+			h.Data["json"] = map[string]string{
+				"message": "Failed to delete path",
+				"error":   err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
+			h.ServeJSON()
+			return
+		}
+
+		h.Ctx.Output.SetStatus(http.StatusNoContent)
+		h.ServeJSON()
+		return
+	}
+}
+
+/*************************************/
+
+// @router /:name/jobs [post]
+func (h *HostsController) AddHostClientJobs() {
+	name := h.GetString(":name")
+	beego.Debug("[C] Got name:", name)
+	if name != "" {
+		host := &models.Hosts{
+			Name: name,
+			// 外键关系也需要初始化，否则会出现问题，反向关系则不用
+			AppSet: new(models.AppSets),
+		}
+		hosts, err := models.GetHosts(host, 0, 0)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"message": fmt.Sprint("Failed to get with name:", name),
+				"error":   err.Error(),
+			}
+			beego.Warn("[C] Got error:", err)
+			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
+			h.ServeJSON()
+			return
+		}
+		if len(hosts) == 0 {
+			beego.Debug("[C] Got nothing with name:", name)
+			h.Ctx.Output.SetStatus(http.StatusNotFound)
+			h.ServeJSON()
+			return
+		}
+
+		jobs := make([]*models.ClientJobs, 0)
+		err = json.Unmarshal(h.Ctx.Input.RequestBody, jobs)
+		if err != nil {
+			beego.Warn("[C] Got error:", err)
+			h.Data["json"] = map[string]string{
+				"message": "Bad request",
+				"error":   err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusBadRequest)
+			h.ServeJSON()
+			return
+		}
+		beego.Debug("[C] Got data:", jobs)
+		err = models.AddHostClientJobs(hosts[0], jobs)
+		if err != nil {
+			beego.Warn("[C] Got error:", err)
+			h.Data["json"] = map[string]string{
+				"message": "Failed to add new path",
+				"error":   err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
+			h.ServeJSON()
+			return
+		}
+
+		h.Ctx.Output.SetStatus(http.StatusCreated)
+		h.ServeJSON()
+		return
+	}
+}
+
+// @router /:name/jobs [delete]
+func (h *HostsController) DeleteHostClientJobs() {
+	name := h.GetString(":name")
+	beego.Debug("[C] Got name:", name)
+	if name != "" {
+		host := &models.Hosts{
+			Name: name,
+			// 外键关系也需要初始化，否则会出现问题，反向关系则不用
+			AppSet: new(models.AppSets),
+		}
+		hosts, err := models.GetHosts(host, 0, 0)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"message": fmt.Sprint("Failed to get with name:", name),
+				"error":   err.Error(),
+			}
+			beego.Warn("[C] Got error:", err)
+			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
+			h.ServeJSON()
+			return
+		}
+		if len(hosts) == 0 {
+			beego.Debug("[C] Got nothing with name:", name)
+			h.Ctx.Output.SetStatus(http.StatusNotFound)
+			h.ServeJSON()
+			return
+		}
+
+		jobs := make([]*models.ClientJobs, 0)
+		err = json.Unmarshal(h.Ctx.Input.RequestBody, jobs)
+		if err != nil {
+			beego.Warn("[C] Got error:", err)
+			h.Data["json"] = map[string]string{
+				"message": "Bad request",
+				"error":   err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusBadRequest)
+			h.ServeJSON()
+			return
+		}
+		beego.Debug("[C] Got data:", jobs)
+		err = models.DeleteHostClientJobs(hosts[0], jobs)
+		if err != nil {
+			beego.Warn("[C] Got error:", err)
+			h.Data["json"] = map[string]string{
+				"message": "Failed to delete path",
+				"error":   err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
+			h.ServeJSON()
+			return
+		}
+
+		h.Ctx.Output.SetStatus(http.StatusNoContent)
+		h.ServeJSON()
+		return
+	}
+}

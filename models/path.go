@@ -11,11 +11,12 @@ import (
 )
 
 type Paths struct {
-	Id        string      `orm:"pk;size(36)" json:"id" valid:"Match(/^[A-Fa-f0-9]{8}-([A-Fa-f0-9]{4}-){3}[A-Fa-f0-9]{12}$/)"`
-	Path      string      `orm:"unique;index" json:"path" valid:"Required"`
-	Host      []*Hosts    `orm:"reverse(many)" json:"host"`
-	AppSet    *AppSets    `orm:"rel(fk)" json:"app_set"`
-	BackupSet *BackupSets `orm:"rel(fk)" json:"backup_set"`
+	Id         string        `orm:"pk;size(36)" json:"id" valid:"Match(/^[A-Fa-f0-9]{8}-([A-Fa-f0-9]{4}-){3}[A-Fa-f0-9]{12}$/)"`
+	Path       string        `orm:"unique;index" json:"path" valid:"Required"`
+	Host       []*Hosts      `orm:"reverse(many)" json:"host"`
+	AppSet     []*AppSets    `orm:"rel(m2m)" json:"app_set"`
+	BackupSet  *BackupSets   `orm:"rel(fk)" json:"backup_set"`
+	ClientJobs []*ClientJobs `orm:"rel(m2m)" json:"jobs"`
 }
 
 func init() {
@@ -57,6 +58,16 @@ func AddPath(path *Paths) (string, error) {
 		o.Rollback()
 		return "", err
 	}
+	err = AddPathsAppSets(path, path.AppSet)
+	if err != nil {
+		o.Rollback()
+		return "", err
+	}
+	err = AddPathsClientJobs(path, path.ClientJobs)
+	if err != nil {
+		o.Rollback()
+		return "", err
+	}
 	beego.Debug("[M] Path data saved")
 	o.Commit()
 	return path.Id, nil
@@ -83,6 +94,16 @@ func DeletePath(h *Paths) error {
 			errS = fmt.Sprintf("%s, %s:%s", errS, err.Key, err.Message)
 		}
 		return fmt.Errorf("Bad info: %s", errS)
+	}
+	err = ClearPathsAppSets(h)
+	if err != nil {
+		o.Rollback()
+		return err
+	}
+	err = ClearPathsClientJobs(h)
+	if err != nil {
+		o.Rollback()
+		return err
 	}
 	_, err = o.Delete(h)
 	if err != nil {
@@ -148,6 +169,115 @@ func GetPaths(cond *Paths, limit, index int) ([]*Paths, error) {
 	}
 	for _, v := range r {
 		o.LoadRelated(v, "Host", common.RelDepth)
+		o.LoadRelated(v, "AppSet", common.RelDepth)
+		o.LoadRelated(v, "ClientJobs", common.RelDepth)
 	}
 	return r, nil
+}
+
+func AddPathsAppSets(path *Paths, appSets []*AppSets) error {
+	o := orm.NewOrm()
+	err := o.Begin()
+	if err != nil {
+		o.Rollback()
+		return err
+	}
+
+	if appSets != nil {
+		_, err = o.QueryM2M(path, "AppSets").Add(appSets)
+		if err != nil {
+			o.Rollback()
+			return err
+		}
+	}
+	o.Commit()
+	return nil
+}
+
+func DeletePathsAppSets(path *Paths, appSets []*AppSets) error {
+	o := orm.NewOrm()
+	err := o.Begin()
+	if err != nil {
+		o.Rollback()
+		return err
+	}
+
+	if appSets != nil {
+		_, err = o.QueryM2M(path, "AppSets").Remove(appSets)
+		if err != nil {
+			o.Rollback()
+			return err
+		}
+	}
+	o.Commit()
+	return nil
+}
+
+func ClearPathsAppSets(path *Paths) error {
+	o := orm.NewOrm()
+	err := o.Begin()
+	if err != nil {
+		o.Rollback()
+		return err
+	}
+	_, err = o.QueryM2M(path, "AppSets").Clear()
+	if err != nil {
+		o.Rollback()
+		return err
+	}
+	o.Commit()
+	return nil
+}
+
+func AddPathsClientJobs(path *Paths, clientJobs []*ClientJobs) error {
+	o := orm.NewOrm()
+	err := o.Begin()
+	if err != nil {
+		o.Rollback()
+		return err
+	}
+
+	if clientJobs != nil {
+		_, err = o.QueryM2M(path, "ClientJobs").Add(clientJobs)
+		if err != nil {
+			o.Rollback()
+			return err
+		}
+	}
+	o.Commit()
+	return nil
+}
+
+func DeletePathsClientJobs(path *Paths, clientJobs []*ClientJobs) error {
+	o := orm.NewOrm()
+	err := o.Begin()
+	if err != nil {
+		o.Rollback()
+		return err
+	}
+	if clientJobs != nil {
+		_, err = o.QueryM2M(path, "ClientJobs").Remove(clientJobs)
+		if err != nil {
+			o.Rollback()
+			return err
+		}
+	}
+	o.Commit()
+	return nil
+}
+
+func ClearPathsClientJobs(path *Paths) error {
+	o := orm.NewOrm()
+	err := o.Begin()
+	if err != nil {
+		o.Rollback()
+		return err
+	}
+	_, err = o.QueryM2M(path, "ClientJobs").Clear()
+	if err != nil {
+		o.Rollback()
+		return err
+	}
+	o.Commit()
+	return nil
 }

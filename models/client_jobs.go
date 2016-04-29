@@ -1,8 +1,6 @@
 package models
 
 import (
-	//"time"
-
 	"fmt"
 	"moduleab_server/common"
 
@@ -13,45 +11,28 @@ import (
 )
 
 const (
-    PolicyActionAll=iota
-	PolicyActionArchive
-	PolicyActionDelete
+	ClientJobsTypeAll = iota
+	ClientJobsTypeDelete
 )
 
-const (
-    PolicyTargetAll = iota
-	PolicyTargetBackup
-	PolicyTargetArchive
-)
-
-const (
-	PolicyReserveAll  = -1
-	PolicyReserveNone = 0
-)
-
-//策略
-type Policies struct {
-	Id            string      `orm:"pk;size(36)" json:"id" valid:"Match(/^[A-Fa-f0-9]{8}-([A-Fa-f0-9]{4}-){3}[A-Fa-f0-9]{12}$/)"`
-	Name          string      `orm:"size(32)" json:"name" valid:"Required"`
-	Desc          string      `orm:"size(128);null" json:"description"`
-	BackupSet     *BackupSets `orm:"rel(fk)" json:"backup_set"`
-	AppSet        *AppSets    `orm:"rel(fk);null" json:"app_set"` // null means all
-	Target        int         `json:"target"`
-	Action        int         `json:"action"`
-	TargetStart   int         `orm:"default(0)" json:"start_time"` // Seconds, 0 means now
-	TargetEnd     int         `orm:"default(-1)" json:"end_tile"`  // Seconds, -1 means long long ago
-	ReservePeriod int         `orm:"default(-1)" json:"period"`    // Seconds, 0 means reserve none, -1 means all
+type ClientJobs struct {
+	Id           string   `orm:"pk;size(36)" json:"id" valid:"Match(/^[A-Fa-f0-9]{8}-([A-Fa-f0-9]{4}-){3}[A-Fa-f0-9]{12}$/)"`
+	Period       int      `json:"period" valid:"Required;Min(10)"` // Second
+	Type         int      `json:"type" valid:"Required"`
+	ReservedTime int      `json:"reserved_time" valid:"Required"` // Second
+	Host         []*Hosts `orm:"reverse(many)" json:"hosts"`
+	Paths        []*Paths `orm:"reverse(many)" json:"paths"`
 }
 
 func init() {
 	if prefix := beego.AppConfig.String("database::mysqlprefex"); prefix != "" {
-		orm.RegisterModelWithPrefix(prefix, new(Policies))
+		orm.RegisterModelWithPrefix(prefix, new(ClientJobs))
 	} else {
-		orm.RegisterModel(new(Policies))
+		orm.RegisterModel(new(ClientJobs))
 	}
 }
 
-func AddPolicy(a *Policies) (string, error) {
+func AddClientJob(a *ClientJobs) (string, error) {
 	beego.Debug("[M] Got data:", a)
 	o := orm.NewOrm()
 	err := o.Begin()
@@ -62,7 +43,7 @@ func AddPolicy(a *Policies) (string, error) {
 	a.Id = uuid.New()
 	beego.Debug("[M] Got new id:", a.Id)
 	validator := new(validation.Validation)
-    valid, err := validator.Valid(a)
+	valid, err := validator.Valid(a)
 	if err != nil {
 		o.Rollback()
 		return "", err
@@ -81,12 +62,12 @@ func AddPolicy(a *Policies) (string, error) {
 		o.Rollback()
 		return "", err
 	}
-	beego.Debug("[M] Policy info saved")
+	beego.Debug("[M] App set saved")
 	o.Commit()
 	return a.Id, nil
 }
 
-func DeletePolicy(a *Policies) error {
+func DeleteClientJob(a *ClientJobs) error {
 	beego.Debug("[M] Got data:", a)
 	o := orm.NewOrm()
 	err := o.Begin()
@@ -116,7 +97,7 @@ func DeletePolicy(a *Policies) error {
 	return nil
 }
 
-func UpdatePolicy(a *Policies) error {
+func UpdateClientJob(a *ClientJobs) error {
 	beego.Debug("[M] Got data:", a)
 	o := orm.NewOrm()
 	err := o.Begin()
@@ -146,23 +127,14 @@ func UpdatePolicy(a *Policies) error {
 	return nil
 }
 
-// If get all, just use &Policies{}
-func GetPolicies(cond *Policies, limit, index int) ([]*Policies, error) {
-	r := make([]*Policies, 0)
+// If get all, just use &Host{}
+func GetClientJobs(cond *ClientJobs, limit, index int) ([]*ClientJobs, error) {
+	r := make([]*ClientJobs, 0)
 	o := orm.NewOrm()
-	q := o.QueryTable("policies")
+	q := o.QueryTable("client_jobs")
 	if cond.Id != "" {
 		q = q.Filter("id", cond.Id)
 	}
-	if cond.Name != "" {
-		q = q.Filter("name", cond.Name)
-	}
-    if cond.Target != PolicyTargetAll{
-        q = q.Filter("target", cond.Target)
-    }
-    if cond.Action != PolicyActionAll{
-        q = q.Filter("action", cond.Action)
-    }
 	if limit > 0 {
 		q = q.Limit(limit)
 	}
@@ -175,8 +147,8 @@ func GetPolicies(cond *Policies, limit, index int) ([]*Policies, error) {
 		return nil, err
 	}
 	for _, v := range r {
-		o.LoadRelated(v, "BackupSets", common.RelDepth)
-		o.LoadRelated(v, "Jobs", common.RelDepth)
+		o.LoadRelated(v, "Hosts", common.RelDepth)
+		o.LoadRelated(v, "Paths", common.RelDepth)
 	}
 	return r, nil
 }

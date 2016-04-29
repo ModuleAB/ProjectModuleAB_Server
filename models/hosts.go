@@ -17,7 +17,8 @@ type Hosts struct {
 	IpAddr     string        `orm:"index;unique;size(15)" json:"ip" valid:"Required;IP"`
 	AppSet     *AppSets      `orm:"rel(fk);on_delete(set_null);null" json:"app_set"`
 	BackupSets []*BackupSets `orm:"reverse(many)" json:"backup_sets"`
-	Paths      []*Paths      `orm:"rel(m2m)" json:"path"`
+	Paths      []*Paths      `orm:"rel(m2m);on_delete(set_null)" json:"path"`
+	ClientJobs []*ClientJobs `orm:"rel(m2m);on_delete(set_null)" json:"jobs"`
 }
 
 func init() {
@@ -59,6 +60,16 @@ func AddHost(host *Hosts) (string, error) {
 		o.Rollback()
 		return "", err
 	}
+	err = AddHostPaths(host, host.Paths)
+	if err != nil {
+		o.Rollback()
+		return "", err
+	}
+	err = AddHostClientJobs(host, host.ClientJobs)
+	if err != nil {
+		o.Rollback()
+		return "", err
+	}
 	beego.Debug("[M] Host data saved")
 	o.Commit()
 	return host.Id, nil
@@ -85,6 +96,16 @@ func DeleteHost(h *Hosts) error {
 			errS = fmt.Sprintf("%s, %s:%s", errS, err.Key, err.Message)
 		}
 		return fmt.Errorf("Bad info: %s", errS)
+	}
+	err = ClearHostPaths(h)
+	if err != nil {
+		o.Rollback()
+		return err
+	}
+	err = ClearHostClientJobs(h)
+	if err != nil {
+		o.Rollback()
+		return err
 	}
 	_, err = o.Delete(h)
 	if err != nil {
@@ -152,7 +173,112 @@ func GetHosts(cond *Hosts, limit, index int) ([]*Hosts, error) {
 	}
 	for _, v := range r {
 		o.LoadRelated(v, "BackupSets", common.RelDepth)
-		o.LoadRelated(v, "Paths", common.RelDepth)
+		o.LoadRelated(v, "Paths", common.RelDepth+5)
+		o.LoadRelated(v, "ClientJobs", common.RelDepth)
 	}
 	return r, nil
+}
+
+func AddHostPaths(host *Hosts, paths []*Paths) error {
+	o := orm.NewOrm()
+	err := o.Begin()
+	if err != nil {
+		return err
+	}
+
+	if paths != nil {
+		_, err = o.QueryM2M(host, "Paths").Add(paths)
+		if err != nil {
+			o.Rollback()
+			return err
+		}
+	}
+	o.Commit()
+	return nil
+}
+
+func DeleteHostPaths(host *Hosts, paths []*Paths) error {
+	o := orm.NewOrm()
+	err := o.Begin()
+	if err != nil {
+		return err
+	}
+
+	if paths != nil {
+		_, err = o.QueryM2M(host, "Paths").Remove(paths)
+		if err != nil {
+			o.Rollback()
+			return err
+		}
+	}
+	o.Commit()
+	return nil
+}
+
+func ClearHostPaths(host *Hosts) error {
+	o := orm.NewOrm()
+	err := o.Begin()
+	if err != nil {
+		o.Rollback()
+		return err
+	}
+	_, err = o.QueryM2M(host, "Paths").Clear()
+	if err != nil {
+		o.Rollback()
+		return err
+	}
+	o.Commit()
+	return nil
+}
+
+func AddHostClientJobs(host *Hosts, jobs []*ClientJobs) error {
+	o := orm.NewOrm()
+	err := o.Begin()
+	if err != nil {
+		return err
+	}
+
+	if jobs != nil {
+		_, err = o.QueryM2M(host, "ClientJobs").Add(jobs)
+		if err != nil {
+			o.Rollback()
+			return err
+		}
+	}
+	o.Commit()
+	return nil
+}
+
+func DeleteHostClientJobs(host *Hosts, jobs []*ClientJobs) error {
+	o := orm.NewOrm()
+	err := o.Begin()
+	if err != nil {
+		return err
+	}
+
+	if jobs != nil {
+		_, err = o.QueryM2M(host, "ClientJobs").Remove(jobs)
+		if err != nil {
+			o.Rollback()
+			return err
+		}
+	}
+	o.Commit()
+	return nil
+}
+
+func ClearHostClientJobs(host *Hosts) error {
+	o := orm.NewOrm()
+	err := o.Begin()
+	if err != nil {
+		o.Rollback()
+		return err
+	}
+	_, err = o.QueryM2M(host, "ClientJobs").Clear()
+	if err != nil {
+		o.Rollback()
+		return err
+	}
+	o.Commit()
+	return nil
 }

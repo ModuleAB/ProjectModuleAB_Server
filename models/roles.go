@@ -18,10 +18,11 @@ const (
 
 //角色
 type Roles struct {
-	Id       string   `orm:"pk;size(36)" json:"id" valid:"Match(/^[A-Fa-f0-9]{8}-([A-Fa-f0-9]{4}-){3}[A-Fa-f0-9]{12}$/)"`
-	Name     string   `orm:"size(32);unique" json:"name" valid:"Required"`
-	RoleFlag int      `json:"role_flag" valid:"Required;Min(0)"`
-	Users    []*Users `orm:"reverse(many)"`
+	Id        string   `orm:"pk;size(36)" json:"id" valid:"Match(/^[A-Fa-f0-9]{8}-([A-Fa-f0-9]{4}-){3}[A-Fa-f0-9]{12}$/)"`
+	Name      string   `orm:"size(32);unique;index" json:"name" valid:"Required"`
+	RoleFlag  int      `json:"role_flag" valid:"Required;Min(0)"`
+	Users     []*Users `orm:"reverse(many)"`
+	Removable bool     `orm:"default(1)" json:"removable"`
 }
 
 func init() {
@@ -90,7 +91,8 @@ func DeleteRole(a *Roles) error {
 		}
 		return fmt.Errorf("Bad info: %s", errS)
 	}
-	_, err = o.Delete(a)
+	_, err = o.QueryTable("roles").Filter("removable", true).
+		Filter("id", a.Id).Filter("name", a.Name).Delete()
 	if err != nil {
 		o.Rollback()
 		return err

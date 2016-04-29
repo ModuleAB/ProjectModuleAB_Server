@@ -216,3 +216,118 @@ func (a *UserController) Put() {
 		return
 	}
 }
+
+/*************************************/
+
+// @router /:name/roles [post]
+func (h *UserController) AddUserRoles() {
+	name := h.GetString(":name")
+	beego.Debug("[C] Got name:", name)
+	if name != "" {
+		user := &models.Users{
+			Name: name,
+		}
+		users, err := models.GetUser(user, 0, 0)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"message": fmt.Sprint("Failed to get with name:", name),
+				"error":   err.Error(),
+			}
+			beego.Warn("[C] Got error:", err)
+			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
+			h.ServeJSON()
+			return
+		}
+		if len(users) == 0 {
+			beego.Debug("[C] Got nothing with name:", name)
+			h.Ctx.Output.SetStatus(http.StatusNotFound)
+			h.ServeJSON()
+			return
+		}
+
+		roles := make([]*models.Roles, 0)
+		err = json.Unmarshal(h.Ctx.Input.RequestBody, roles)
+		if err != nil {
+			beego.Warn("[C] Got error:", err)
+			h.Data["json"] = map[string]string{
+				"message": "Bad request",
+				"error":   err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusBadRequest)
+			h.ServeJSON()
+			return
+		}
+		beego.Debug("[C] Got data:", roles)
+		err = models.AddUsersRoles(users[0], roles)
+		if err != nil {
+			beego.Warn("[C] Got error:", err)
+			h.Data["json"] = map[string]string{
+				"message": "Failed to add new path",
+				"error":   err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
+			h.ServeJSON()
+			return
+		}
+
+		h.Ctx.Output.SetStatus(http.StatusNoContent)
+		h.ServeJSON()
+		return
+	}
+}
+
+// @router /:name/roles [delete]
+func (h *UserController) DeleteUserRoles() {
+	name := h.GetString(":name")
+	beego.Debug("[C] Got name:", name)
+	if name != "" {
+		user := &models.Users{
+			Name: name,
+		}
+		users, err := models.GetUser(user, 0, 0)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"message": fmt.Sprint("Failed to get with name:", name),
+				"error":   err.Error(),
+			}
+			beego.Warn("[C] Got error:", err)
+			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
+			h.ServeJSON()
+			return
+		}
+		if len(users) == 0 {
+			beego.Debug("[C] Got nothing with name:", name)
+			h.Ctx.Output.SetStatus(http.StatusNotFound)
+			h.ServeJSON()
+			return
+		}
+
+		roles := make([]*models.Roles, 0)
+		err = json.Unmarshal(h.Ctx.Input.RequestBody, roles)
+		if err != nil {
+			beego.Warn("[C] Got error:", err)
+			h.Data["json"] = map[string]string{
+				"message": "Bad request",
+				"error":   err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusBadRequest)
+			h.ServeJSON()
+			return
+		}
+		beego.Debug("[C] Got data:", roles)
+		err = models.DeleteUsersRoles(users[0], roles)
+		if err != nil {
+			beego.Warn("[C] Got error:", err)
+			h.Data["json"] = map[string]string{
+				"message": "Failed to delete path",
+				"error":   err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
+			h.ServeJSON()
+			return
+		}
+		h.Ctx.Output.SetStatus(http.StatusNoContent)
+		h.ServeJSON()
+		return
+	}
+}

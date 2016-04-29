@@ -132,7 +132,7 @@ func GetOas(cond *Oas, limit, index int) ([]*Oas, error) {
 		q = q.Filter("id", cond.Id)
 	}
 	if cond.Endpoint != "" {
-		q = q.Filter("endpoint", cond.Id)
+		q = q.Filter("endpoint", cond.Endpoint)
 	}
 	if cond.VaultName != "" {
 		q = q.Filter("name", cond.VaultName)

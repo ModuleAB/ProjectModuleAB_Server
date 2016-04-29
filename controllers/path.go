@@ -185,7 +185,6 @@ func (h *PathsController) Put() {
 		path := &models.Paths{
 			Id: id,
 			// 外键关系也需要初始化，否则会出现问题，反向关系则不用
-			AppSet:    new(models.AppSets),
 			BackupSet: new(models.BackupSets),
 		}
 		paths, err := models.GetPaths(path, 0, 0)
@@ -235,6 +234,238 @@ func (h *PathsController) Put() {
 
 		}
 		h.Ctx.Output.SetStatus(http.StatusAccepted)
+		h.ServeJSON()
+		return
+	}
+}
+
+/*************************************/
+
+// @router /:id/appSets [post]
+func (h *PathsController) AddPathsAppSets() {
+	id := h.GetString(":id")
+	beego.Debug("[C] Got id:", id)
+	if id != "" {
+		path := &models.Paths{
+			Id: id,
+		}
+		paths, err := models.GetPaths(path, 0, 0)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"message": fmt.Sprint("Failed to get with id:", id),
+				"error":   err.Error(),
+			}
+			beego.Warn("[C] Got error:", err)
+			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
+			h.ServeJSON()
+			return
+		}
+		if len(paths) == 0 {
+			beego.Debug("[C] Got nothing with id:", id)
+			h.Ctx.Output.SetStatus(http.StatusNotFound)
+			h.ServeJSON()
+			return
+		}
+
+		appSets := make([]*models.AppSets, 0)
+		err = json.Unmarshal(h.Ctx.Input.RequestBody, appSets)
+		if err != nil {
+			beego.Warn("[C] Got error:", err)
+			h.Data["json"] = map[string]string{
+				"message": "Bad request",
+				"error":   err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusBadRequest)
+			h.ServeJSON()
+			return
+		}
+		beego.Debug("[C] Got data:", appSets)
+		err = models.AddPathsAppSets(paths[0], appSets)
+		if err != nil {
+			beego.Warn("[C] Got error:", err)
+			h.Data["json"] = map[string]string{
+				"message": "Failed to add new path",
+				"error":   err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
+			h.ServeJSON()
+			return
+		}
+
+		h.Ctx.Output.SetStatus(http.StatusCreated)
+		h.ServeJSON()
+		return
+	}
+}
+
+// @router /:id/appSets [delete]
+func (h *PathsController) DeletePathsAppSets() {
+	id := h.GetString(":id")
+	beego.Debug("[C] Got id:", id)
+	if id != "" {
+		path := &models.Paths{
+			Id: id,
+		}
+		paths, err := models.GetPaths(path, 0, 0)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"message": fmt.Sprint("Failed to get with id:", id),
+				"error":   err.Error(),
+			}
+			beego.Warn("[C] Got error:", err)
+			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
+			h.ServeJSON()
+			return
+		}
+		if len(paths) == 0 {
+			beego.Debug("[C] Got nothing with id:", id)
+			h.Ctx.Output.SetStatus(http.StatusNotFound)
+			h.ServeJSON()
+			return
+		}
+
+		appSets := make([]*models.AppSets, 0)
+		err = json.Unmarshal(h.Ctx.Input.RequestBody, appSets)
+		if err != nil {
+			beego.Warn("[C] Got error:", err)
+			h.Data["json"] = map[string]string{
+				"message": "Bad request",
+				"error":   err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusBadRequest)
+			h.ServeJSON()
+			return
+		}
+		beego.Debug("[C] Got data:", appSets)
+		err = models.DeletePathsAppSets(paths[0], appSets)
+		if err != nil {
+			beego.Warn("[C] Got error:", err)
+			h.Data["json"] = map[string]string{
+				"message": "Failed to delete path",
+				"error":   err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
+			h.ServeJSON()
+			return
+		}
+
+		h.Ctx.Output.SetStatus(http.StatusNoContent)
+		h.ServeJSON()
+		return
+	}
+}
+
+/*************************************/
+
+// @router /:id/clientJobs [post]
+func (h *PathsController) AddPathsClientJobs() {
+	id := h.GetString(":id")
+	beego.Debug("[C] Got id:", id)
+	if id != "" {
+		path := &models.Paths{
+			Id: id,
+		}
+		paths, err := models.GetPaths(path, 0, 0)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"message": fmt.Sprint("Failed to get with id:", id),
+				"error":   err.Error(),
+			}
+			beego.Warn("[C] Got error:", err)
+			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
+			h.ServeJSON()
+			return
+		}
+		if len(paths) == 0 {
+			beego.Debug("[C] Got nothing with id:", id)
+			h.Ctx.Output.SetStatus(http.StatusNotFound)
+			h.ServeJSON()
+			return
+		}
+
+		clientJobs := make([]*models.ClientJobs, 0)
+		err = json.Unmarshal(h.Ctx.Input.RequestBody, clientJobs)
+		if err != nil {
+			beego.Warn("[C] Got error:", err)
+			h.Data["json"] = map[string]string{
+				"message": "Bad request",
+				"error":   err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusBadRequest)
+			h.ServeJSON()
+			return
+		}
+		beego.Debug("[C] Got data:", clientJobs)
+		err = models.AddPathsClientJobs(paths[0], clientJobs)
+		if err != nil {
+			beego.Warn("[C] Got error:", err)
+			h.Data["json"] = map[string]string{
+				"message": "Failed to add new path",
+				"error":   err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
+			h.ServeJSON()
+			return
+		}
+
+		h.Ctx.Output.SetStatus(http.StatusCreated)
+		h.ServeJSON()
+		return
+	}
+}
+
+// @router /:id/clientJobs [delete]
+func (h *PathsController) DeletePathsClientJobs() {
+	id := h.GetString(":id")
+	beego.Debug("[C] Got id:", id)
+	if id != "" {
+		path := &models.Paths{
+			Id: id,
+		}
+		paths, err := models.GetPaths(path, 0, 0)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"message": fmt.Sprint("Failed to get with id:", id),
+				"error":   err.Error(),
+			}
+			beego.Warn("[C] Got error:", err)
+			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
+			h.ServeJSON()
+			return
+		}
+		if len(paths) == 0 {
+			beego.Debug("[C] Got nothing with id:", id)
+			h.Ctx.Output.SetStatus(http.StatusNotFound)
+			h.ServeJSON()
+			return
+		}
+
+		clientJobs := make([]*models.ClientJobs, 0)
+		err = json.Unmarshal(h.Ctx.Input.RequestBody, clientJobs)
+		if err != nil {
+			beego.Warn("[C] Got error:", err)
+			h.Data["json"] = map[string]string{
+				"message": "Bad request",
+				"error":   err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusBadRequest)
+			h.ServeJSON()
+			return
+		}
+		beego.Debug("[C] Got data:", clientJobs)
+		err = models.DeletePathsClientJobs(paths[0], clientJobs)
+		if err != nil {
+			beego.Warn("[C] Got error:", err)
+			h.Data["json"] = map[string]string{
+				"message": "Failed to delete path",
+				"error":   err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
+			h.ServeJSON()
+			return
+		}
+
+		h.Ctx.Output.SetStatus(http.StatusNoContent)
 		h.ServeJSON()
 		return
 	}

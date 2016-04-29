@@ -216,6 +216,5 @@ func (c *ClientController) DeleteSignal() {
 		c.Ctx.Output.SetStatus(http.StatusNotFound)
 		c.ServeJSON()
 		return
-
 	}
 }

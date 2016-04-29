@@ -129,19 +129,22 @@ func initDb() {
 
 	role := []models.Roles{
 		models.Roles{
-			Id:       uuid.New(),
-			Name:     "Administrator",
-			RoleFlag: models.RoleFlagAdmin,
+			Id:        uuid.New(),
+			Name:      "Administrator",
+			RoleFlag:  models.RoleFlagAdmin,
+			Removable: false,
 		},
 		models.Roles{
-			Id:       uuid.New(),
-			Name:     "Operator",
-			RoleFlag: models.RoleFlagOperator,
+			Id:        uuid.New(),
+			Name:      "Operator",
+			RoleFlag:  models.RoleFlagOperator,
+			Removable: false,
 		},
 		models.Roles{
-			Id:       uuid.New(),
-			Name:     "User",
-			RoleFlag: models.RoleFlagUser,
+			Id:        uuid.New(),
+			Name:      "User",
+			RoleFlag:  models.RoleFlagUser,
+			Removable: false,
 		},
 	}
 	o.Begin()
@@ -161,6 +164,7 @@ func initDb() {
 		Roles: []*models.Roles{
 			&role[0],
 		},
+		Removable: false,
 	}
 	_, err = models.AddUser(user)
 	if err != nil {

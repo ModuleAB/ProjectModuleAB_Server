@@ -18,7 +18,7 @@ type BackupSets struct {
 	Oss      *Oss        `orm:"null;rel(fk);on_delete(set_null)" json:"oss"`
 	Oas      *Oas        `orm:"null;rel(fk);on_delete(set_null)" json:"oas"`
 	Policies []*Policies `orm:"reverse(many)" json:"policies"`
-	Hosts    []*Hosts    `orm:"null;rel(m2m)" json:"hosts"`
+	Hosts    []*Hosts    `orm:"null;rel(m2m);on_delete(set_null)" json:"hosts"`
 	Paths    []*Paths    `orm:"reverse(many)" json:"paths"`
 }
 
@@ -60,6 +60,11 @@ func AddBackupSet(a *BackupSets) (string, error) {
 		o.Rollback()
 		return "", err
 	}
+	err = AddBackupSetsHosts(a, a.Hosts)
+	if err != nil {
+		o.Rollback()
+		return "", err
+	}
 	beego.Debug("[M] App set saved")
 	o.Commit()
 	return a.Id, nil
@@ -85,6 +90,11 @@ func DeleteBackupSet(a *BackupSets) error {
 			errS = fmt.Sprintf("%s, %s:%s", errS, err.Key, err.Message)
 		}
 		return fmt.Errorf("Bad info: %s", errS)
+	}
+	err = ClearBackupSetsHosts(a)
+	if err != nil {
+		o.Rollback()
+		return err
 	}
 	_, err = o.Delete(a)
 	if err != nil {
@@ -153,4 +163,58 @@ func GetBackupSets(cond *BackupSets, limit, index int) ([]*BackupSets, error) {
 		o.LoadRelated(v, "Paths", common.RelDepth)
 	}
 	return r, nil
+}
+
+func AddBackupSetsHosts(backupSet *BackupSets, hosts []*Hosts) error {
+	o := orm.NewOrm()
+	err := o.Begin()
+	if err != nil {
+		o.Rollback()
+		return err
+	}
+
+	if hosts != nil {
+		_, err = o.QueryM2M(backupSet, "Hosts").Add(hosts)
+		if err != nil {
+			o.Rollback()
+			return err
+		}
+	}
+	o.Commit()
+	return nil
+}
+
+func DeleteBackupSetsHosts(backupSet *BackupSets, hosts []*Hosts) error {
+	o := orm.NewOrm()
+	err := o.Begin()
+	if err != nil {
+		o.Rollback()
+		return err
+	}
+
+	if hosts != nil {
+		_, err = o.QueryM2M(backupSet, "Hosts").Remove(hosts)
+		if err != nil {
+			o.Rollback()
+			return err
+		}
+	}
+	o.Commit()
+	return nil
+}
+
+func ClearBackupSetsHosts(backupSet *BackupSets) error {
+	o := orm.NewOrm()
+	err := o.Begin()
+	if err != nil {
+		o.Rollback()
+		return err
+	}
+	_, err = o.QueryM2M(backupSet, "Hosts").Clear()
+	if err != nil {
+		o.Rollback()
+		return err
+	}
+	o.Commit()
+	return nil
 }
