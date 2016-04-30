@@ -30,7 +30,8 @@ type Records struct {
 	Host         *Hosts      `orm:"rel(fk)" json:"host"`
 	BackupSet    *BackupSets `orm:"rel(fk)" json:"backup_set"`
 	AppSet       *AppSets    `orm:"rel(fk)" json:"app_set"`
-	Path         string      `json:"path" valid:"Required"`
+	Path         *Paths      `orm:"rel(fk)" json:"path" valid:"Required"`
+	Filename     string      `json:"path" valid:Required`
 	Type         int         `json:"type" valid:"Required"` // 0 - All, 1 - Backup, 2 - Archive
 	ArchiveId    string      `orm:"null" json:"archive_id"` // 如果Type是1（归档）时，这里应该有数据
 	BackupTime   time.Time   `orm:"type(datetime)" json:"backup_time"`
@@ -156,11 +157,25 @@ func GetRecords(cond *Records, limit, index int,
 	if cond.Id != "" {
 		q = q.Filter("id", cond.Id)
 	}
-	if cond.Path != "" {
-		q = q.Filter("path__icontains", cond.Path)
+	if cond.Filename != "" {
+		q = q.Filter("filename__icontains", cond.Filename)
 	}
 	if cond.ArchiveId != "" {
 		q = q.Filter("archive_id", cond.ArchiveId)
+	}
+	if cond.Path != nil {
+		if cond.Path.Path != "" {
+			path := &Paths{
+				Path: cond.Path.Path,
+			}
+			paths, err := GetPaths(path, 1, 0)
+			if err == nil && len(paths) != 0 {
+				cond.Path.Id = paths[0].Id
+			}
+		}
+		if cond.Path.Id != "" {
+			q = q.Filter("path_id", cond.Path.Id)
+		}
 	}
 	if cond.Host != nil {
 		if cond.Host.Name != "" {

@@ -63,6 +63,7 @@ func (h *RecordsController) Post() {
 func (h *RecordsController) GetAll() {
 	limit, _ := h.GetInt("limit", 50)
 	index, _ := h.GetInt("index", 0)
+	filename := h.GetString("filename")
 	path := h.GetString("path")
 	archiveId := h.GetString("archiveId")
 	appSet := h.GetString("appSet")
@@ -75,7 +76,10 @@ func (h *RecordsController) GetAll() {
 	atEnd := h.GetString("atEnd")
 
 	record := &models.Records{
-		Path:      path,
+		Path: &models.Paths{
+			Path: path,
+		},
+		Filename:  filename,
 		ArchiveId: archiveId,
 		Host: &models.Hosts{
 			Name: host,

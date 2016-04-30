@@ -17,6 +17,7 @@ type Paths struct {
 	AppSet     []*AppSets    `orm:"rel(m2m)" json:"app_set"`
 	BackupSet  *BackupSets   `orm:"rel(fk)" json:"backup_set"`
 	ClientJobs []*ClientJobs `orm:"rel(m2m)" json:"jobs"`
+	Records    []*Records    `orm:"reverse(many)" json:"records"`
 }
 
 func init() {
@@ -171,6 +172,7 @@ func GetPaths(cond *Paths, limit, index int) ([]*Paths, error) {
 		o.LoadRelated(v, "Host", common.RelDepth)
 		o.LoadRelated(v, "AppSet", common.RelDepth)
 		o.LoadRelated(v, "ClientJobs", common.RelDepth)
+		o.LoadRelated(v, "Records", common.RelDepth)
 	}
 	return r, nil
 }
