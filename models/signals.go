@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"moduleab_server/common"
+	"moduleab_server/models"
 	"time"
 
 	"github.com/pborman/uuid"
@@ -23,6 +24,14 @@ var (
 	ErrorSignalBadDataType = errors.New("Bad data type")
 )
 
+var (
+	SignalChannels map[string]chan Signal
+)
+
+func init() {
+	SignalChannels = make(map[string]chan Signal)
+}
+
 type Signal map[string]interface{}
 
 func AddSignal(hostId string, signal Signal) (string, error) {
@@ -34,7 +43,6 @@ func AddSignal(hostId string, signal Signal) (string, error) {
 		v = append(v, signal)
 		// You have 30 minutes to take it out, or failed
 		return newId, common.DefaultRedisClient.Put(keyName, v, 30*time.Minute)
-
 	} else {
 		v := common.DefaultRedisClient.Get(keyName)
 		n, ok := v.([]Signal)
@@ -55,6 +63,16 @@ func GetSignals(hostId string) []Signal {
 		return nil
 	}
 	return n
+}
+
+func GetSignal(hostId, id string) (Signal, error) {
+	signals := models.GetSignals(hostId)
+	for _, v := range signals {
+		if v["id"] == id {
+			return v, nil
+		}
+	}
+	return nil, fmt.Errorf("Got nothing")
 }
 
 func TruncateSignals(hostId string) {
@@ -79,4 +97,17 @@ func DeleteSignal(hostId string, signalId string) error {
 		return common.DefaultRedisClient.Put(keyName, a, 30*time.Minute)
 	}
 	return ErrorSignalNotFound
+}
+
+func NotifySignal(hostId, signalId string) error {
+	_, ok := SignalChannels[hostId]
+	if !ok {
+		SignalChannels[hostId] = make(chan Signal, 1024)
+	}
+	signal, err := GetSignal(hostId, signalId)
+	if err != nil {
+		return err
+	}
+	SignalChannels[hostId] <- signal
+	return nil
 }

@@ -5,8 +5,16 @@ import (
 	"fmt"
 	"moduleab_server/models"
 	"net/http"
+	"time"
 
 	"github.com/astaxie/beego"
+	"github.com/gorilla/websocket"
+)
+
+const (
+	ClientWebSocketReplyGot  = "GOT"
+	ClientWebSocketReplyDone = "DONE"
+	ClientWebSocketReplyBye  = "BYE"
 )
 
 type ClientController struct {
@@ -25,6 +33,83 @@ func (c *ClientController) GetAliConfig() {
 		"ali_secret": beego.AppConfig.String("aliapi::secret"),
 	}
 	c.ServeJSON()
+}
+
+// @Title getSignalsWs
+// @router /signal/:name/ws [get]
+func (c *ClientController) WebSocket() {
+	name := c.GetString(":name")
+	beego.Debug("[C] Got name:", name)
+	if name != "" {
+		host := &models.Hosts{
+			Name: name,
+		}
+		hosts, err := models.GetHosts(host, 1, 0)
+		if err != nil {
+			c.Data["json"] = map[string]string{
+				"message": fmt.Sprint("Failed to get with name:", name),
+				"error":   err.Error(),
+			}
+			beego.Warn("[C] Got error:", err)
+			c.Ctx.Output.SetStatus(http.StatusInternalServerError)
+			c.ServeJSON()
+			return
+		}
+		if len(hosts) == 0 {
+			beego.Debug("[C] Got nothing with name:", name)
+			c.Ctx.Output.SetStatus(http.StatusNotFound)
+			c.ServeJSON()
+			return
+		}
+		HostId := hosts[0].Id
+
+		ws, err := websocket.Upgrade(
+			this.Ctx.ResponseWriter, this.Ctx.Request,
+			nil, 1024, 1024)
+		if err != nil {
+			c.Data["json"] = map[string]string{
+				"message": "Failed on upgrading to websocket",
+				"error":   err.Error(),
+			}
+			beego.Warn("[C] Got error:", err)
+			c.Ctx.Output.SetStatus(http.StatusInternalServerError)
+			c.ServeJSON()
+			return
+		}
+		var c chan models.Signal
+		c, ok := models.SignalChannels[HostsId]
+		if !ok {
+			c = make(chan models.Signal, 1024)
+			models.SignalChannels[HostsId] = c
+		}
+
+		for {
+			select {
+			case s := <-models.SignalChannels[HostsId]:
+				ws.WriteJSON(s)
+				_, bConfirm, _ := ws.ReadMessage()
+				if string(bConfirm) == ClientWebSocketReplyDone {
+					models.DeleteSignal(HostId, s["id"])
+				}
+			case <-time.After(5 * time.Second):
+				ws.WriteControl(websocket.PingMessage,
+					[]byte("Are you alive?"),
+					time.Now().Add(10*time.Second))
+				mType, _, err := ws.ReadMessage()
+				if err != nil || mType != websocket.PongMessage {
+					beego.Info("Host", name, "become offline.")
+					return
+				}
+			default:
+				mType, _, _ := ws.ReadMessage()
+				if mType == websocket.CloseMessage {
+					beego.Info("Host", name, "become offline.")
+					return
+				}
+			}
+		}
+		defer ws.Close()
+	}
 }
 
 // @Title getSignals
@@ -57,7 +142,6 @@ func (c *ClientController) GetSignals() {
 		c.Ctx.Output.SetStatus(http.StatusOK)
 		c.ServeJSON()
 		return
-
 	}
 }
 
@@ -88,23 +172,20 @@ func (c *ClientController) GetSignal() {
 			c.ServeJSON()
 			return
 		}
-		signals := models.GetSignals(hosts[0].Id)
-		for _, v := range signals {
-			if v["id"] == id {
-				c.Data["json"] = v
-				c.Ctx.Output.SetStatus(http.StatusOK)
-				c.ServeJSON()
-				return
+		signal, err := models.GetSignal(hosts[0].Id, id)
+		if err != nil {
+			c.Data["json"] = map[string]string{
+				"message": fmt.Sprintf("Got nothing with id:", id),
 			}
+			c.Ctx.Output.SetStatus(http.StatusNotFound)
+			c.ServeJSON()
+			return
 		}
 
-		c.Data["json"] = map[string]string{
-			"message": fmt.Sprintf("Got nothing with id:", id),
-		}
-		c.Ctx.Output.SetStatus(http.StatusNotFound)
+		c.Data["json"] = signal
+		c.Ctx.Output.SetStatus(http.StatusOK)
 		c.ServeJSON()
 		return
-
 	}
 }
 
@@ -217,4 +298,54 @@ func (c *ClientController) DeleteSignal() {
 		c.ServeJSON()
 		return
 	}
+}
+
+// @Title notifySignal
+// @router /signal/:name/:id [post]
+func (c *ClientController) NotifySignal() {
+	name := c.GetString(":name")
+	id := c.GetString(":id")
+	if name != "" {
+		host := &models.Hosts{
+			Name: name,
+		}
+		hosts, err := models.GetHosts(host, 0, 0)
+		if err != nil {
+			c.Data["json"] = map[string]string{
+				"message": fmt.Sprint("Failed to get with name:", name),
+				"error":   err.Error(),
+			}
+			beego.Warn("[C] Got error:", err)
+			c.Ctx.Output.SetStatus(http.StatusInternalServerError)
+			c.ServeJSON()
+			return
+		}
+		if len(hosts) == 0 {
+			beego.Debug("[C] Got nothing with name:", name)
+			c.Ctx.Output.SetStatus(http.StatusNotFound)
+			c.ServeJSON()
+			return
+		}
+		if id == "" {
+			c.Ctx.Output.SetStatus(http.StatusBadRequest)
+			c.ServeJSON()
+			return
+		}
+
+		err = models.NotifySignal(hosts[0].Id, id)
+		if err != nil {
+			c.Data["json"] = map[string]string{
+				"message": fmt.Sprint("Failed to notify to:", name),
+				"error":   err.Error(),
+			}
+			beego.Warn("[C] Got error:", err)
+			c.Ctx.Output.SetStatus(http.StatusInternalServerError)
+			c.ServeJSON()
+			return
+		}
+		c.Ctx.Output.SetStatus(http.StatusOK)
+		c.ServeJSON()
+		return
+	}
+
 }
