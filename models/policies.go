@@ -2,7 +2,6 @@ package models
 
 import (
 	//"time"
-
 	"fmt"
 	"moduleab_server/common"
 
@@ -13,13 +12,13 @@ import (
 )
 
 const (
-    PolicyActionAll=iota
+	PolicyActionAll = iota
 	PolicyActionArchive
 	PolicyActionDelete
 )
 
 const (
-    PolicyTargetAll = iota
+	PolicyTargetAll = iota
 	PolicyTargetBackup
 	PolicyTargetArchive
 )
@@ -62,7 +61,7 @@ func AddPolicy(a *Policies) (string, error) {
 	a.Id = uuid.New()
 	beego.Debug("[M] Got new id:", a.Id)
 	validator := new(validation.Validation)
-    valid, err := validator.Valid(a)
+	valid, err := validator.Valid(a)
 	if err != nil {
 		o.Rollback()
 		return "", err
@@ -157,12 +156,12 @@ func GetPolicies(cond *Policies, limit, index int) ([]*Policies, error) {
 	if cond.Name != "" {
 		q = q.Filter("name", cond.Name)
 	}
-    if cond.Target != PolicyTargetAll{
-        q = q.Filter("target", cond.Target)
-    }
-    if cond.Action != PolicyActionAll{
-        q = q.Filter("action", cond.Action)
-    }
+	if cond.Target != PolicyTargetAll {
+		q = q.Filter("target", cond.Target)
+	}
+	if cond.Action != PolicyActionAll {
+		q = q.Filter("action", cond.Action)
+	}
 	if limit > 0 {
 		q = q.Limit(limit)
 	}
