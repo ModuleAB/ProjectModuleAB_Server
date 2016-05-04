@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"moduleab_server/common"
 	"moduleab_server/models"
+	"sync"
 	"time"
 
 	"github.com/pborman/uuid"
@@ -26,6 +27,7 @@ var (
 
 var (
 	SignalChannels map[string]chan Signal
+	lock           *sync.Mutex
 )
 
 func init() {
@@ -35,6 +37,8 @@ func init() {
 type Signal map[string]interface{}
 
 func AddSignal(hostId string, signal Signal) (string, error) {
+	lock.Lock()
+	defer lock.Unlock()
 	keyName := fmt.Sprintf("%s%s", common.DefaultRedisKey, hostId)
 	newId := uuid.New()
 	signal["id"] = newId
@@ -56,6 +60,8 @@ func AddSignal(hostId string, signal Signal) (string, error) {
 }
 
 func GetSignals(hostId string) []Signal {
+	lock.Lock()
+	defer lock.Unlock()
 	keyName := fmt.Sprintf("%s%s", common.DefaultRedisKey, hostId)
 	v := common.DefaultRedisClient.Get(keyName)
 	n, ok := v.([]Signal)
@@ -66,6 +72,8 @@ func GetSignals(hostId string) []Signal {
 }
 
 func GetSignal(hostId, id string) (Signal, error) {
+	lock.Lock()
+	defer lock.Unlock()
 	signals := models.GetSignals(hostId)
 	for _, v := range signals {
 		if v["id"] == id {
@@ -76,11 +84,15 @@ func GetSignal(hostId, id string) (Signal, error) {
 }
 
 func TruncateSignals(hostId string) {
+	lock.Lock()
+	defer lock.Unlock()
 	keyName := fmt.Sprintf("%s%s", common.DefaultRedisKey, hostId)
 	common.DefaultRedisClient.Delete(keyName)
 }
 
 func DeleteSignal(hostId string, signalId string) error {
+	lock.Lock()
+	defer lock.Unlock()
 	keyName := fmt.Sprintf("%s%s", common.DefaultRedisKey, hostId)
 	if common.DefaultRedisClient.IsExist(keyName) {
 		v := common.DefaultRedisClient.Get(keyName)

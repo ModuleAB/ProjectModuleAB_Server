@@ -76,6 +76,12 @@ func (c *ClientController) WebSocket() {
 			c.ServeJSON()
 			return
 		}
+		ticker := time.NewTicker(5 * time.Second)
+
+		ws.SetReadDeadline(time.Now().Add(10 * time.Second))
+		ws.SetPongHandler(func(string) error {
+			ws.SetReadDeadline(time.Now().Add(10 * time.Second))
+		})
 		var c chan models.Signal
 		c, ok := models.SignalChannels[HostsId]
 		if !ok {
@@ -87,28 +93,29 @@ func (c *ClientController) WebSocket() {
 			select {
 			case s := <-models.SignalChannels[HostsId]:
 				ws.WriteJSON(s)
-				_, bConfirm, _ := ws.ReadMessage()
+				_, bConfirm, err := ws.ReadMessage()
+				if websocket.IsCloseError(err,
+					websocket.CloseGoingAway) {
+					beego.Info("Host", name, "is offline.")
+					break
+				} else if err != nil {
+					beego.Warn("Error on reading:", err.Error())
+					break
+				}
 				if string(bConfirm) == ClientWebSocketReplyDone {
 					models.DeleteSignal(HostId, s["id"])
 				}
-			case <-time.After(5 * time.Second):
-				ws.WriteControl(websocket.PingMessage,
-					[]byte("Are you alive?"),
-					time.Now().Add(10*time.Second))
-				mType, _, err := ws.ReadMessage()
-				if err != nil || mType != websocket.PongMessage {
-					beego.Info("Host", name, "become offline.")
-					return
-				}
-			default:
-				mType, _, _ := ws.ReadMessage()
-				if mType == websocket.CloseMessage {
-					beego.Info("Host", name, "become offline.")
+			case <-ticker.C:
+				err := ws.WriteMessage(websocket.PingMessage, []byte{})
+				if err != nil {
 					return
 				}
 			}
 		}
-		defer ws.Close()
+		defer func() {
+			ticker.Stop()
+			ws.Close()
+		}()
 	}
 }
 
