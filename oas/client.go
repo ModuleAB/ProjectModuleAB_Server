@@ -229,7 +229,7 @@ func (o *OasClient) ArchiveToOas(vaultID, ossHost, bucket,
 	reqJson := &struct {
 		Type    string `json:"Type"`
 		Desc    string `json:"Description"`
-		OSSHost string `json:"OSShost"`
+		OSSHost string `json:"OSSHost"`
 		Bucket  string `json:"Bucket"`
 		Object  string `json:"Object"`
 	}{
@@ -270,7 +270,7 @@ func (o *OasClient) RecoverToOss(vaultID, archiveId, ossHost,
 	method := "POST"
 	reqJson := &struct {
 		Type      string `json:"Type"`
-		Desc      string `json:"Desc"`
+		Desc      string `json:"Description"`
 		OSSHost   string `json:"OSSHost"`
 		Bucket    string `json:"Bucket"`
 		ArchiveId string `json:"ArchiveId"`

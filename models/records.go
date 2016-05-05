@@ -43,6 +43,15 @@ func (r *Records) TableEngine() string {
 	return "TokuDB"
 }
 
+func (r *Records) GetFullPath() string {
+	return fmt.Sprintf("%s/%s/%s/%s",
+		r.AppSet.Name,
+		r.Host.Name,
+		r.Path.Path,
+		r.Filename,
+	)
+}
+
 func init() {
 	if prefix := beego.AppConfig.String("database::mysqlprefex"); prefix != "" {
 		orm.RegisterModelWithPrefix(prefix, new(Records))

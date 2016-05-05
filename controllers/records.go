@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"moduleab_server/common"
 	"moduleab_server/models"
 	"net/http"
 	"time"
@@ -163,6 +164,108 @@ func (h *RecordsController) Delete() {
 
 		}
 		h.Ctx.Output.SetStatus(http.StatusNoContent)
+		h.ServeJSON()
+		return
+	}
+}
+
+// @router /:id/recover [get]
+func (h *RecordsController) Recover() {
+	id := h.GetString(":id")
+	beego.Debug("[C] Got id:", id)
+	if id != "" {
+		record := &models.Records{
+			Id: id,
+		}
+		records, err := models.GetRecords(record, 0, 0)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"message": fmt.Sprint("Failed to get with id:", id),
+				"error":   err.Error(),
+			}
+			beego.Warn("[C] Got error:", err)
+			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
+			h.ServeJSON()
+			return
+		}
+		if len(records) == 0 {
+			beego.Debug("[C] Got nothing with id:", id)
+			h.Ctx.Output.SetStatus(http.StatusNotFound)
+			h.ServeJSON()
+			return
+		}
+
+		switch records[0].Type {
+		case models.RecordTypeArchive:
+			oasJob := &models.OasJobs{
+				JobType: models.OasJobTypePushToOSS,
+				Vault:   records[0].BackupSet.Oas,
+				Records: records[0],
+			}
+			oasJob.RequestId, oasJob.JobId, err = common.DefaultOasClient.ArchiveToOas(
+				records[0].BackupSet.Oas.VaultId,
+				records[0].BackupSet.Oss.Endpoint,
+				records[0].BackupSet.Oss.BucketName,
+				records[0].GetFullPath(),
+				records[0].GetFullPath(),
+			)
+			if err != nil {
+				h.Data["json"] = map[string]string{
+					"message": fmt.Sprint("Failed commit job:", id),
+					"error":   err.Error(),
+				}
+				beego.Warn("[C] Got error:", err)
+				h.Ctx.Output.SetStatus(http.StatusInternalServerError)
+				h.ServeJSON()
+				return
+			}
+			id, err := models.AddOasJobs(oasJob)
+			if err != nil {
+				h.Data["json"] = map[string]string{
+					"message": fmt.Sprint("Failed to record added oas job"),
+					"error":   err.Error(),
+				}
+				beego.Warn("[C] Got error:", err)
+				h.Ctx.Output.SetStatus(http.StatusInternalServerError)
+				h.ServeJSON()
+				return
+			}
+			h.Data["json"] = map[string]string{
+				"job_id":  id,
+				"message": "This is archive, so some waiting is necessary.",
+			}
+			h.Ctx.Output.SetStatus(http.StatusAccepted)
+		case models.RecordTypeBackup:
+			signal := models.MakeDownloadSignal(
+				records[0].GetFullPath(),
+				records[0].BackupSet.Oss.Endpoint,
+				records[0].BackupSet.Oss.BucketName,
+			)
+			id, _ := models.AddSignal(
+				records[0].Host.Id,
+				signal,
+			)
+			err = models.NotifySignal(
+				records[0].Host.Id,
+				id,
+			)
+			if err != nil {
+				h.Data["json"] = map[string]string{
+					"message": fmt.Sprint("Failed to recover file with record:", id),
+					"error":   err.Error(),
+				}
+				beego.Warn("[C] Got error:", err)
+				h.Ctx.Output.SetStatus(http.StatusInternalServerError)
+				h.ServeJSON()
+				return
+			}
+			h.Data["json"] = map[string]string{
+				"job_id":  id,
+				"message": "This is backup, so agent should be downloading now.",
+			}
+			h.Ctx.Output.SetStatus(http.StatusOK)
+		}
+
 		h.ServeJSON()
 		return
 	}

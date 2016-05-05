@@ -7,32 +7,14 @@ import (
 	"github.com/astaxie/beego"
 )
 
-var DefaultOasClient *oas.OasClient
-
-func InitOasClient(endpoint string) error {
-	oasPort, err := beego.AppConfig.Int("aliapi::oasport")
-	if err != nil {
-		return fmt.Errorf("Bad config value type (expect int): apiapi::oasport")
-	}
-	oasUseSSL, err := beego.AppConfig.Bool("aliapi::oasusessl")
-	if err != nil {
-		return fmt.Errorf("Bad config value type (expect bool): apiapi::oasport")
-	}
-
-	DefaultOasClient = oas.NewOasClient(
-		endpoint,
-		beego.AppConfig.String("aliapi::apikey"),
-		beego.AppConfig.String("aliapi::secret"),
-		oasPort,
-		oasUseSSL,
-	)
-	return nil
+type OasClient struct {
+	*oas.OasClient
 }
 
-func GetOasVaultId(name string) (string, error) {
+func (o *OasClient) GetOasVaultId(name string) (string, error) {
 	v := new(oas.VaultsList)
 	for {
-		id, v, err := DefaultOasClient.ListVaults(-1, v.Marker)
+		id, v, err := o.ListVaults(-1, v.Marker)
 		beego.Debug("OAS request ID:", id)
 		if err != nil {
 
@@ -47,4 +29,46 @@ func GetOasVaultId(name string) (string, error) {
 			return "", fmt.Errorf("Vault not found")
 		}
 	}
+}
+
+var DefaultOasClient *OasClient
+
+func InitOasClient(endpoint string) error {
+	oasPort, err := beego.AppConfig.Int("aliapi::oasport")
+	if err != nil {
+		return fmt.Errorf("Bad config value type (expect int): apiapi::oasport")
+	}
+	oasUseSSL, err := beego.AppConfig.Bool("aliapi::oasusessl")
+	if err != nil {
+		return fmt.Errorf("Bad config value type (expect bool): apiapi::oasport")
+	}
+
+	DefaultOasClient.OasClient = oas.NewOasClient(
+		endpoint,
+		beego.AppConfig.String("aliapi::apikey"),
+		beego.AppConfig.String("aliapi::secret"),
+		oasPort,
+		oasUseSSL,
+	)
+	return nil
+}
+
+func NewOasClient(endpoint string) (*OasClient, error) {
+	oasPort, err := beego.AppConfig.Int("aliapi::oasport")
+	if err != nil {
+		return nil, fmt.Errorf("Bad config value type (expect int): apiapi::oasport")
+	}
+	oasUseSSL, err := beego.AppConfig.Bool("aliapi::oasusessl")
+	if err != nil {
+		return nil, fmt.Errorf("Bad config value type (expect bool): apiapi::oasport")
+	}
+	o := new(OasClient)
+	o.OasClient = oas.NewOasClient(
+		endpoint,
+		beego.AppConfig.String("aliapi::apikey"),
+		beego.AppConfig.String("aliapi::secret"),
+		oasPort,
+		oasUseSSL,
+	)
+	return o, nil
 }

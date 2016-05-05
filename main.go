@@ -10,6 +10,7 @@ import (
 	"os/signal"
 	"time"
 
+	"moduleab_server/common"
 	_ "moduleab_server/docs"
 	"moduleab_server/models"
 	_ "moduleab_server/routers"
@@ -93,6 +94,8 @@ func main() {
 	)
 	beego.Info("Run signal notifier...")
 	go signalNotifier()
+	beego.Info("Run check oas job...")
+	go checkOasJob()
 	beego.Info("All is ready, go running...")
 	beego.Run()
 }
@@ -193,4 +196,76 @@ func initDb() {
 		beego.Alert("Error on inserting default backup set:", err)
 		os.Exit(1)
 	}
+}
+
+// TODO 轮询任务状态
+func checkOasJob() {
+	ticker := time.NewTicker(5 * time.Minute)
+	defer ticker.Stop()
+	beego.Debug("checkOasJob() running...")
+	for {
+		select {
+		case <-ticker.C:
+			beego.Info("checkOasJob() start.")
+			oas, err := models.GetOas(&models.Oas{}, 0, 0)
+			if err != nil {
+				beego.Warn("Got error:", err)
+				continue
+			}
+			for _, v := range oas {
+				beego.Debug("Got oas:", v)
+				o, err := common.NewOasClient(v.Endpoint)
+				if err != nil {
+					beego.Warn("Got error:", err)
+					continue
+				}
+
+				jobCond := &models.OasJobs{
+					Vault: v,
+				}
+				jobs, err := models.GetOasJobs(jobCond, 0, 0)
+				if err != nil {
+					beego.Warn("Got error:", err)
+					continue
+				}
+
+				for _, job := range jobs {
+					beego.Debug("Got job:", job)
+					_, jl, err := o.GetJobInfo(
+						job.Vault.VaultId,
+						job.JobId,
+					)
+					if err != nil {
+						beego.Warn("Got error:", err)
+						continue
+					}
+					if jl.Completed {
+						job.Status = jl.Completed
+						err = models.UpdateOasJobs(job)
+						if err != nil {
+							beego.Warn("Got error:", err)
+							continue
+						}
+						switch job.JobType {
+						case models.OasJobTypePushToOSS:
+							signal := models.MakeDownloadSignal(
+								job.Records.GetFullPath(),
+								job.Records.BackupSet.Oss.Endpoint,
+								job.Records.BackupSet.Oss.BucketName,
+							)
+							id, _ := models.AddSignal(
+								job.Records.Host.Id, signal)
+							err := models.NotifySignal(
+								job.Records.Host.Id, id)
+							if err != nil {
+								beego.Warn("Got error:", err)
+							}
+						}
+					}
+				}
+				beego.Info("checkOasJob() completed.")
+			}
+		}
+	}
+	defer beego.Debug("checkOasJob() STOPPED!")
 }

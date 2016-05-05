@@ -30,7 +30,7 @@ func (a *OasController) Post() {
 		return
 	}
 
-	err = common.InitOasClient(oas.Endpoint)
+	o, err := common.NewOasClient(oas.Endpoint)
 	if err != nil {
 		beego.Warn("[C] Got error:", err)
 		a.Data["json"] = map[string]string{
@@ -41,7 +41,7 @@ func (a *OasController) Post() {
 		a.ServeJSON()
 		return
 	}
-	oas.VaultId, err = common.GetOasVaultId(oas.VaultName)
+	oas.VaultId, err = o.GetOasVaultId(oas.VaultName)
 	if err != nil {
 		beego.Warn("[C] Got error:", err)
 		a.Data["json"] = map[string]string{

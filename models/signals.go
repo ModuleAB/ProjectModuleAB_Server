@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"moduleab_server/common"
-	"moduleab_server/models"
+
 	"sync"
 	"time"
 
@@ -74,7 +74,7 @@ func GetSignals(hostId string) []Signal {
 func GetSignal(hostId, id string) (Signal, error) {
 	lock.Lock()
 	defer lock.Unlock()
-	signals := models.GetSignals(hostId)
+	signals := GetSignals(hostId)
 	for _, v := range signals {
 		if v["id"] == id {
 			return v, nil
@@ -122,4 +122,13 @@ func NotifySignal(hostId, signalId string) error {
 	}
 	SignalChannels[hostId] <- signal
 	return nil
+}
+
+func MakeDownloadSignal(path, endpoint, bucket string) Signal {
+	s := make(Signal)
+	s["type"] = "download"
+	s["path"] = path
+	s["endpoint"] = endpoint
+	s["bucket"] = bucket
+	return s
 }

@@ -21,17 +21,17 @@ const (
 
 const (
 	OasJobStatusComplete   = true
-	OasJobStatusUncomplete = false
+	OasJobStatusIncomplete = false
 )
 
 type OasJobs struct {
 	Id        string   `orm:"pk;size(36)" json:"id" valid:"Match(/^[A-Fa-f0-9]{8}-([A-Fa-f0-9]{4}-){3}[A-Fa-f0-9]{12}$/)"`
-	Vault     *Oas     `orm:"rel(fk)" json:"vault"`
-	RequestId string   `json:"request_id"`
-	JobId     string   `json:"job_id"`
-	JobType   int      `json:"job_type"`
+	Vault     *Oas     `orm:"rel(fk)" json:"vault" valid:"Required"`
+	RequestId string   `json:"request_id valid:"Required"`
+	JobId     string   `json:"job_id" valid:"Required"`
+	JobType   int      `json:"job_type" valid:"Required"`
 	Status    bool     `orm:"default(0)"`
-	Records   *Records `orm:"rel(fk);null"`
+	Records   *Records `orm:"rel(fk);null" valid:"Required"`
 }
 
 func init() {
@@ -52,6 +52,7 @@ func AddOasJobs(a *OasJobs) (string, error) {
 
 	a.Id = uuid.New()
 	beego.Debug("[M] Got new id:", a.Id)
+
 	validator := new(validation.Validation)
 	valid, err := validator.Valid(a)
 	if err != nil {
@@ -144,6 +145,9 @@ func GetOasJobs(cond *OasJobs, limit, index int) ([]*OasJobs, error) {
 	q := o.QueryTable("oas_jobs")
 	if cond.Id != "" {
 		q = q.Filter("id", cond.Id)
+	}
+	if cond.Vault != nil {
+		q = q.Filter("vault_id", cond.Vault.Id)
 	}
 	if cond.RequestId != "" {
 		q = q.Filter("request_id", cond.RequestId)

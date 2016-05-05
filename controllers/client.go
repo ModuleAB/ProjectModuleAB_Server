@@ -64,7 +64,7 @@ func (c *ClientController) WebSocket() {
 		HostId := hosts[0].Id
 
 		ws, err := websocket.Upgrade(
-			this.Ctx.ResponseWriter, this.Ctx.Request,
+			c.Ctx.ResponseWriter, c.Ctx.Request,
 			nil, 1024, 1024)
 		if err != nil {
 			c.Data["json"] = map[string]string{
@@ -81,17 +81,18 @@ func (c *ClientController) WebSocket() {
 		ws.SetReadDeadline(time.Now().Add(10 * time.Second))
 		ws.SetPongHandler(func(string) error {
 			ws.SetReadDeadline(time.Now().Add(10 * time.Second))
+			return nil
 		})
 		var c chan models.Signal
-		c, ok := models.SignalChannels[HostsId]
+		c, ok := models.SignalChannels[HostId]
 		if !ok {
 			c = make(chan models.Signal, 1024)
-			models.SignalChannels[HostsId] = c
+			models.SignalChannels[HostId] = c
 		}
 
 		for {
 			select {
-			case s := <-models.SignalChannels[HostsId]:
+			case s := <-models.SignalChannels[HostId]:
 				ws.WriteJSON(s)
 				_, bConfirm, err := ws.ReadMessage()
 				if websocket.IsCloseError(err,
@@ -103,7 +104,7 @@ func (c *ClientController) WebSocket() {
 					break
 				}
 				if string(bConfirm) == ClientWebSocketReplyDone {
-					models.DeleteSignal(HostId, s["id"])
+					models.DeleteSignal(HostId, s["id"].(string))
 				}
 			case <-ticker.C:
 				err := ws.WriteMessage(websocket.PingMessage, []byte{})
