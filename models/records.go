@@ -31,7 +31,7 @@ type Records struct {
 	BackupSet    *BackupSets `orm:"rel(fk)" json:"backup_set"`
 	AppSet       *AppSets    `orm:"rel(fk)" json:"app_set"`
 	Path         *Paths      `orm:"rel(fk)" json:"path" valid:"Required"`
-	Filename     string      `json:"path" valid:Required`
+    Filename     string      `orm:"key" json:"path" valid:Required`
 	Type         int         `json:"type" valid:"Required"` // 0 - All, 1 - Backup, 2 - Archive
 	ArchiveId    string      `orm:"null" json:"archive_id"` // 如果Type是1（归档）时，这里应该有数据
 	BackupTime   time.Time   `orm:"type(datetime)" json:"backup_time"`

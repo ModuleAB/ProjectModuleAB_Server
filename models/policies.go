@@ -36,7 +36,7 @@ const (
 //策略
 type Policies struct {
 	Id          string      `orm:"pk;size(36)" json:"id" valid:"Match(/^[A-Fa-f0-9]{8}-([A-Fa-f0-9]{4}-){3}[A-Fa-f0-9]{12}$/)"`
-	Name        string      `orm:"size(32)" json:"name" valid:"Required"`
+	Name        string      `orm:"size(32);uniq" json:"name" valid:"Required"`
 	Desc        string      `orm:"size(128);null" json:"description"`
 	BackupSet   *BackupSets `orm:"rel(fk)" json:"backup_set"`
 	AppSet      *AppSets    `orm:"rel(fk);null" json:"app_set"` // null means all

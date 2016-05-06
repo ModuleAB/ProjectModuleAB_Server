@@ -35,14 +35,15 @@ func RunPolicies() {
 	for _, p := range policies {
 		beego.Info("Run policy id:", p.Id)
 		var backupStart, backupEnd, archiveStart, archiveEnd time.Time
+		now := time.Now()
 		switch p.Target {
 		case models.PolicyTargetBackup:
 			if p.TargetEnd != models.PolicyTargetTimeLongLongAgo {
-				backupStart = time.Now().Add(
+				backupStart = now.Add(
 					time.Duration(-p.TargetEnd) * time.Second,
 				)
 			}
-			backupEnd = time.Now().Add(
+			backupEnd = now.Add(
 				time.Duration(-p.TargetStart) * time.Second,
 			)
 			if backupEnd.Before(backupStart) {
@@ -51,11 +52,11 @@ func RunPolicies() {
 			}
 		case models.PolicyTargetArchive:
 			if p.TargetEnd != models.PolicyTargetTimeLongLongAgo {
-				archiveStart = time.Now().Add(
+				archiveStart = now.Add(
 					time.Duration(-p.TargetEnd) * time.Second,
 				)
 			}
-			archiveEnd = time.Now().Add(
+			archiveEnd = mow.Add(
 				time.Duration(-p.TargetStart) * time.Second,
 			)
 			if archiveEnd.Before(archiveStart) {
