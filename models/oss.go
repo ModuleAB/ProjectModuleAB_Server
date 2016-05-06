@@ -13,7 +13,7 @@ import (
 type Oss struct {
 	Id         string        `orm:"pk;size(36)" json:"id" valid:"Match(/^[A-Fa-f0-9]{8}-([A-Fa-f0-9]{4}-){3}[A-Fa-f0-9]{12}$/)"`
 	Endpoint   string        `json:"endpoint" valid:"Required"`
-	BucketName string        `orm:"size(32);index;unique" json:"name" valid:"Required"`
+	BucketName string        `orm:"size(32);index;unique" json:"bucket" valid:"Required"`
 	BackupSets []*BackupSets `orm:"reverse(many)"`
 }
 

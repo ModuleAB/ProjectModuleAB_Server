@@ -28,18 +28,23 @@ const (
 	PolicyReserveNone = 0
 )
 
+const (
+	PolicyTargetTimeLongLongAgo = -1
+	PolicyTargetTimeNow         = 0
+)
+
 //策略
 type Policies struct {
-	Id            string      `orm:"pk;size(36)" json:"id" valid:"Match(/^[A-Fa-f0-9]{8}-([A-Fa-f0-9]{4}-){3}[A-Fa-f0-9]{12}$/)"`
-	Name          string      `orm:"size(32)" json:"name" valid:"Required"`
-	Desc          string      `orm:"size(128);null" json:"description"`
-	BackupSet     *BackupSets `orm:"rel(fk)" json:"backup_set"`
-	AppSet        *AppSets    `orm:"rel(fk);null" json:"app_set"` // null means all
-	Target        int         `json:"target"`
-	Action        int         `json:"action"`
-	TargetStart   int         `orm:"default(0)" json:"start_time"` // Seconds, 0 means now
-	TargetEnd     int         `orm:"default(-1)" json:"end_tile"`  // Seconds, -1 means long long ago
-	ReservePeriod int         `orm:"default(-1)" json:"period"`    // Seconds, 0 means reserve none, -1 means all
+	Id          string      `orm:"pk;size(36)" json:"id" valid:"Match(/^[A-Fa-f0-9]{8}-([A-Fa-f0-9]{4}-){3}[A-Fa-f0-9]{12}$/)"`
+	Name        string      `orm:"size(32)" json:"name" valid:"Required"`
+	Desc        string      `orm:"size(128);null" json:"description"`
+	BackupSet   *BackupSets `orm:"rel(fk)" json:"backup_set"`
+	AppSet      *AppSets    `orm:"rel(fk);null" json:"app_set"` // null means all
+	Target      int         `json:"target"`
+	Action      int         `json:"action"`
+	TargetStart int         `orm:"default(0)" json:"start_time"` // Seconds, 0 means now
+	TargetEnd   int         `orm:"default(-1)" json:"end_tile"`  // Seconds, -1 means long long ago
+	Step        int         `orm:"default(-1)" json:"step"`      // Seconds, 0 means reserve none, -1 means all
 }
 
 func init() {

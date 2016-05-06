@@ -7,19 +7,15 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"os/signal"
-	"time"
 
-	"moduleab_server/common"
 	_ "moduleab_server/docs"
-	"moduleab_server/models"
+	"moduleab_server/policies"
 	_ "moduleab_server/routers"
 	"os"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/pborman/uuid"
 )
 
 const DBS = "%s:%s@tcp(%s)/%s?charset=utf8"
@@ -41,7 +37,14 @@ func init() {
 }
 
 func main() {
-	beego.SetLogger("file", `{"filename":"logs/server.log"}`)
+	logfile := beego.AppConfig.String("logFile")
+	if logfile == "" {
+		logfile = "logs/moduleab_server.log"
+	}
+	err := beego.SetLogger("file", fmt.Sprintf(`{"filename":"%s"}`, logfile))
+	if err != nil {
+		panic(err)
+	}
 	beego.SetLevel(beego.LevelInformational)
 
 	beego.Info("Hello!")
@@ -51,13 +54,13 @@ func main() {
 		beego.Alert("Hey! You're running this server with user root!")
 		panic("Don't run me with root!")
 	}
-	err := fmt.Errorf("")
+
 	switch beego.BConfig.RunMode {
 	case "initdb":
 		beego.Info("Got runmode: Initialize database")
 		err = orm.RunSyncdb("default", true, true)
 		orm.Debug = true
-		initDb()
+		policies.InitDb()
 		beego.Info("Database is ready")
 		os.Exit(0)
 
@@ -93,179 +96,9 @@ func main() {
 		0600,
 	)
 	beego.Info("Run signal notifier...")
-	go signalNotifier()
+	go policies.SignalNotifier()
 	beego.Info("Run check oas job...")
-	go checkOasJob()
+	go policies.CheckOasJob()
 	beego.Info("All is ready, go running...")
 	beego.Run()
-}
-
-func signalNotifier() {
-	beego.Info("Signal notifier started.")
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt, os.Kill)
-	for {
-		select {
-		case s := <-c:
-			beego.Info(
-				fmt.Sprintf(
-					"Received Signal: %s, stop in 10 seconds...", s,
-				),
-			)
-			time.Sleep(10 * time.Second)
-			db, err := orm.GetDB("default")
-			if err != nil {
-				beego.Warn("Got error:", err)
-				os.Exit(1)
-			} else {
-				db.Close()
-				os.Exit(0)
-			}
-		default:
-			continue
-		}
-	}
-}
-
-func initDb() {
-	o := orm.NewOrm()
-
-	role := []models.Roles{
-		models.Roles{
-			Id:        uuid.New(),
-			Name:      "Administrator",
-			RoleFlag:  models.RoleFlagAdmin,
-			Removable: false,
-		},
-		models.Roles{
-			Id:        uuid.New(),
-			Name:      "Operator",
-			RoleFlag:  models.RoleFlagOperator,
-			Removable: false,
-		},
-		models.Roles{
-			Id:        uuid.New(),
-			Name:      "User",
-			RoleFlag:  models.RoleFlagUser,
-			Removable: false,
-		},
-	}
-	o.Begin()
-	_, err := o.InsertMulti(1, role)
-	if err != nil {
-		o.Rollback()
-		beego.Alert("Error on inserting roles:", err)
-		os.Exit(1)
-	}
-	o.Commit()
-
-	user := &models.Users{
-		Id:       uuid.New(),
-		Name:     "admin",
-		ShowName: "Administrator",
-		Password: "admin",
-		Roles: []*models.Roles{
-			&role[0],
-		},
-		Removable: false,
-	}
-	_, err = models.AddUser(user)
-	if err != nil {
-		beego.Alert("Error on inserting user:", err)
-		os.Exit(1)
-	}
-
-	appSet := &models.AppSets{
-		Name: "Default",
-		Desc: "Default app set",
-	}
-	_, err = models.AddAppSet(appSet)
-	if err != nil {
-		beego.Alert("Error on inserting default application set:", err)
-		os.Exit(1)
-	}
-
-	backupSet := &models.BackupSets{
-		Id:   uuid.New(),
-		Name: "Default",
-		Desc: "Default backup set",
-	}
-	_, err = models.AddBackupSet(backupSet)
-	if err != nil {
-		o.Rollback()
-		beego.Alert("Error on inserting default backup set:", err)
-		os.Exit(1)
-	}
-}
-
-// TODO 轮询任务状态
-func checkOasJob() {
-	ticker := time.NewTicker(5 * time.Minute)
-	defer ticker.Stop()
-	beego.Debug("checkOasJob() running...")
-	for {
-		select {
-		case <-ticker.C:
-			beego.Info("checkOasJob() start.")
-			oas, err := models.GetOas(&models.Oas{}, 0, 0)
-			if err != nil {
-				beego.Warn("Got error:", err)
-				continue
-			}
-			for _, v := range oas {
-				beego.Debug("Got oas:", v)
-				o, err := common.NewOasClient(v.Endpoint)
-				if err != nil {
-					beego.Warn("Got error:", err)
-					continue
-				}
-
-				jobCond := &models.OasJobs{
-					Vault: v,
-				}
-				jobs, err := models.GetOasJobs(jobCond, 0, 0)
-				if err != nil {
-					beego.Warn("Got error:", err)
-					continue
-				}
-
-				for _, job := range jobs {
-					beego.Debug("Got job:", job)
-					_, jl, err := o.GetJobInfo(
-						job.Vault.VaultId,
-						job.JobId,
-					)
-					if err != nil {
-						beego.Warn("Got error:", err)
-						continue
-					}
-					if jl.Completed {
-						job.Status = jl.Completed
-						err = models.UpdateOasJobs(job)
-						if err != nil {
-							beego.Warn("Got error:", err)
-							continue
-						}
-						switch job.JobType {
-						case models.OasJobTypePushToOSS:
-							signal := models.MakeDownloadSignal(
-								job.Records.GetFullPath(),
-								job.Records.BackupSet.Oss.Endpoint,
-								job.Records.BackupSet.Oss.BucketName,
-							)
-							id, _ := models.AddSignal(
-								job.Records.Host.Id, signal)
-							err := models.NotifySignal(
-								job.Records.Host.Id, id)
-							if err != nil {
-								beego.Warn("Got error:", err)
-							}
-						}
-					}
-				}
-				beego.Info("checkOasJob() completed.")
-			}
-		}
-	}
-	defer beego.Debug("checkOasJob() STOPPED!")
 }

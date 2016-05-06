@@ -76,11 +76,24 @@ func (c *ClientController) WebSocket() {
 			c.ServeJSON()
 			return
 		}
-		ticker := time.NewTicker(5 * time.Second)
+		tick, err := beego.AppConfig.Int64("websocket::pingperiod")
+		if err != nil {
+			tick = 5
+		}
+		ticker := time.NewTicker(
+			time.Duration(tick) * time.Second)
 
-		ws.SetReadDeadline(time.Now().Add(10 * time.Second))
+		timeout, err := beego.AppConfig.Int64("websocket::timeout")
+		if err != nil {
+			timeout = 10
+		}
+		ws.SetReadDeadline(time.Now().Add(
+			time.Duration(timeout) * time.Second),
+		)
 		ws.SetPongHandler(func(string) error {
-			ws.SetReadDeadline(time.Now().Add(10 * time.Second))
+			ws.SetReadDeadline(time.Now().Add(
+				time.Duration(timeout) * time.Second),
+			)
 			return nil
 		})
 		var c chan models.Signal

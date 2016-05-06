@@ -13,9 +13,9 @@ import (
 )
 
 const (
-	RecordTypeAll = iota
-	RecordTypeBackup
-	RecordTypeArchive
+	RecordTypeAll     = PolicyTargetAll
+	RecordTypeBackup  = PolicyTargetBackup
+	RecordTypeArchive = PolicyTargetArchive
 )
 
 const (
@@ -231,15 +231,26 @@ func GetRecords(cond *Records, limit, index int,
 		}
 	}
 	if len(times) != 0 {
-		if !times[backupTimeStart].IsZero() &&
-			!times[backupTimeEnd].IsZero() {
-			q = q.Filter("backup_time__gte", times[backupTimeStart]).
-				Filter("backup_time__lte", times[backupTimeEnd])
+		if !times[backupTimeStart].IsZero() {
+			q = q.Filter("backup_time__gte", times[backupTimeStart])
 		}
-		if !times[archiveTimeStart].IsZero() &&
-			!times[archiveTimeEnd].IsZero() {
-			q = q.Filter("archived_time__gte", times[backupTimeStart]).
-				Filter("archived_time__lte", times[backupTimeEnd])
+		if !times[backupTimeEnd].IsZero() {
+			q = q.Filter("backup_time__lte", times[backupTimeEnd])
+		}
+		if !times[archiveTimeStart].IsZero() {
+			q = q.Filter("archived_time__gte", times[backupTimeStart])
+		}
+		if !times[archiveTimeEnd].IsZero() {
+			q = q.Filter("archived_time__lte", times[backupTimeEnd])
+		}
+		switch {
+		case !times[backupTimeStart].IsZero() || !times[backupTimeEnd].IsZero():
+			q = q.Filter("backup_time")
+		case !times[archiveTimeStart].IsZero() || !times[archiveTimeEnd].IsZero():
+			q = q.Filter("archived_time")
+		case (!times[backupTimeStart].IsZero() || !times[backupTimeEnd].IsZero()) &&
+			(!times[archiveTimeStart].IsZero() || !times[archiveTimeEnd].IsZero()):
+			q = q.Filter("backup_time", "archived_time")
 		}
 	}
 
