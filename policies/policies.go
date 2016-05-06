@@ -247,14 +247,6 @@ func SignalNotifier() {
 				),
 			)
 			time.Sleep(10 * time.Second)
-			db, err := orm.GetDB("default")
-			if err != nil {
-				beego.Warn("Got error on shuting down database connection:", err)
-				os.Exit(1)
-			} else {
-				db.Close()
-				os.Exit(0)
-			}
 		default:
 			continue
 		}
