@@ -16,83 +16,103 @@ type UserController struct {
 
 // @Title createUser
 // @router / [post]
-func (a *UserController) Post() {
-	if a.Ctx.Input.Header("Signature") != "" {
-		err := common.AuthWithKey(a.Ctx)
+func (h *UserController) Post() {
+	if h.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(h.Ctx)
 		if err != nil {
-			a.Data["json"] = map[string]string{
+			h.Data["json"] = map[string]string{
 				"error": err.Error(),
 			}
-			a.Ctx.Output.SetStatus(http.StatusForbidden)
-			a.ServeJSON()
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
 		}
 	} else {
-		if a.GetSession("id") == nil {
-			a.Data["json"] = map[string]string{
+		if h.GetSession("id") == nil {
+			h.Data["json"] = map[string]string{
 				"error": "You need login first.",
 			}
-			a.Ctx.Output.SetStatus(http.StatusForbidden)
-			a.ServeJSON()
+			h.Ctx.Output.SetStatus(http.StatusUnauthorized)
+			h.ServeJSON()
+		}
+		if models.CheckPrivileges(
+			h.GetSession("id").(string),
+			models.RoleFlagOperator,
+		) {
+			h.Data["json"] = map[string]string{
+				"error": "No privilege",
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
 		}
 	}
 
 	user := new(models.Users)
-	err := json.Unmarshal(a.Ctx.Input.RequestBody, user)
+	err := json.Unmarshal(h.Ctx.Input.RequestBody, user)
 	if err != nil {
 		beego.Warn("[C] Got error:", err)
-		a.Data["json"] = map[string]string{
+		h.Data["json"] = map[string]string{
 			"message": "Bad request",
 			"error":   err.Error(),
 		}
-		a.Ctx.Output.SetStatus(http.StatusBadRequest)
-		a.ServeJSON()
+		h.Ctx.Output.SetStatus(http.StatusBadRequest)
+		h.ServeJSON()
 		return
 	}
 	beego.Debug("[C] Got data:", user)
 	id, err := models.AddUser(user)
 	if err != nil {
 		beego.Warn("[C] Got error:", err)
-		a.Data["json"] = map[string]string{
+		h.Data["json"] = map[string]string{
 			"message": "Failed to add New host",
 			"error":   err.Error(),
 		}
-		a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-		a.ServeJSON()
+		h.Ctx.Output.SetStatus(http.StatusInternalServerError)
+		h.ServeJSON()
 		return
 	}
 
 	beego.Debug("[C] Got id:", id)
-	a.Data["json"] = map[string]string{
+	h.Data["json"] = map[string]string{
 		"id": id,
 	}
-	a.Ctx.Output.SetStatus(http.StatusCreated)
-	a.ServeJSON()
+	h.Ctx.Output.SetStatus(http.StatusCreated)
+	h.ServeJSON()
 	return
 }
 
 // @Title getUser
 // @router /:name [get]
-func (a *UserController) Get() {
-	if a.Ctx.Input.Header("Signature") != "" {
-		err := common.AuthWithKey(a.Ctx)
+func (h *UserController) Get() {
+	if h.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(h.Ctx)
 		if err != nil {
-			a.Data["json"] = map[string]string{
+			h.Data["json"] = map[string]string{
 				"error": err.Error(),
 			}
-			a.Ctx.Output.SetStatus(http.StatusForbidden)
-			a.ServeJSON()
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
 		}
 	} else {
-		if a.GetSession("id") == nil {
-			a.Data["json"] = map[string]string{
+		if h.GetSession("id") == nil {
+			h.Data["json"] = map[string]string{
 				"error": "You need login first.",
 			}
-			a.Ctx.Output.SetStatus(http.StatusForbidden)
-			a.ServeJSON()
+			h.Ctx.Output.SetStatus(http.StatusUnauthorized)
+			h.ServeJSON()
+		}
+		if models.CheckPrivileges(
+			h.GetSession("id").(string),
+			models.RoleFlagOperator,
+		) {
+			h.Data["json"] = map[string]string{
+				"error": "No privilege",
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
 		}
 	}
 
-	name := a.GetString(":name")
+	name := h.GetString(":name")
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
 		user := &models.Users{
@@ -100,24 +120,24 @@ func (a *UserController) Get() {
 		}
 		users, err := models.GetUser(user, 0, 0)
 		if err != nil {
-			a.Data["json"] = map[string]string{
+			h.Data["json"] = map[string]string{
 				"message": fmt.Sprint("Failed to get  with name:", name),
 				"error":   err.Error(),
 			}
 			beego.Warn("[C] Got error:", err)
-			a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			a.ServeJSON()
+			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
+			h.ServeJSON()
 			return
 		}
-		a.Data["json"] = users
+		h.Data["json"] = users
 		if len(users) == 0 {
 			beego.Debug("[C] Got nothing with name:", name)
-			a.Ctx.Output.SetStatus(http.StatusNotFound)
-			a.ServeJSON()
+			h.Ctx.Output.SetStatus(http.StatusNotFound)
+			h.ServeJSON()
 			return
 		} else {
-			a.Ctx.Output.SetStatus(http.StatusOK)
-			a.ServeJSON()
+			h.Ctx.Output.SetStatus(http.StatusOK)
+			h.ServeJSON()
 			return
 		}
 	}
@@ -125,77 +145,97 @@ func (a *UserController) Get() {
 
 // @Title listUser
 // @router / [get]
-func (a *UserController) GetAll() {
-	if a.Ctx.Input.Header("Signature") != "" {
-		err := common.AuthWithKey(a.Ctx)
+func (h *UserController) GetAll() {
+	if h.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(h.Ctx)
 		if err != nil {
-			a.Data["json"] = map[string]string{
+			h.Data["json"] = map[string]string{
 				"error": err.Error(),
 			}
-			a.Ctx.Output.SetStatus(http.StatusForbidden)
-			a.ServeJSON()
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
 		}
 	} else {
-		if a.GetSession("id") == nil {
-			a.Data["json"] = map[string]string{
+		if h.GetSession("id") == nil {
+			h.Data["json"] = map[string]string{
 				"error": "You need login first.",
 			}
-			a.Ctx.Output.SetStatus(http.StatusForbidden)
-			a.ServeJSON()
+			h.Ctx.Output.SetStatus(http.StatusUnauthorized)
+			h.ServeJSON()
+		}
+		if models.CheckPrivileges(
+			h.GetSession("id").(string),
+			models.RoleFlagOperator,
+		) {
+			h.Data["json"] = map[string]string{
+				"error": "No privilege",
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
 		}
 	}
 
-	limit, _ := a.GetInt("limit", 0)
-	index, _ := a.GetInt("index", 0)
+	limit, _ := h.GetInt("limit", 0)
+	index, _ := h.GetInt("index", 0)
 
 	user := &models.Users{}
 	users, err := models.GetUser(user, limit, index)
 	if err != nil {
-		a.Data["json"] = map[string]string{
+		h.Data["json"] = map[string]string{
 			"message": fmt.Sprint("Failed to get"),
 			"error":   err.Error(),
 		}
 		beego.Warn("[C] Got error:", err)
-		a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-		a.ServeJSON()
+		h.Ctx.Output.SetStatus(http.StatusInternalServerError)
+		h.ServeJSON()
 		return
 	}
-	a.Data["json"] = users
+	h.Data["json"] = users
 	if len(users) == 0 {
 		beego.Debug("[C] Got nothing")
-		a.Ctx.Output.SetStatus(http.StatusNotFound)
-		a.ServeJSON()
+		h.Ctx.Output.SetStatus(http.StatusNotFound)
+		h.ServeJSON()
 		return
 	} else {
-		a.Ctx.Output.SetStatus(http.StatusOK)
-		a.ServeJSON()
+		h.Ctx.Output.SetStatus(http.StatusOK)
+		h.ServeJSON()
 		return
 	}
 }
 
 // @Title deleteUser
 // @router /:name [delete]
-func (a *UserController) Delete() {
-	if a.Ctx.Input.Header("Signature") != "" {
-		err := common.AuthWithKey(a.Ctx)
+func (h *UserController) Delete() {
+	if h.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(h.Ctx)
 		if err != nil {
-			a.Data["json"] = map[string]string{
+			h.Data["json"] = map[string]string{
 				"error": err.Error(),
 			}
-			a.Ctx.Output.SetStatus(http.StatusForbidden)
-			a.ServeJSON()
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
 		}
 	} else {
-		if a.GetSession("id") == nil {
-			a.Data["json"] = map[string]string{
+		if h.GetSession("id") == nil {
+			h.Data["json"] = map[string]string{
 				"error": "You need login first.",
 			}
-			a.Ctx.Output.SetStatus(http.StatusForbidden)
-			a.ServeJSON()
+			h.Ctx.Output.SetStatus(http.StatusUnauthorized)
+			h.ServeJSON()
+		}
+		if models.CheckPrivileges(
+			h.GetSession("id").(string),
+			models.RoleFlagOperator,
+		) {
+			h.Data["json"] = map[string]string{
+				"error": "No privilege",
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
 		}
 	}
 
-	name := a.GetString(":name")
+	name := h.GetString(":name")
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
 		user := &models.Users{
@@ -203,62 +243,72 @@ func (a *UserController) Delete() {
 		}
 		users, err := models.GetUser(user, 0, 0)
 		if err != nil {
-			a.Data["json"] = map[string]string{
+			h.Data["json"] = map[string]string{
 				"message": fmt.Sprint("Failed to get with name:", name),
 				"error":   err.Error(),
 			}
 			beego.Warn("[C] Got error:", err)
-			a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			a.ServeJSON()
+			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
+			h.ServeJSON()
 			return
 		}
 		if len(users) == 0 {
 			beego.Debug("[C] Got nothing with name:", name)
-			a.Ctx.Output.SetStatus(http.StatusNotFound)
-			a.ServeJSON()
+			h.Ctx.Output.SetStatus(http.StatusNotFound)
+			h.ServeJSON()
 			return
 		}
 		err = models.DeleteUser(users[0])
 		if err != nil {
-			a.Data["json"] = map[string]string{
+			h.Data["json"] = map[string]string{
 				"message": fmt.Sprint("Failed to delete with name:", name),
 				"error":   err.Error(),
 			}
 			beego.Warn("[C] Got error:", err)
-			a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			a.ServeJSON()
+			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
+			h.ServeJSON()
 			return
 
 		}
-		a.Ctx.Output.SetStatus(http.StatusNoContent)
-		a.ServeJSON()
+		h.Ctx.Output.SetStatus(http.StatusNoContent)
+		h.ServeJSON()
 		return
 	}
 }
 
 // @Title updateUser
 // @router /:name [put]
-func (a *UserController) Put() {
-	if a.Ctx.Input.Header("Signature") != "" {
-		err := common.AuthWithKey(a.Ctx)
+func (h *UserController) Put() {
+	if h.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(h.Ctx)
 		if err != nil {
-			a.Data["json"] = map[string]string{
+			h.Data["json"] = map[string]string{
 				"error": err.Error(),
 			}
-			a.Ctx.Output.SetStatus(http.StatusForbidden)
-			a.ServeJSON()
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
 		}
 	} else {
-		if a.GetSession("id") == nil {
-			a.Data["json"] = map[string]string{
+		if h.GetSession("id") == nil {
+			h.Data["json"] = map[string]string{
 				"error": "You need login first.",
 			}
-			a.Ctx.Output.SetStatus(http.StatusForbidden)
-			a.ServeJSON()
+			h.Ctx.Output.SetStatus(http.StatusUnauthorized)
+			h.ServeJSON()
+		}
+		if models.CheckPrivileges(
+			h.GetSession("id").(string),
+			models.RoleFlagOperator,
+		) {
+			h.Data["json"] = map[string]string{
+				"error": "No privilege",
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
 		}
 	}
 
-	name := a.GetString(":name")
+	name := h.GetString(":name")
 	beego.Debug("[C] Got user name:", name)
 	if name != "" {
 		user := &models.Users{
@@ -266,49 +316,49 @@ func (a *UserController) Put() {
 		}
 		users, err := models.GetUser(user, 0, 0)
 		if err != nil {
-			a.Data["json"] = map[string]string{
+			h.Data["json"] = map[string]string{
 				"message": fmt.Sprint("Failed to get with name:", name),
 				"error":   err.Error(),
 			}
 			beego.Warn("[C] Got error:", err)
-			a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			a.ServeJSON()
+			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
+			h.ServeJSON()
 			return
 		}
 		if len(users) == 0 {
 			beego.Debug("[C] Got nothing with name:", name)
-			a.Ctx.Output.SetStatus(http.StatusNotFound)
-			a.ServeJSON()
+			h.Ctx.Output.SetStatus(http.StatusNotFound)
+			h.ServeJSON()
 			return
 		}
 
-		err = json.Unmarshal(a.Ctx.Input.RequestBody, user)
+		err = json.Unmarshal(h.Ctx.Input.RequestBody, user)
 		user.Id = users[0].Id
 		if err != nil {
 			beego.Warn("[C] Got error:", err)
-			a.Data["json"] = map[string]string{
+			h.Data["json"] = map[string]string{
 				"message": "Bad request",
 				"error":   err.Error(),
 			}
-			a.Ctx.Output.SetStatus(http.StatusBadRequest)
-			a.ServeJSON()
+			h.Ctx.Output.SetStatus(http.StatusBadRequest)
+			h.ServeJSON()
 			return
 		}
 		beego.Debug("[C] Got user data:", user)
 		err = models.UpdateUser(user)
 		if err != nil {
-			a.Data["json"] = map[string]string{
+			h.Data["json"] = map[string]string{
 				"message": fmt.Sprint("Failed to update with name:", name),
 				"error":   err.Error(),
 			}
 			beego.Warn("[C] Got error:", err)
-			a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			a.ServeJSON()
+			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
+			h.ServeJSON()
 			return
 
 		}
-		a.Ctx.Output.SetStatus(http.StatusAccepted)
-		a.ServeJSON()
+		h.Ctx.Output.SetStatus(http.StatusAccepted)
+		h.ServeJSON()
 		return
 	}
 }
@@ -330,6 +380,16 @@ func (h *UserController) AddUserRoles() {
 		if h.GetSession("id") == nil {
 			h.Data["json"] = map[string]string{
 				"error": "You need login first.",
+			}
+			h.Ctx.Output.SetStatus(http.StatusUnauthorized)
+			h.ServeJSON()
+		}
+		if models.CheckPrivileges(
+			h.GetSession("id").(string),
+			models.RoleFlagOperator,
+		) {
+			h.Data["json"] = map[string]string{
+				"error": "No privilege",
 			}
 			h.Ctx.Output.SetStatus(http.StatusForbidden)
 			h.ServeJSON()
@@ -407,6 +467,16 @@ func (h *UserController) DeleteUserRoles() {
 			h.Data["json"] = map[string]string{
 				"error": "You need login first.",
 			}
+			h.Ctx.Output.SetStatus(http.StatusUnauthorized)
+			h.ServeJSON()
+		}
+		if models.CheckPrivileges(
+			h.GetSession("id").(string),
+			models.RoleFlagOperator,
+		) {
+			h.Data["json"] = map[string]string{
+				"error": "No privilege",
+			}
 			h.Ctx.Output.SetStatus(http.StatusForbidden)
 			h.ServeJSON()
 		}
@@ -467,45 +537,113 @@ func (h *UserController) DeleteUserRoles() {
 }
 
 // @router /login [post]
-func (a *UserController) Login() {
+func (h *UserController) Login() {
 	user := new(models.Users)
-	err := json.Unmarshal(a.Ctx.Input.RequestBody, user)
+	err := json.Unmarshal(h.Ctx.Input.RequestBody, user)
 	if err != nil {
 		beego.Warn("[C] Got error:", err)
-		a.Data["json"] = map[string]string{
+		h.Data["json"] = map[string]string{
 			"message": "Bad request",
 			"error":   err.Error(),
 		}
-		a.Ctx.Output.SetStatus(http.StatusBadRequest)
-		a.ServeJSON()
+		h.Ctx.Output.SetStatus(http.StatusBadRequest)
+		h.ServeJSON()
 		return
 	}
 	beego.Debug("[C] Got data:", user)
 	users, err := models.GetUser(user, 0, 0)
 	if err != nil {
-		a.Data["json"] = map[string]string{
+		h.Data["json"] = map[string]string{
 			"message": fmt.Sprint("Failed to get with name:", user.Name),
 			"error":   err.Error(),
 		}
 		beego.Warn("[C] Got error:", err)
-		a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-		a.ServeJSON()
+		h.Ctx.Output.SetStatus(http.StatusInternalServerError)
+		h.ServeJSON()
 		return
 	}
 	if len(users) == 0 {
 		beego.Debug("[C] Got nothing with name:", user.Name)
-		a.Ctx.Output.SetStatus(http.StatusForbidden)
-		a.ServeJSON()
+		h.Ctx.Output.SetStatus(http.StatusForbidden)
+		h.ServeJSON()
 		return
 	} else if len(users) > 1 {
 		beego.Debug("[C] Got duplicate user with name:", user.Name)
-		a.Ctx.Output.SetStatus(http.StatusForbidden)
-		a.ServeJSON()
+		h.Ctx.Output.SetStatus(http.StatusForbidden)
+		h.ServeJSON()
 		return
 	}
-	a.SetSession("id", users[0].Id)
-	a.SetSession("name", users[0].Name)
-	a.SetSession("show_name", users[0].ShowName)
-	a.Ctx.Output.SetStatus(http.StatusOK)
-	a.ServeJSON()
+	h.SetSession("id", users[0].Id)
+	h.SetSession("name", users[0].Name)
+	h.SetSession("show_name", users[0].ShowName)
+	h.Ctx.Output.SetStatus(http.StatusOK)
+	h.ServeJSON()
+}
+
+// @router /:name/logout [get]
+func (h *UserController) Logout() {
+	if h.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(h.Ctx)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	} else {
+		if h.GetSession("id") == nil {
+			h.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			h.Ctx.Output.SetStatus(http.StatusUnauthorized)
+			h.ServeJSON()
+		}
+		if models.CheckPrivileges(
+			h.GetSession("id").(string),
+			models.RoleFlagOperator,
+		) {
+			h.Data["json"] = map[string]string{
+				"error": "No privilege",
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	}
+	name := h.GetString(":name")
+	beego.Debug("[C] Got name:", name)
+	if name != "" {
+		user := &models.Users{
+			Name: name,
+		}
+		users, err := models.GetUser(user, 0, 0)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"message": fmt.Sprint("Failed to get with name:", name),
+				"error":   err.Error(),
+			}
+			beego.Warn("[C] Got error:", err)
+			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
+			h.ServeJSON()
+			return
+		}
+		if len(users) == 0 {
+			beego.Debug("[C] Got nothing with name:", name)
+			h.Ctx.Output.SetStatus(http.StatusNotFound)
+			h.ServeJSON()
+			return
+		}
+		if name != users[0].Name {
+			h.Data["json"] = map[string]string{
+				"message": "Session and username not match!",
+			}
+			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
+			h.ServeJSON()
+			return
+		}
+		h.DelSession("id")
+		h.Ctx.Output.SetStatus(http.StatusOK)
+		h.ServeJSON()
+		return
+	}
 }

@@ -31,6 +31,16 @@ func (h *BackupSetsController) Post() {
 			h.Data["json"] = map[string]string{
 				"error": "You need login first.",
 			}
+			h.Ctx.Output.SetStatus(http.StatusUnauthorized)
+			h.ServeJSON()
+		}
+		if models.CheckPrivileges(
+			h.GetSession("id").(string),
+			models.RoleFlagOperator,
+		) {
+			h.Data["json"] = map[string]string{
+				"error": "No privilege",
+			}
 			h.Ctx.Output.SetStatus(http.StatusForbidden)
 			h.ServeJSON()
 		}
@@ -87,6 +97,16 @@ func (h *BackupSetsController) Get() {
 			h.Data["json"] = map[string]string{
 				"error": "You need login first.",
 			}
+			h.Ctx.Output.SetStatus(http.StatusUnauthorized)
+			h.ServeJSON()
+		}
+		if models.CheckPrivileges(
+			h.GetSession("id").(string),
+			models.RoleFlagOperator,
+		) {
+			h.Data["json"] = map[string]string{
+				"error": "No privilege",
+			}
 			h.Ctx.Output.SetStatus(http.StatusForbidden)
 			h.ServeJSON()
 		}
@@ -140,6 +160,16 @@ func (h *BackupSetsController) GetAll() {
 			h.Data["json"] = map[string]string{
 				"error": "You need login first.",
 			}
+			h.Ctx.Output.SetStatus(http.StatusUnauthorized)
+			h.ServeJSON()
+		}
+		if models.CheckPrivileges(
+			h.GetSession("id").(string),
+			models.RoleFlagOperator,
+		) {
+			h.Data["json"] = map[string]string{
+				"error": "No privilege",
+			}
 			h.Ctx.Output.SetStatus(http.StatusForbidden)
 			h.ServeJSON()
 		}
@@ -189,6 +219,16 @@ func (h *BackupSetsController) Delete() {
 		if h.GetSession("id") == nil {
 			h.Data["json"] = map[string]string{
 				"error": "You need login first.",
+			}
+			h.Ctx.Output.SetStatus(http.StatusUnauthorized)
+			h.ServeJSON()
+		}
+		if models.CheckPrivileges(
+			h.GetSession("id").(string),
+			models.RoleFlagOperator,
+		) {
+			h.Data["json"] = map[string]string{
+				"error": "No privilege",
 			}
 			h.Ctx.Output.SetStatus(http.StatusForbidden)
 			h.ServeJSON()
@@ -252,6 +292,16 @@ func (h *BackupSetsController) Put() {
 		if h.GetSession("id") == nil {
 			h.Data["json"] = map[string]string{
 				"error": "You need login first.",
+			}
+			h.Ctx.Output.SetStatus(http.StatusUnauthorized)
+			h.ServeJSON()
+		}
+		if models.CheckPrivileges(
+			h.GetSession("id").(string),
+			models.RoleFlagOperator,
+		) {
+			h.Data["json"] = map[string]string{
+				"error": "No privilege",
 			}
 			h.Ctx.Output.SetStatus(http.StatusForbidden)
 			h.ServeJSON()
@@ -333,6 +383,16 @@ func (h *BackupSetsController) AddBackupSetsHosts() {
 			h.Data["json"] = map[string]string{
 				"error": "You need login first.",
 			}
+			h.Ctx.Output.SetStatus(http.StatusUnauthorized)
+			h.ServeJSON()
+		}
+		if models.CheckPrivileges(
+			h.GetSession("id").(string),
+			models.RoleFlagOperator,
+		) {
+			h.Data["json"] = map[string]string{
+				"error": "No privilege",
+			}
 			h.Ctx.Output.SetStatus(http.StatusForbidden)
 			h.ServeJSON()
 		}
@@ -408,6 +468,16 @@ func (h *BackupSetsController) DeleteBackupSetsHosts() {
 		if h.GetSession("id") == nil {
 			h.Data["json"] = map[string]string{
 				"error": "You need login first.",
+			}
+			h.Ctx.Output.SetStatus(http.StatusUnauthorized)
+			h.ServeJSON()
+		}
+		if models.CheckPrivileges(
+			h.GetSession("id").(string),
+			models.RoleFlagOperator,
+		) {
+			h.Data["json"] = map[string]string{
+				"error": "No privilege",
 			}
 			h.Ctx.Output.SetStatus(http.StatusForbidden)
 			h.ServeJSON()

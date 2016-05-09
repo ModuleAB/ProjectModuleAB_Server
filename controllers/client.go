@@ -43,6 +43,16 @@ func (c *ClientController) GetAliConfig() {
 			c.Data["json"] = map[string]string{
 				"error": "You need login first.",
 			}
+			c.Ctx.Output.SetStatus(http.StatusUnauthorized)
+			c.ServeJSON()
+		}
+		if models.CheckPrivileges(
+			c.GetSession("id").(string),
+			models.RoleFlagOperator,
+		) {
+			c.Data["json"] = map[string]string{
+				"error": "No privilege",
+			}
 			c.Ctx.Output.SetStatus(http.StatusForbidden)
 			c.ServeJSON()
 		}
@@ -70,6 +80,16 @@ func (c *ClientController) WebSocket() {
 		if c.GetSession("id") == nil {
 			c.Data["json"] = map[string]string{
 				"error": "You need login first.",
+			}
+			c.Ctx.Output.SetStatus(http.StatusUnauthorized)
+			c.ServeJSON()
+		}
+		if models.CheckPrivileges(
+			c.GetSession("id").(string),
+			models.RoleFlagOperator,
+		) {
+			c.Data["json"] = map[string]string{
+				"error": "No privilege",
 			}
 			c.Ctx.Output.SetStatus(http.StatusForbidden)
 			c.ServeJSON()
@@ -188,6 +208,16 @@ func (c *ClientController) GetSignals() {
 			c.Data["json"] = map[string]string{
 				"error": "You need login first.",
 			}
+			c.Ctx.Output.SetStatus(http.StatusUnauthorized)
+			c.ServeJSON()
+		}
+		if models.CheckPrivileges(
+			c.GetSession("id").(string),
+			models.RoleFlagOperator,
+		) {
+			c.Data["json"] = map[string]string{
+				"error": "No privilege",
+			}
 			c.Ctx.Output.SetStatus(http.StatusForbidden)
 			c.ServeJSON()
 		}
@@ -247,6 +277,16 @@ func (c *ClientController) GetSignal() {
 		if c.GetSession("id") == nil {
 			c.Data["json"] = map[string]string{
 				"error": "You need login first.",
+			}
+			c.Ctx.Output.SetStatus(http.StatusUnauthorized)
+			c.ServeJSON()
+		}
+		if models.CheckPrivileges(
+			c.GetSession("id").(string),
+			models.RoleFlagOperator,
+		) {
+			c.Data["json"] = map[string]string{
+				"error": "No privilege",
 			}
 			c.Ctx.Output.SetStatus(http.StatusForbidden)
 			c.ServeJSON()
@@ -318,6 +358,16 @@ func (c *ClientController) PostSignal() {
 		if c.GetSession("id") == nil {
 			c.Data["json"] = map[string]string{
 				"error": "You need login first.",
+			}
+			c.Ctx.Output.SetStatus(http.StatusUnauthorized)
+			c.ServeJSON()
+		}
+		if models.CheckPrivileges(
+			c.GetSession("id").(string),
+			models.RoleFlagOperator,
+		) {
+			c.Data["json"] = map[string]string{
+				"error": "No privilege",
 			}
 			c.Ctx.Output.SetStatus(http.StatusForbidden)
 			c.ServeJSON()
@@ -397,6 +447,16 @@ func (c *ClientController) DeleteSignal() {
 			c.Data["json"] = map[string]string{
 				"error": "You need login first.",
 			}
+			c.Ctx.Output.SetStatus(http.StatusUnauthorized)
+			c.ServeJSON()
+		}
+		if models.CheckPrivileges(
+			c.GetSession("id").(string),
+			models.RoleFlagOperator,
+		) {
+			c.Data["json"] = map[string]string{
+				"error": "No privilege",
+			}
 			c.Ctx.Output.SetStatus(http.StatusForbidden)
 			c.ServeJSON()
 		}
@@ -467,6 +527,16 @@ func (c *ClientController) NotifySignal() {
 		if c.GetSession("id") == nil {
 			c.Data["json"] = map[string]string{
 				"error": "You need login first.",
+			}
+			c.Ctx.Output.SetStatus(http.StatusUnauthorized)
+			c.ServeJSON()
+		}
+		if models.CheckPrivileges(
+			c.GetSession("id").(string),
+			models.RoleFlagOperator,
+		) {
+			c.Data["json"] = map[string]string{
+				"error": "No privilege",
 			}
 			c.Ctx.Output.SetStatus(http.StatusForbidden)
 			c.ServeJSON()

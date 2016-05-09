@@ -217,3 +217,19 @@ func ClearUsersRoles(user *Users) error {
 	o.Commit()
 	return nil
 }
+
+func CheckPrivileges(userid string, roleflag int) bool {
+	users, err := GetUser(&Users{Id: userid}, 1, 0)
+	if err != nil {
+		return false
+	}
+	if len(users) == 0 {
+		return false
+	}
+	for _, v := range users[0].Roles {
+		if v.RoleFlag <= roleflag {
+			return true
+		}
+	}
+	return false
+}

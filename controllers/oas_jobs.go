@@ -30,6 +30,16 @@ func (a *OasJobsController) Get() {
 			a.Data["json"] = map[string]string{
 				"error": "You need login first.",
 			}
+			a.Ctx.Output.SetStatus(http.StatusUnauthorized)
+			a.ServeJSON()
+		}
+		if models.CheckPrivileges(
+			a.GetSession("id").(string),
+			models.RoleFlagOperator,
+		) {
+			a.Data["json"] = map[string]string{
+				"error": "No privilege",
+			}
 			a.Ctx.Output.SetStatus(http.StatusForbidden)
 			a.ServeJSON()
 		}
@@ -82,6 +92,16 @@ func (a *OasJobsController) GetAll() {
 		if a.GetSession("id") == nil {
 			a.Data["json"] = map[string]string{
 				"error": "You need login first.",
+			}
+			a.Ctx.Output.SetStatus(http.StatusUnauthorized)
+			a.ServeJSON()
+		}
+		if models.CheckPrivileges(
+			a.GetSession("id").(string),
+			models.RoleFlagOperator,
+		) {
+			a.Data["json"] = map[string]string{
+				"error": "No privilege",
 			}
 			a.Ctx.Output.SetStatus(http.StatusForbidden)
 			a.ServeJSON()
