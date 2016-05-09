@@ -1,11 +1,9 @@
 package policies
 
 import (
-	"fmt"
 	"moduleab_server/common"
 	"moduleab_server/models"
 	"os"
-	"os/signal"
 	"time"
 
 	"github.com/astaxie/beego"
@@ -232,25 +230,6 @@ func RunPolicies() {
 			}
 		}
 		beego.Info("Policy id", p.Id, "Done.")
-	}
-}
-
-func SignalNotifier() {
-	beego.Info("Signal notifier started.")
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt, os.Kill)
-	for {
-		select {
-		case s := <-c:
-			beego.Info(
-				fmt.Sprintf(
-					"Received Signal: %s, stop in 10 seconds...", s,
-				),
-			)
-			time.Sleep(10 * time.Second)
-		default:
-			continue
-		}
 	}
 }
 

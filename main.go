@@ -95,8 +95,6 @@ func main() {
 		[]byte(fmt.Sprint(os.Getpid())),
 		0600,
 	)
-	beego.Info("Run signal notifier...")
-	go policies.SignalNotifier()
 	beego.Info("Run check oas job...")
 	go policies.CheckOasJob()
 	beego.Info("All is ready, go running...")
