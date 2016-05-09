@@ -48,7 +48,7 @@ func (c *ClientController) GetAliConfig() {
 		}
 		if models.CheckPrivileges(
 			c.GetSession("id").(string),
-			models.RoleFlagOperator,
+			models.RoleFlagAdmin,
 		) {
 			c.Data["json"] = map[string]string{
 				"error": "No privilege",
@@ -86,7 +86,7 @@ func (c *ClientController) WebSocket() {
 		}
 		if models.CheckPrivileges(
 			c.GetSession("id").(string),
-			models.RoleFlagOperator,
+			-1,
 		) {
 			c.Data["json"] = map[string]string{
 				"error": "No privilege",

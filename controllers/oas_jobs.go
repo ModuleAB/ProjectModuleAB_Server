@@ -35,7 +35,7 @@ func (a *OasJobsController) Get() {
 		}
 		if models.CheckPrivileges(
 			a.GetSession("id").(string),
-			models.RoleFlagOperator,
+			models.RoleFlagUser,
 		) {
 			a.Data["json"] = map[string]string{
 				"error": "No privilege",
@@ -98,7 +98,7 @@ func (a *OasJobsController) GetAll() {
 		}
 		if models.CheckPrivileges(
 			a.GetSession("id").(string),
-			models.RoleFlagOperator,
+			models.RoleFlagUser,
 		) {
 			a.Data["json"] = map[string]string{
 				"error": "No privilege",

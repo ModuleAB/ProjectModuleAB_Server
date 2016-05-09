@@ -102,7 +102,7 @@ func (a *AppSetsController) Get() {
 		}
 		if models.CheckPrivileges(
 			a.GetSession("id").(string),
-			models.RoleFlagOperator,
+			models.RoleFlagUser,
 		) {
 			a.Data["json"] = map[string]string{
 				"error": "No privilege",
@@ -165,7 +165,7 @@ func (a *AppSetsController) GetAll() {
 		}
 		if models.CheckPrivileges(
 			a.GetSession("id").(string),
-			models.RoleFlagOperator,
+			models.RoleFlagUser,
 		) {
 			a.Data["json"] = map[string]string{
 				"error": "No privilege",
