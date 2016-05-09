@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"moduleab_server/common"
 	"moduleab_server/models"
 	"net/http"
 
@@ -16,6 +17,25 @@ type PolicyController struct {
 // @Title createOAS
 // @router / [post]
 func (a *PolicyController) Post() {
+	if a.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(a.Ctx)
+		if err != nil {
+			a.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	} else {
+		if a.GetSession("id") == nil {
+			a.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	}
+
 	policy := new(models.Policies)
 	err := json.Unmarshal(a.Ctx.Input.RequestBody, policy)
 	if err != nil {
@@ -53,6 +73,25 @@ func (a *PolicyController) Post() {
 // @Title getPolicy
 // @router /:name [get]
 func (a *PolicyController) Get() {
+	if a.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(a.Ctx)
+		if err != nil {
+			a.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	} else {
+		if a.GetSession("id") == nil {
+			a.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	}
+
 	name := a.GetString(":name")
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
@@ -87,6 +126,25 @@ func (a *PolicyController) Get() {
 // @Title listPolicies
 // @router / [get]
 func (a *PolicyController) GetAll() {
+	if a.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(a.Ctx)
+		if err != nil {
+			a.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	} else {
+		if a.GetSession("id") == nil {
+			a.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	}
+
 	limit, _ := a.GetInt("limit", 0)
 	index, _ := a.GetInt("index", 0)
 
@@ -118,6 +176,25 @@ func (a *PolicyController) GetAll() {
 // @Title deleteOAS
 // @router /:name [delete]
 func (a *PolicyController) Delete() {
+	if a.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(a.Ctx)
+		if err != nil {
+			a.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	} else {
+		if a.GetSession("id") == nil {
+			a.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	}
+
 	name := a.GetString(":name")
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
@@ -162,6 +239,25 @@ func (a *PolicyController) Delete() {
 // @Title updateOAS
 // @router /:name [put]
 func (a *PolicyController) Put() {
+	if a.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(a.Ctx)
+		if err != nil {
+			a.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	} else {
+		if a.GetSession("id") == nil {
+			a.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	}
+
 	name := a.GetString(":name")
 	beego.Debug("[C] Got policy name:", name)
 	if name != "" {

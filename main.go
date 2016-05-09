@@ -98,5 +98,7 @@ func main() {
 	beego.Info("Run check oas job...")
 	go policies.CheckOasJob()
 	beego.Info("All is ready, go running...")
+	beego.BConfig.WebConfig.Session.SessionOn = true
+	beego.BConfig.WebConfig.Session.SessionName = "Session_MobuleAB"
 	beego.Run()
 }

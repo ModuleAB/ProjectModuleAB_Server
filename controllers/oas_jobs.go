@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"moduleab_server/common"
 	"moduleab_server/models"
 	"net/http"
 
@@ -15,6 +16,25 @@ type OasJobsController struct {
 // @Title getOAS
 // @router /:job_id [get]
 func (a *OasJobsController) Get() {
+	if a.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(a.Ctx)
+		if err != nil {
+			a.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	} else {
+		if a.GetSession("id") == nil {
+			a.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	}
+
 	jobId := a.GetString(":job_id")
 	beego.Debug("[C] Got job id:", jobId)
 	if jobId != "" {
@@ -49,6 +69,25 @@ func (a *OasJobsController) Get() {
 // @Title listOAS
 // @router / [get]
 func (a *OasJobsController) GetAll() {
+	if a.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(a.Ctx)
+		if err != nil {
+			a.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	} else {
+		if a.GetSession("id") == nil {
+			a.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	}
+
 	limit, _ := a.GetInt("limit", 0)
 	index, _ := a.GetInt("index", 0)
 

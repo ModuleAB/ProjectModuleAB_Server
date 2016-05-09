@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"moduleab_server/common"
 	"moduleab_server/models"
 	"net/http"
 
@@ -21,6 +22,25 @@ type PathsController struct {
 // @Failure 500 Failure on writing database
 // @router / [post]
 func (h *PathsController) Post() {
+	if h.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(h.Ctx)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	} else {
+		if h.GetSession("id") == nil {
+			h.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	}
+
 	path := new(models.Paths)
 	err := json.Unmarshal(h.Ctx.Input.RequestBody, path)
 	if err != nil {
@@ -62,6 +82,25 @@ func (h *PathsController) Post() {
 // @Failure 403 body is empty
 // @router /:id [get]
 func (h *PathsController) Get() {
+	if h.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(h.Ctx)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	} else {
+		if h.GetSession("id") == nil {
+			h.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	}
+
 	id := h.GetString(":id")
 	beego.Debug("[C] Got id:", id)
 	if id != "" {
@@ -98,6 +137,25 @@ func (h *PathsController) Get() {
 // @Success 200
 // @router / [get]
 func (h *PathsController) GetAll() {
+	if h.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(h.Ctx)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	} else {
+		if h.GetSession("id") == nil {
+			h.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	}
+
 	limit, _ := h.GetInt("limit", 0)
 	index, _ := h.GetInt("index", 0)
 
@@ -132,6 +190,25 @@ func (h *PathsController) GetAll() {
 // @Failure 404
 // @router /:id [delete]
 func (h *PathsController) Delete() {
+	if h.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(h.Ctx)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	} else {
+		if h.GetSession("id") == nil {
+			h.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	}
+
 	id := h.GetString(":id")
 	beego.Debug("[C] Got id:", id)
 	if id != "" {
@@ -179,6 +256,25 @@ func (h *PathsController) Delete() {
 // @Failure 404
 // @router /:id [put]
 func (h *PathsController) Put() {
+	if h.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(h.Ctx)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	} else {
+		if h.GetSession("id") == nil {
+			h.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	}
+
 	id := h.GetString(":id")
 	beego.Debug("[C] Got id:", id)
 	if id != "" {
@@ -243,6 +339,25 @@ func (h *PathsController) Put() {
 
 // @router /:id/appSets [post]
 func (h *PathsController) AddPathsAppSets() {
+	if h.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(h.Ctx)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	} else {
+		if h.GetSession("id") == nil {
+			h.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	}
+
 	id := h.GetString(":id")
 	beego.Debug("[C] Got id:", id)
 	if id != "" {
@@ -300,6 +415,25 @@ func (h *PathsController) AddPathsAppSets() {
 
 // @router /:id/appSets [delete]
 func (h *PathsController) DeletePathsAppSets() {
+	if h.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(h.Ctx)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	} else {
+		if h.GetSession("id") == nil {
+			h.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	}
+
 	id := h.GetString(":id")
 	beego.Debug("[C] Got id:", id)
 	if id != "" {
@@ -359,6 +493,25 @@ func (h *PathsController) DeletePathsAppSets() {
 
 // @router /:id/clientJobs [post]
 func (h *PathsController) AddPathsClientJobs() {
+	if h.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(h.Ctx)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	} else {
+		if h.GetSession("id") == nil {
+			h.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	}
+
 	id := h.GetString(":id")
 	beego.Debug("[C] Got id:", id)
 	if id != "" {
@@ -416,6 +569,25 @@ func (h *PathsController) AddPathsClientJobs() {
 
 // @router /:id/clientJobs [delete]
 func (h *PathsController) DeletePathsClientJobs() {
+	if h.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(h.Ctx)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	} else {
+		if h.GetSession("id") == nil {
+			h.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	}
+
 	id := h.GetString(":id")
 	beego.Debug("[C] Got id:", id)
 	if id != "" {

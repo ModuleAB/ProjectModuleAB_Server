@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"moduleab_server/common"
 	"moduleab_server/models"
 	"net/http"
 
@@ -21,6 +22,25 @@ type HostsController struct {
 // @Failure 500 Failure on writing database
 // @router / [post]
 func (h *HostsController) Post() {
+	if h.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(h.Ctx)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	} else {
+		if h.GetSession("id") == nil {
+			h.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	}
+
 	host := new(models.Hosts)
 	err := json.Unmarshal(h.Ctx.Input.RequestBody, host)
 	if err != nil {
@@ -62,6 +82,25 @@ func (h *HostsController) Post() {
 // @Failure 403 body is empty
 // @router /:name [get]
 func (h *HostsController) Get() {
+	if h.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(h.Ctx)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	} else {
+		if h.GetSession("id") == nil {
+			h.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	}
+
 	name := h.GetString(":name")
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
@@ -98,6 +137,25 @@ func (h *HostsController) Get() {
 // @Success 200
 // @router / [get]
 func (h *HostsController) GetAll() {
+	if h.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(h.Ctx)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	} else {
+		if h.GetSession("id") == nil {
+			h.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	}
+
 	limit, _ := h.GetInt("limit", 0)
 	index, _ := h.GetInt("index", 0)
 
@@ -132,6 +190,25 @@ func (h *HostsController) GetAll() {
 // @Failure 404
 // @router /:name [delete]
 func (h *HostsController) Delete() {
+	if h.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(h.Ctx)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	} else {
+		if h.GetSession("id") == nil {
+			h.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	}
+
 	name := h.GetString(":name")
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
@@ -179,6 +256,25 @@ func (h *HostsController) Delete() {
 // @Failure 404
 // @router /:name [put]
 func (h *HostsController) Put() {
+	if h.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(h.Ctx)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	} else {
+		if h.GetSession("id") == nil {
+			h.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	}
+
 	name := h.GetString(":name")
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
@@ -243,6 +339,25 @@ func (h *HostsController) Put() {
 
 // @router /:name/paths [post]
 func (h *HostsController) AddHostPaths() {
+	if h.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(h.Ctx)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	} else {
+		if h.GetSession("id") == nil {
+			h.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	}
+
 	name := h.GetString(":name")
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
@@ -302,6 +417,25 @@ func (h *HostsController) AddHostPaths() {
 
 // @router /:name/paths [delete]
 func (h *HostsController) DeleteHostPaths() {
+	if h.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(h.Ctx)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	} else {
+		if h.GetSession("id") == nil {
+			h.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	}
+
 	name := h.GetString(":name")
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
@@ -363,6 +497,25 @@ func (h *HostsController) DeleteHostPaths() {
 
 // @router /:name/jobs [post]
 func (h *HostsController) AddHostClientJobs() {
+	if h.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(h.Ctx)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	} else {
+		if h.GetSession("id") == nil {
+			h.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	}
+
 	name := h.GetString(":name")
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
@@ -422,6 +575,25 @@ func (h *HostsController) AddHostClientJobs() {
 
 // @router /:name/jobs [delete]
 func (h *HostsController) DeleteHostClientJobs() {
+	if h.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(h.Ctx)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	} else {
+		if h.GetSession("id") == nil {
+			h.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	}
+
 	name := h.GetString(":name")
 	beego.Debug("[C] Got name:", name)
 	if name != "" {

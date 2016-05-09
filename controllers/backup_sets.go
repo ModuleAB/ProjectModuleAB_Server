@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"moduleab_server/common"
 	"moduleab_server/models"
 	"net/http"
 
@@ -15,45 +16,83 @@ type BackupSetsController struct {
 
 // @Title createBackupSet
 // @router / [post]
-func (a *BackupSetsController) Post() {
+func (h *BackupSetsController) Post() {
+	if h.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(h.Ctx)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	} else {
+		if h.GetSession("id") == nil {
+			h.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	}
+
 	backupSet := new(models.BackupSets)
-	err := json.Unmarshal(a.Ctx.Input.RequestBody, backupSet)
+	err := json.Unmarshal(h.Ctx.Input.RequestBody, backupSet)
 	if err != nil {
 		beego.Warn("[C] Got error:", err)
-		a.Data["json"] = map[string]string{
+		h.Data["json"] = map[string]string{
 			"message": "Bad request",
 			"error":   err.Error(),
 		}
-		a.Ctx.Output.SetStatus(http.StatusBadRequest)
-		a.ServeJSON()
+		h.Ctx.Output.SetStatus(http.StatusBadRequest)
+		h.ServeJSON()
 		return
 	}
 	beego.Debug("[C] Got data:", backupSet)
 	id, err := models.AddBackupSet(backupSet)
 	if err != nil {
 		beego.Warn("[C] Got error:", err)
-		a.Data["json"] = map[string]string{
+		h.Data["json"] = map[string]string{
 			"message": "Failed to add New host",
 			"error":   err.Error(),
 		}
-		a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-		a.ServeJSON()
+		h.Ctx.Output.SetStatus(http.StatusInternalServerError)
+		h.ServeJSON()
 		return
 	}
 
 	beego.Debug("[C] Got id:", id)
-	a.Data["json"] = map[string]string{
+	h.Data["json"] = map[string]string{
 		"id": id,
 	}
-	a.Ctx.Output.SetStatus(http.StatusCreated)
-	a.ServeJSON()
+	h.Ctx.Output.SetStatus(http.StatusCreated)
+	h.ServeJSON()
 	return
 }
 
 // @Title getBackupSet
 // @router /:name [get]
-func (a *BackupSetsController) Get() {
-	name := a.GetString(":name")
+func (h *BackupSetsController) Get() {
+	if h.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(h.Ctx)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	} else {
+		if h.GetSession("id") == nil {
+			h.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	}
+
+	name := h.GetString(":name")
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
 		backupSet := &models.BackupSets{
@@ -61,24 +100,24 @@ func (a *BackupSetsController) Get() {
 		}
 		backupSets, err := models.GetBackupSets(backupSet, 0, 0)
 		if err != nil {
-			a.Data["json"] = map[string]string{
+			h.Data["json"] = map[string]string{
 				"message": fmt.Sprint("Failed to get  with name:", name),
 				"error":   err.Error(),
 			}
 			beego.Warn("[C] Got error:", err)
-			a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			a.ServeJSON()
+			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
+			h.ServeJSON()
 			return
 		}
-		a.Data["json"] = backupSets
+		h.Data["json"] = backupSets
 		if len(backupSets) == 0 {
 			beego.Debug("[C] Got nothing with name:", name)
-			a.Ctx.Output.SetStatus(http.StatusNotFound)
-			a.ServeJSON()
+			h.Ctx.Output.SetStatus(http.StatusNotFound)
+			h.ServeJSON()
 			return
 		} else {
-			a.Ctx.Output.SetStatus(http.StatusOK)
-			a.ServeJSON()
+			h.Ctx.Output.SetStatus(http.StatusOK)
+			h.ServeJSON()
 			return
 		}
 	}
@@ -86,39 +125,77 @@ func (a *BackupSetsController) Get() {
 
 // @Title listBackupSets
 // @router / [get]
-func (a *BackupSetsController) GetAll() {
-	limit, _ := a.GetInt("limit", 0)
-	index, _ := a.GetInt("index", 0)
+func (h *BackupSetsController) GetAll() {
+	if h.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(h.Ctx)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	} else {
+		if h.GetSession("id") == nil {
+			h.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	}
+
+	limit, _ := h.GetInt("limit", 0)
+	index, _ := h.GetInt("index", 0)
 
 	backupSet := &models.BackupSets{}
 	backupSets, err := models.GetBackupSets(backupSet, limit, index)
 	if err != nil {
-		a.Data["json"] = map[string]string{
+		h.Data["json"] = map[string]string{
 			"message": fmt.Sprint("Failed to get"),
 			"error":   err.Error(),
 		}
 		beego.Warn("[C] Got error:", err)
-		a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-		a.ServeJSON()
+		h.Ctx.Output.SetStatus(http.StatusInternalServerError)
+		h.ServeJSON()
 		return
 	}
-	a.Data["json"] = backupSets
+	h.Data["json"] = backupSets
 	if len(backupSets) == 0 {
 		beego.Debug("[C] Got nothing")
-		a.Ctx.Output.SetStatus(http.StatusNotFound)
-		a.ServeJSON()
+		h.Ctx.Output.SetStatus(http.StatusNotFound)
+		h.ServeJSON()
 		return
 	} else {
-		a.Ctx.Output.SetStatus(http.StatusOK)
-		a.ServeJSON()
+		h.Ctx.Output.SetStatus(http.StatusOK)
+		h.ServeJSON()
 		return
 	}
 }
 
 // @Title deleteBackupSet
 // @router /:name [delete]
-func (a *BackupSetsController) Delete() {
-	name := a.GetString(":name")
+func (h *BackupSetsController) Delete() {
+	if h.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(h.Ctx)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	} else {
+		if h.GetSession("id") == nil {
+			h.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	}
+
+	name := h.GetString(":name")
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
 		backupSet := &models.BackupSets{
@@ -126,43 +203,62 @@ func (a *BackupSetsController) Delete() {
 		}
 		backupSets, err := models.GetBackupSets(backupSet, 0, 0)
 		if err != nil {
-			a.Data["json"] = map[string]string{
+			h.Data["json"] = map[string]string{
 				"message": fmt.Sprint("Failed to get with name:", name),
 				"error":   err.Error(),
 			}
 			beego.Warn("[C] Got error:", err)
-			a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			a.ServeJSON()
+			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
+			h.ServeJSON()
 			return
 		}
 		if len(backupSets) == 0 {
 			beego.Debug("[C] Got nothing with name:", name)
-			a.Ctx.Output.SetStatus(http.StatusNotFound)
-			a.ServeJSON()
+			h.Ctx.Output.SetStatus(http.StatusNotFound)
+			h.ServeJSON()
 			return
 		}
 		err = models.DeleteBackupSet(backupSets[0])
 		if err != nil {
-			a.Data["json"] = map[string]string{
+			h.Data["json"] = map[string]string{
 				"message": fmt.Sprint("Failed to delete with name:", name),
 				"error":   err.Error(),
 			}
 			beego.Warn("[C] Got error:", err)
-			a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			a.ServeJSON()
+			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
+			h.ServeJSON()
 			return
 
 		}
-		a.Ctx.Output.SetStatus(http.StatusNoContent)
-		a.ServeJSON()
+		h.Ctx.Output.SetStatus(http.StatusNoContent)
+		h.ServeJSON()
 		return
 	}
 }
 
 // @Title updateBackupSet
 // @router /:name [put]
-func (a *BackupSetsController) Put() {
-	name := a.GetString(":name")
+func (h *BackupSetsController) Put() {
+	if h.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(h.Ctx)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	} else {
+		if h.GetSession("id") == nil {
+			h.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	}
+
+	name := h.GetString(":name")
 	beego.Debug("[C] Got backupSet name:", name)
 	if name != "" {
 		backupSet := &models.BackupSets{
@@ -172,49 +268,49 @@ func (a *BackupSetsController) Put() {
 		}
 		backupSets, err := models.GetBackupSets(backupSet, 0, 0)
 		if err != nil {
-			a.Data["json"] = map[string]string{
+			h.Data["json"] = map[string]string{
 				"message": fmt.Sprint("Failed to get with name:", name),
 				"error":   err.Error(),
 			}
 			beego.Warn("[C] Got error:", err)
-			a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			a.ServeJSON()
+			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
+			h.ServeJSON()
 			return
 		}
 		if len(backupSets) == 0 {
 			beego.Debug("[C] Got nothing with name:", name)
-			a.Ctx.Output.SetStatus(http.StatusNotFound)
-			a.ServeJSON()
+			h.Ctx.Output.SetStatus(http.StatusNotFound)
+			h.ServeJSON()
 			return
 		}
 
-		err = json.Unmarshal(a.Ctx.Input.RequestBody, backupSet)
+		err = json.Unmarshal(h.Ctx.Input.RequestBody, backupSet)
 		backupSet.Id = backupSets[0].Id
 		if err != nil {
 			beego.Warn("[C] Got error:", err)
-			a.Data["json"] = map[string]string{
+			h.Data["json"] = map[string]string{
 				"message": "Bad request",
 				"error":   err.Error(),
 			}
-			a.Ctx.Output.SetStatus(http.StatusBadRequest)
-			a.ServeJSON()
+			h.Ctx.Output.SetStatus(http.StatusBadRequest)
+			h.ServeJSON()
 			return
 		}
 		beego.Debug("[C] Got backupSet data:", backupSet)
 		err = models.UpdateBackupSet(backupSet)
 		if err != nil {
-			a.Data["json"] = map[string]string{
+			h.Data["json"] = map[string]string{
 				"message": fmt.Sprint("Failed to update with name:", name),
 				"error":   err.Error(),
 			}
 			beego.Warn("[C] Got error:", err)
-			a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			a.ServeJSON()
+			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
+			h.ServeJSON()
 			return
 
 		}
-		a.Ctx.Output.SetStatus(http.StatusAccepted)
-		a.ServeJSON()
+		h.Ctx.Output.SetStatus(http.StatusAccepted)
+		h.ServeJSON()
 		return
 	}
 }
@@ -223,6 +319,25 @@ func (a *BackupSetsController) Put() {
 
 // @router /:name/hosts [post]
 func (h *BackupSetsController) AddBackupSetsHosts() {
+	if h.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(h.Ctx)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	} else {
+		if h.GetSession("id") == nil {
+			h.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	}
+
 	name := h.GetString(":name")
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
@@ -280,6 +395,25 @@ func (h *BackupSetsController) AddBackupSetsHosts() {
 
 // @router /:name/hosts [delete]
 func (h *BackupSetsController) DeleteBackupSetsHosts() {
+	if h.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(h.Ctx)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	} else {
+		if h.GetSession("id") == nil {
+			h.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	}
+
 	name := h.GetString(":name")
 	beego.Debug("[C] Got name:", name)
 	if name != "" {

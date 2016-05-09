@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"moduleab_server/common"
 	"moduleab_server/models"
 	"net/http"
 
@@ -16,6 +17,25 @@ type UserController struct {
 // @Title createUser
 // @router / [post]
 func (a *UserController) Post() {
+	if a.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(a.Ctx)
+		if err != nil {
+			a.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	} else {
+		if a.GetSession("id") == nil {
+			a.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	}
+
 	user := new(models.Users)
 	err := json.Unmarshal(a.Ctx.Input.RequestBody, user)
 	if err != nil {
@@ -53,6 +73,25 @@ func (a *UserController) Post() {
 // @Title getUser
 // @router /:name [get]
 func (a *UserController) Get() {
+	if a.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(a.Ctx)
+		if err != nil {
+			a.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	} else {
+		if a.GetSession("id") == nil {
+			a.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	}
+
 	name := a.GetString(":name")
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
@@ -87,6 +126,25 @@ func (a *UserController) Get() {
 // @Title listUser
 // @router / [get]
 func (a *UserController) GetAll() {
+	if a.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(a.Ctx)
+		if err != nil {
+			a.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	} else {
+		if a.GetSession("id") == nil {
+			a.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	}
+
 	limit, _ := a.GetInt("limit", 0)
 	index, _ := a.GetInt("index", 0)
 
@@ -118,6 +176,25 @@ func (a *UserController) GetAll() {
 // @Title deleteUser
 // @router /:name [delete]
 func (a *UserController) Delete() {
+	if a.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(a.Ctx)
+		if err != nil {
+			a.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	} else {
+		if a.GetSession("id") == nil {
+			a.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	}
+
 	name := a.GetString(":name")
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
@@ -162,6 +239,25 @@ func (a *UserController) Delete() {
 // @Title updateUser
 // @router /:name [put]
 func (a *UserController) Put() {
+	if a.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(a.Ctx)
+		if err != nil {
+			a.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	} else {
+		if a.GetSession("id") == nil {
+			a.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	}
+
 	name := a.GetString(":name")
 	beego.Debug("[C] Got user name:", name)
 	if name != "" {
@@ -221,6 +317,25 @@ func (a *UserController) Put() {
 
 // @router /:name/roles [post]
 func (h *UserController) AddUserRoles() {
+	if h.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(h.Ctx)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	} else {
+		if h.GetSession("id") == nil {
+			h.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	}
+
 	name := h.GetString(":name")
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
@@ -278,6 +393,25 @@ func (h *UserController) AddUserRoles() {
 
 // @router /:name/roles [delete]
 func (h *UserController) DeleteUserRoles() {
+	if h.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(h.Ctx)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	} else {
+		if h.GetSession("id") == nil {
+			h.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	}
+
 	name := h.GetString(":name")
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
@@ -330,4 +464,48 @@ func (h *UserController) DeleteUserRoles() {
 		h.ServeJSON()
 		return
 	}
+}
+
+// @router /login [post]
+func (a *UserController) Login() {
+	user := new(models.Users)
+	err := json.Unmarshal(a.Ctx.Input.RequestBody, user)
+	if err != nil {
+		beego.Warn("[C] Got error:", err)
+		a.Data["json"] = map[string]string{
+			"message": "Bad request",
+			"error":   err.Error(),
+		}
+		a.Ctx.Output.SetStatus(http.StatusBadRequest)
+		a.ServeJSON()
+		return
+	}
+	beego.Debug("[C] Got data:", user)
+	users, err := models.GetUser(user, 0, 0)
+	if err != nil {
+		a.Data["json"] = map[string]string{
+			"message": fmt.Sprint("Failed to get with name:", user.Name),
+			"error":   err.Error(),
+		}
+		beego.Warn("[C] Got error:", err)
+		a.Ctx.Output.SetStatus(http.StatusInternalServerError)
+		a.ServeJSON()
+		return
+	}
+	if len(users) == 0 {
+		beego.Debug("[C] Got nothing with name:", user.Name)
+		a.Ctx.Output.SetStatus(http.StatusForbidden)
+		a.ServeJSON()
+		return
+	} else if len(users) > 1 {
+		beego.Debug("[C] Got duplicate user with name:", user.Name)
+		a.Ctx.Output.SetStatus(http.StatusForbidden)
+		a.ServeJSON()
+		return
+	}
+	a.SetSession("id", users[0].Id)
+	a.SetSession("name", users[0].Name)
+	a.SetSession("show_name", users[0].ShowName)
+	a.Ctx.Output.SetStatus(http.StatusOK)
+	a.ServeJSON()
 }

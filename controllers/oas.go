@@ -17,6 +17,25 @@ type OasController struct {
 // @Title createOAS
 // @router / [post]
 func (a *OasController) Post() {
+	if a.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(a.Ctx)
+		if err != nil {
+			a.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	} else {
+		if a.GetSession("id") == nil {
+			a.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	}
+
 	oas := new(models.Oas)
 	err := json.Unmarshal(a.Ctx.Input.RequestBody, oas)
 	if err != nil {
@@ -77,6 +96,25 @@ func (a *OasController) Post() {
 // @Title getOAS
 // @router /:name [get]
 func (a *OasController) Get() {
+	if a.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(a.Ctx)
+		if err != nil {
+			a.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	} else {
+		if a.GetSession("id") == nil {
+			a.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	}
+
 	name := a.GetString(":name")
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
@@ -111,6 +149,25 @@ func (a *OasController) Get() {
 // @Title listOAS
 // @router / [get]
 func (a *OasController) GetAll() {
+	if a.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(a.Ctx)
+		if err != nil {
+			a.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	} else {
+		if a.GetSession("id") == nil {
+			a.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	}
+
 	limit, _ := a.GetInt("limit", 0)
 	index, _ := a.GetInt("index", 0)
 
@@ -142,6 +199,25 @@ func (a *OasController) GetAll() {
 // @Title deleteOAS
 // @router /:name [delete]
 func (a *OasController) Delete() {
+	if a.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(a.Ctx)
+		if err != nil {
+			a.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	} else {
+		if a.GetSession("id") == nil {
+			a.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	}
+
 	name := a.GetString(":name")
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
@@ -186,6 +262,25 @@ func (a *OasController) Delete() {
 // @Title updateOAS
 // @router /:name [put]
 func (a *OasController) Put() {
+	if a.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(a.Ctx)
+		if err != nil {
+			a.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	} else {
+		if a.GetSession("id") == nil {
+			a.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	}
+
 	name := a.GetString(":name")
 	beego.Debug("[C] Got oas name:", name)
 	if name != "" {

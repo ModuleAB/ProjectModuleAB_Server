@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"moduleab_server/common"
 	"moduleab_server/models"
 	"net/http"
 
@@ -16,6 +17,25 @@ type OssController struct {
 // @Title createOSS
 // @router / [post]
 func (a *OssController) Post() {
+	if a.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(a.Ctx)
+		if err != nil {
+			a.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	} else {
+		if a.GetSession("id") == nil {
+			a.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	}
+
 	oss := new(models.Oss)
 	err := json.Unmarshal(a.Ctx.Input.RequestBody, oss)
 	if err != nil {
@@ -53,6 +73,25 @@ func (a *OssController) Post() {
 // @Title getOSS
 // @router /:name [get]
 func (a *OssController) Get() {
+	if a.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(a.Ctx)
+		if err != nil {
+			a.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	} else {
+		if a.GetSession("id") == nil {
+			a.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	}
+
 	name := a.GetString(":name")
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
@@ -87,6 +126,25 @@ func (a *OssController) Get() {
 // @Title listOSS
 // @router / [get]
 func (a *OssController) GetAll() {
+	if a.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(a.Ctx)
+		if err != nil {
+			a.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	} else {
+		if a.GetSession("id") == nil {
+			a.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	}
+
 	limit, _ := a.GetInt("limit", 0)
 	index, _ := a.GetInt("index", 0)
 
@@ -118,6 +176,25 @@ func (a *OssController) GetAll() {
 // @Title deleteOSS
 // @router /:name [delete]
 func (a *OssController) Delete() {
+	if a.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(a.Ctx)
+		if err != nil {
+			a.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	} else {
+		if a.GetSession("id") == nil {
+			a.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	}
+
 	name := a.GetString(":name")
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
@@ -162,6 +239,25 @@ func (a *OssController) Delete() {
 // @Title updateOSS
 // @router /:name [put]
 func (a *OssController) Put() {
+	if a.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(a.Ctx)
+		if err != nil {
+			a.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	} else {
+		if a.GetSession("id") == nil {
+			a.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			a.Ctx.Output.SetStatus(http.StatusForbidden)
+			a.ServeJSON()
+		}
+	}
+
 	name := a.GetString(":name")
 	beego.Debug("[C] Got oss name:", name)
 	if name != "" {

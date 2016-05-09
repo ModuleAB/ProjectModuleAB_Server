@@ -23,6 +23,25 @@ type RecordsController struct {
 // @Failure 500 Failure on writing database
 // @router / [post]
 func (h *RecordsController) Post() {
+	if h.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(h.Ctx)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	} else {
+		if h.GetSession("id") == nil {
+			h.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	}
+
 	record := new(models.Records)
 	err := json.Unmarshal(h.Ctx.Input.RequestBody, record)
 	if err != nil {
@@ -62,6 +81,25 @@ func (h *RecordsController) Post() {
 // @Success 200
 // @router / [get]
 func (h *RecordsController) GetAll() {
+	if h.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(h.Ctx)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	} else {
+		if h.GetSession("id") == nil {
+			h.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	}
+
 	limit, _ := h.GetInt("limit", 50)
 	index, _ := h.GetInt("index", 0)
 	filename := h.GetString("filename")
@@ -128,6 +166,25 @@ func (h *RecordsController) GetAll() {
 // @Failure 404
 // @router /:id [delete]
 func (h *RecordsController) Delete() {
+	if h.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(h.Ctx)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	} else {
+		if h.GetSession("id") == nil {
+			h.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	}
+
 	id := h.GetString(":id")
 	beego.Debug("[C] Got id:", id)
 	if id != "" {
@@ -171,6 +228,25 @@ func (h *RecordsController) Delete() {
 
 // @router /:id/recover [get]
 func (h *RecordsController) Recover() {
+	if h.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(h.Ctx)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	} else {
+		if h.GetSession("id") == nil {
+			h.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	}
+
 	id := h.GetString(":id")
 	beego.Debug("[C] Got id:", id)
 	if id != "" {
