@@ -56,7 +56,7 @@ func RunPolicies() {
 					time.Duration(-p.TargetEnd) * time.Second,
 				)
 			}
-			archiveEnd = mow.Add(
+			archiveEnd = now.Add(
 				time.Duration(-p.TargetStart) * time.Second,
 			)
 			if archiveEnd.Before(archiveStart) {
