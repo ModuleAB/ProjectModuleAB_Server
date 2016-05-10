@@ -37,6 +37,7 @@ func init() {
 }
 
 func main() {
+	beego.Info("ModuleAB server starting...")
 	logfile := beego.AppConfig.String("logFile")
 	if logfile == "" {
 		logfile = "logs/moduleab_server.log"
@@ -83,6 +84,7 @@ func main() {
 		err = orm.RunSyncdb("default", false, true)
 
 	default:
+		beego.BeeLogger.DelLogger("console")
 		err = orm.RunSyncdb("default", false, false)
 	}
 	if err != nil {
