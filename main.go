@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
+	"moduleab_server/common"
 	_ "moduleab_server/docs"
 	"moduleab_server/policies"
 	_ "moduleab_server/routers"
@@ -37,7 +38,7 @@ func init() {
 }
 
 func main() {
-	beego.Info("ModuleAB server starting...")
+	beego.Info("ModuleAB server", common.Version, "starting...")
 	logfile := beego.AppConfig.String("logFile")
 	if logfile == "" {
 		logfile = "logs/moduleab_server.log"
