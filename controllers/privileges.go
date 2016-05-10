@@ -20,7 +20,7 @@ func init() {
 }
 
 func CheckPrivileges(userid string, ctx *context.Context) bool {
-	users, err := models.GetUser(&Users{Id: userid}, 1, 0)
+	users, err := models.GetUser(&models.Users{Id: userid}, 1, 0)
 	if err != nil {
 		return false
 	}
