@@ -10,6 +10,10 @@ import (
 	"github.com/astaxie/beego"
 )
 
+func init() {
+	AddPrivilege("GET", "^/api/v1/paths", models.RoleFlagUser)
+}
+
 type PathsController struct {
 	beego.Controller
 }
@@ -25,22 +29,21 @@ func (h *PathsController) Prepare() {
 			h.ServeJSON()
 		}
 	} else {
-		if h.GetSession("id") == nil {
+		id := h.GetSession("id")
+		if id == nil {
 			h.Data["json"] = map[string]string{
 				"error": "You need login first.",
 			}
 			h.Ctx.Output.SetStatus(http.StatusUnauthorized)
 			h.ServeJSON()
-		}
-		if models.CheckPrivileges(
-			h.GetSession("id").(string),
-			models.RoleFlagOperator,
-		) {
-			h.Data["json"] = map[string]string{
-				"error": "No privilege",
+		} else {
+			if !CheckPrivileges(id.(string), h.Ctx) {
+				h.Data["json"] = map[string]string{
+					"error": "No privileges.",
+				}
+				h.Ctx.Output.SetStatus(http.StatusForbidden)
+				h.ServeJSON()
 			}
-			h.Ctx.Output.SetStatus(http.StatusForbidden)
-			h.ServeJSON()
 		}
 	}
 }
@@ -53,17 +56,6 @@ func (h *PathsController) Prepare() {
 // @Failure 500 Failure on writing database
 // @router / [post]
 func (h *PathsController) Post() {
-	if models.CheckPrivileges(
-		h.GetSession("id").(string),
-		models.RoleFlagOperator,
-	) {
-		h.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		h.Ctx.Output.SetStatus(http.StatusForbidden)
-		h.ServeJSON()
-	}
-
 	path := new(models.Paths)
 	err := json.Unmarshal(h.Ctx.Input.RequestBody, path)
 	if err != nil {
@@ -105,17 +97,6 @@ func (h *PathsController) Post() {
 // @Failure 403 body is empty
 // @router /:id [get]
 func (h *PathsController) Get() {
-	if models.CheckPrivileges(
-		h.GetSession("id").(string),
-		models.RoleFlagUser,
-	) {
-		h.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		h.Ctx.Output.SetStatus(http.StatusForbidden)
-		h.ServeJSON()
-	}
-
 	id := h.GetString(":id")
 	beego.Debug("[C] Got id:", id)
 	if id != "" {
@@ -152,17 +133,6 @@ func (h *PathsController) Get() {
 // @Success 200
 // @router / [get]
 func (h *PathsController) GetAll() {
-	if models.CheckPrivileges(
-		h.GetSession("id").(string),
-		models.RoleFlagUser,
-	) {
-		h.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		h.Ctx.Output.SetStatus(http.StatusForbidden)
-		h.ServeJSON()
-	}
-
 	limit, _ := h.GetInt("limit", 0)
 	index, _ := h.GetInt("index", 0)
 
@@ -197,17 +167,6 @@ func (h *PathsController) GetAll() {
 // @Failure 404
 // @router /:id [delete]
 func (h *PathsController) Delete() {
-	if models.CheckPrivileges(
-		h.GetSession("id").(string),
-		models.RoleFlagOperator,
-	) {
-		h.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		h.Ctx.Output.SetStatus(http.StatusForbidden)
-		h.ServeJSON()
-	}
-
 	id := h.GetString(":id")
 	beego.Debug("[C] Got id:", id)
 	if id != "" {
@@ -255,17 +214,6 @@ func (h *PathsController) Delete() {
 // @Failure 404
 // @router /:id [put]
 func (h *PathsController) Put() {
-	if models.CheckPrivileges(
-		h.GetSession("id").(string),
-		models.RoleFlagOperator,
-	) {
-		h.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		h.Ctx.Output.SetStatus(http.StatusForbidden)
-		h.ServeJSON()
-	}
-
 	id := h.GetString(":id")
 	beego.Debug("[C] Got id:", id)
 	if id != "" {
@@ -330,17 +278,6 @@ func (h *PathsController) Put() {
 
 // @router /:id/appSets [post]
 func (h *PathsController) AddPathsAppSets() {
-	if models.CheckPrivileges(
-		h.GetSession("id").(string),
-		models.RoleFlagOperator,
-	) {
-		h.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		h.Ctx.Output.SetStatus(http.StatusForbidden)
-		h.ServeJSON()
-	}
-
 	id := h.GetString(":id")
 	beego.Debug("[C] Got id:", id)
 	if id != "" {
@@ -398,17 +335,6 @@ func (h *PathsController) AddPathsAppSets() {
 
 // @router /:id/appSets [delete]
 func (h *PathsController) DeletePathsAppSets() {
-	if models.CheckPrivileges(
-		h.GetSession("id").(string),
-		models.RoleFlagOperator,
-	) {
-		h.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		h.Ctx.Output.SetStatus(http.StatusForbidden)
-		h.ServeJSON()
-	}
-
 	id := h.GetString(":id")
 	beego.Debug("[C] Got id:", id)
 	if id != "" {
@@ -468,17 +394,6 @@ func (h *PathsController) DeletePathsAppSets() {
 
 // @router /:id/clientJobs [post]
 func (h *PathsController) AddPathsClientJobs() {
-	if models.CheckPrivileges(
-		h.GetSession("id").(string),
-		models.RoleFlagOperator,
-	) {
-		h.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		h.Ctx.Output.SetStatus(http.StatusForbidden)
-		h.ServeJSON()
-	}
-
 	id := h.GetString(":id")
 	beego.Debug("[C] Got id:", id)
 	if id != "" {
@@ -536,17 +451,6 @@ func (h *PathsController) AddPathsClientJobs() {
 
 // @router /:id/clientJobs [delete]
 func (h *PathsController) DeletePathsClientJobs() {
-	if models.CheckPrivileges(
-		h.GetSession("id").(string),
-		models.RoleFlagOperator,
-	) {
-		h.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		h.Ctx.Output.SetStatus(http.StatusForbidden)
-		h.ServeJSON()
-	}
-
 	id := h.GetString(":id")
 	beego.Debug("[C] Got id:", id)
 	if id != "" {

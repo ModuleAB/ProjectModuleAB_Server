@@ -9,6 +9,10 @@ import (
 	"github.com/astaxie/beego"
 )
 
+func init() {
+	AddPrivilege("GET", "^/api/v1/oasJobs", models.RoleFlagUser)
+}
+
 type OasJobsController struct {
 	beego.Controller
 }
@@ -24,22 +28,21 @@ func (h *OasJobsController) Prepare() {
 			h.ServeJSON()
 		}
 	} else {
-		if h.GetSession("id") == nil {
+		id := h.GetSession("id")
+		if id == nil {
 			h.Data["json"] = map[string]string{
 				"error": "You need login first.",
 			}
 			h.Ctx.Output.SetStatus(http.StatusUnauthorized)
 			h.ServeJSON()
-		}
-		if models.CheckPrivileges(
-			h.GetSession("id").(string),
-			models.RoleFlagOperator,
-		) {
-			h.Data["json"] = map[string]string{
-				"error": "No privilege",
+		} else {
+			if !CheckPrivileges(id.(string), h.Ctx) {
+				h.Data["json"] = map[string]string{
+					"error": "No privileges.",
+				}
+				h.Ctx.Output.SetStatus(http.StatusForbidden)
+				h.ServeJSON()
 			}
-			h.Ctx.Output.SetStatus(http.StatusForbidden)
-			h.ServeJSON()
 		}
 	}
 }
@@ -47,17 +50,6 @@ func (h *OasJobsController) Prepare() {
 // @Title getOAS
 // @router /:job_id [get]
 func (a *OasJobsController) Get() {
-	if models.CheckPrivileges(
-		a.GetSession("id").(string),
-		models.RoleFlagUser,
-	) {
-		a.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		a.Ctx.Output.SetStatus(http.StatusForbidden)
-		a.ServeJSON()
-	}
-
 	jobId := a.GetString(":job_id")
 	beego.Debug("[C] Got job id:", jobId)
 	if jobId != "" {
@@ -92,17 +84,6 @@ func (a *OasJobsController) Get() {
 // @Title listOAS
 // @router / [get]
 func (a *OasJobsController) GetAll() {
-	if models.CheckPrivileges(
-		a.GetSession("id").(string),
-		models.RoleFlagUser,
-	) {
-		a.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		a.Ctx.Output.SetStatus(http.StatusForbidden)
-		a.ServeJSON()
-	}
-
 	limit, _ := a.GetInt("limit", 0)
 	index, _ := a.GetInt("index", 0)
 

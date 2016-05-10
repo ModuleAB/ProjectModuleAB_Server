@@ -10,6 +10,10 @@ import (
 	"github.com/astaxie/beego"
 )
 
+func init() {
+	AddPrivilege("GET", "^/api/v1/policies", models.RoleFlagUser)
+}
+
 type PolicyController struct {
 	beego.Controller
 }
@@ -25,22 +29,21 @@ func (h *PolicyController) Prepare() {
 			h.ServeJSON()
 		}
 	} else {
-		if h.GetSession("id") == nil {
+		id := h.GetSession("id")
+		if id == nil {
 			h.Data["json"] = map[string]string{
 				"error": "You need login first.",
 			}
 			h.Ctx.Output.SetStatus(http.StatusUnauthorized)
 			h.ServeJSON()
-		}
-		if models.CheckPrivileges(
-			h.GetSession("id").(string),
-			models.RoleFlagOperator,
-		) {
-			h.Data["json"] = map[string]string{
-				"error": "No privilege",
+		} else {
+			if !CheckPrivileges(id.(string), h.Ctx) {
+				h.Data["json"] = map[string]string{
+					"error": "No privileges.",
+				}
+				h.Ctx.Output.SetStatus(http.StatusForbidden)
+				h.ServeJSON()
 			}
-			h.Ctx.Output.SetStatus(http.StatusForbidden)
-			h.ServeJSON()
 		}
 	}
 }
@@ -48,17 +51,6 @@ func (h *PolicyController) Prepare() {
 // @Title createOAS
 // @router / [post]
 func (a *PolicyController) Post() {
-	if models.CheckPrivileges(
-		a.GetSession("id").(string),
-		models.RoleFlagOperator,
-	) {
-		a.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		a.Ctx.Output.SetStatus(http.StatusForbidden)
-		a.ServeJSON()
-	}
-
 	policy := new(models.Policies)
 	err := json.Unmarshal(a.Ctx.Input.RequestBody, policy)
 	if err != nil {
@@ -96,18 +88,6 @@ func (a *PolicyController) Post() {
 // @Title getPolicy
 // @router /:name [get]
 func (a *PolicyController) Get() {
-
-	if models.CheckPrivileges(
-		a.GetSession("id").(string),
-		models.RoleFlagUser,
-	) {
-		a.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		a.Ctx.Output.SetStatus(http.StatusForbidden)
-		a.ServeJSON()
-	}
-
 	name := a.GetString(":name")
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
@@ -142,17 +122,6 @@ func (a *PolicyController) Get() {
 // @Title listPolicies
 // @router / [get]
 func (a *PolicyController) GetAll() {
-	if models.CheckPrivileges(
-		a.GetSession("id").(string),
-		models.RoleFlagUser,
-	) {
-		a.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		a.Ctx.Output.SetStatus(http.StatusForbidden)
-		a.ServeJSON()
-	}
-
 	limit, _ := a.GetInt("limit", 0)
 	index, _ := a.GetInt("index", 0)
 
@@ -184,17 +153,6 @@ func (a *PolicyController) GetAll() {
 // @Title deleteOAS
 // @router /:name [delete]
 func (a *PolicyController) Delete() {
-	if models.CheckPrivileges(
-		a.GetSession("id").(string),
-		models.RoleFlagOperator,
-	) {
-		a.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		a.Ctx.Output.SetStatus(http.StatusForbidden)
-		a.ServeJSON()
-	}
-
 	name := a.GetString(":name")
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
@@ -239,17 +197,6 @@ func (a *PolicyController) Delete() {
 // @Title updateOAS
 // @router /:name [put]
 func (a *PolicyController) Put() {
-	if models.CheckPrivileges(
-		a.GetSession("id").(string),
-		models.RoleFlagOperator,
-	) {
-		a.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		a.Ctx.Output.SetStatus(http.StatusForbidden)
-		a.ServeJSON()
-	}
-
 	name := a.GetString(":name")
 	beego.Debug("[C] Got policy name:", name)
 	if name != "" {

@@ -18,6 +18,10 @@ const (
 	ClientWebSocketReplyBye  = "BYE"
 )
 
+func init() {
+	AddPrivilege("GET", "^/api/v1/client/signal/(.+)/ws$", models.RoleFlagNone)
+}
+
 type ClientController struct {
 	beego.Controller
 }
@@ -33,22 +37,21 @@ func (h *ClientController) Prepare() {
 			h.ServeJSON()
 		}
 	} else {
-		if h.GetSession("id") == nil {
+		id := h.GetSession("id")
+		if id == nil {
 			h.Data["json"] = map[string]string{
 				"error": "You need login first.",
 			}
 			h.Ctx.Output.SetStatus(http.StatusUnauthorized)
 			h.ServeJSON()
-		}
-		if models.CheckPrivileges(
-			h.GetSession("id").(string),
-			models.RoleFlagOperator,
-		) {
-			h.Data["json"] = map[string]string{
-				"error": "No privilege",
+		} else {
+			if !CheckPrivileges(id.(string), h.Ctx) {
+				h.Data["json"] = map[string]string{
+					"error": "No privileges.",
+				}
+				h.Ctx.Output.SetStatus(http.StatusForbidden)
+				h.ServeJSON()
 			}
-			h.Ctx.Output.SetStatus(http.StatusForbidden)
-			h.ServeJSON()
 		}
 	}
 }
@@ -60,17 +63,6 @@ func (h *ClientController) Prepare() {
 // @Failure 403 body is empty
 // @router /config [get]
 func (c *ClientController) GetAliConfig() {
-	if models.CheckPrivileges(
-		c.GetSession("id").(string),
-		models.RoleFlagAdmin,
-	) {
-		c.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		c.Ctx.Output.SetStatus(http.StatusForbidden)
-		c.ServeJSON()
-	}
-
 	c.Data["json"] = map[string]string{
 		"ali_key":    beego.AppConfig.String("aliapi::apikey"),
 		"ali_secret": beego.AppConfig.String("aliapi::secret"),
@@ -81,17 +73,6 @@ func (c *ClientController) GetAliConfig() {
 // @Title getSignalsWs
 // @router /signal/:name/ws [get]
 func (c *ClientController) WebSocket() {
-	if models.CheckPrivileges(
-		c.GetSession("id").(string),
-		models.RoleFlagNone,
-	) {
-		c.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		c.Ctx.Output.SetStatus(http.StatusForbidden)
-		c.ServeJSON()
-	}
-
 	name := c.GetString(":name")
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
@@ -190,25 +171,6 @@ func (c *ClientController) WebSocket() {
 // @Title getSignals
 // @router /signal/:name [get]
 func (c *ClientController) GetSignals() {
-	if models.CheckPrivileges(
-		c.GetSession("id").(string),
-		models.RoleFlagOperator,
-	) {
-		c.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		c.Ctx.Output.SetStatus(http.StatusForbidden)
-		c.ServeJSON()
-	}
-
-	err := common.AuthWithKey(c.Ctx)
-	if err != nil {
-		c.Data["json"] = map[string]string{
-			"error": err.Error(),
-		}
-		c.Ctx.Output.SetStatus(http.StatusForbidden)
-		c.ServeJSON()
-	}
 	name := c.GetString(":name")
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
@@ -242,25 +204,6 @@ func (c *ClientController) GetSignals() {
 // @Title getSignal
 // @router /signal/:name/:id [get]
 func (c *ClientController) GetSignal() {
-	if models.CheckPrivileges(
-		c.GetSession("id").(string),
-		models.RoleFlagOperator,
-	) {
-		c.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		c.Ctx.Output.SetStatus(http.StatusForbidden)
-		c.ServeJSON()
-	}
-
-	err := common.AuthWithKey(c.Ctx)
-	if err != nil {
-		c.Data["json"] = map[string]string{
-			"error": err.Error(),
-		}
-		c.Ctx.Output.SetStatus(http.StatusForbidden)
-		c.ServeJSON()
-	}
 	name := c.GetString(":name")
 	id := c.GetString(":id")
 	beego.Debug("[C] Got name:", name)
@@ -305,17 +248,6 @@ func (c *ClientController) GetSignal() {
 // @Title createSignal
 // @router /signal/:name [post]
 func (c *ClientController) PostSignal() {
-	if models.CheckPrivileges(
-		c.GetSession("id").(string),
-		models.RoleFlagOperator,
-	) {
-		c.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		c.Ctx.Output.SetStatus(http.StatusForbidden)
-		c.ServeJSON()
-	}
-
 	name := c.GetString(":name")
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
@@ -375,17 +307,6 @@ func (c *ClientController) PostSignal() {
 // @Title deleteSignal
 // @router /signal/:name/:id [delete]
 func (c *ClientController) DeleteSignal() {
-	if models.CheckPrivileges(
-		c.GetSession("id").(string),
-		models.RoleFlagOperator,
-	) {
-		c.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		c.Ctx.Output.SetStatus(http.StatusForbidden)
-		c.ServeJSON()
-	}
-
 	name := c.GetString(":name")
 	id := c.GetString(":id")
 	beego.Debug("[C] Got name:", name)
@@ -438,17 +359,6 @@ func (c *ClientController) DeleteSignal() {
 // @Title notifySignal
 // @router /signal/:name/:id [post]
 func (c *ClientController) NotifySignal() {
-	if models.CheckPrivileges(
-		c.GetSession("id").(string),
-		models.RoleFlagOperator,
-	) {
-		c.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		c.Ctx.Output.SetStatus(http.StatusForbidden)
-		c.ServeJSON()
-	}
-
 	name := c.GetString(":name")
 	id := c.GetString(":id")
 	if name != "" {

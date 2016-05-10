@@ -10,6 +10,10 @@ import (
 	"github.com/astaxie/beego"
 )
 
+func init() {
+	AddPrivilege("GET", "^/api/v1/clientJobs", models.RoleFlagUser)
+}
+
 type ClientJobsController struct {
 	beego.Controller
 }
@@ -25,22 +29,21 @@ func (h *ClientJobsController) Prepare() {
 			h.ServeJSON()
 		}
 	} else {
-		if h.GetSession("id") == nil {
+		id := h.GetSession("id")
+		if id == nil {
 			h.Data["json"] = map[string]string{
 				"error": "You need login first.",
 			}
 			h.Ctx.Output.SetStatus(http.StatusUnauthorized)
 			h.ServeJSON()
-		}
-		if models.CheckPrivileges(
-			h.GetSession("id").(string),
-			models.RoleFlagOperator,
-		) {
-			h.Data["json"] = map[string]string{
-				"error": "No privilege",
+		} else {
+			if !CheckPrivileges(id.(string), h.Ctx) {
+				h.Data["json"] = map[string]string{
+					"error": "No privileges.",
+				}
+				h.Ctx.Output.SetStatus(http.StatusForbidden)
+				h.ServeJSON()
 			}
-			h.Ctx.Output.SetStatus(http.StatusForbidden)
-			h.ServeJSON()
 		}
 	}
 }
@@ -48,17 +51,6 @@ func (h *ClientJobsController) Prepare() {
 // @Title createClientJob
 // @router / [post]
 func (a *ClientJobsController) Post() {
-	if models.CheckPrivileges(
-		a.GetSession("id").(string),
-		models.RoleFlagOperator,
-	) {
-		a.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		a.Ctx.Output.SetStatus(http.StatusForbidden)
-		a.ServeJSON()
-	}
-
 	clientJob := new(models.ClientJobs)
 	err := json.Unmarshal(a.Ctx.Input.RequestBody, clientJob)
 	if err != nil {
@@ -96,17 +88,6 @@ func (a *ClientJobsController) Post() {
 // @Title getClientJob
 // @router /:id [get]
 func (a *ClientJobsController) Get() {
-	if models.CheckPrivileges(
-		a.GetSession("id").(string),
-		models.RoleFlagUser,
-	) {
-		a.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		a.Ctx.Output.SetStatus(http.StatusForbidden)
-		a.ServeJSON()
-	}
-
 	id := a.GetString(":id")
 	beego.Debug("[C] Got id:", id)
 	if id != "" {
@@ -141,17 +122,6 @@ func (a *ClientJobsController) Get() {
 // @Title listClientJobs
 // @router / [get]
 func (a *ClientJobsController) GetAll() {
-	if models.CheckPrivileges(
-		a.GetSession("id").(string),
-		models.RoleFlagUser,
-	) {
-		a.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		a.Ctx.Output.SetStatus(http.StatusForbidden)
-		a.ServeJSON()
-	}
-
 	limit, _ := a.GetInt("limit", 0)
 	index, _ := a.GetInt("index", 0)
 
@@ -183,17 +153,6 @@ func (a *ClientJobsController) GetAll() {
 // @Title deleteClientJob
 // @router /:id [delete]
 func (a *ClientJobsController) Delete() {
-	if models.CheckPrivileges(
-		a.GetSession("id").(string),
-		models.RoleFlagOperator,
-	) {
-		a.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		a.Ctx.Output.SetStatus(http.StatusForbidden)
-		a.ServeJSON()
-	}
-
 	id := a.GetString(":id")
 	beego.Debug("[C] Got id:", id)
 	if id != "" {
@@ -238,17 +197,6 @@ func (a *ClientJobsController) Delete() {
 // @Title updateClientJob
 // @router /:id [put]
 func (a *ClientJobsController) Put() {
-	if models.CheckPrivileges(
-		a.GetSession("id").(string),
-		models.RoleFlagOperator,
-	) {
-		a.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		a.Ctx.Output.SetStatus(http.StatusForbidden)
-		a.ServeJSON()
-	}
-
 	id := a.GetString(":id")
 	beego.Debug("[C] Got clientJob id:", id)
 	if id != "" {

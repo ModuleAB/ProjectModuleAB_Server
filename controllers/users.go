@@ -10,6 +10,10 @@ import (
 	"github.com/astaxie/beego"
 )
 
+func init() {
+	AddPrivilege("GET", "^/api/v1/hosts", models.RoleFlagUser)
+}
+
 type UserController struct {
 	beego.Controller
 }
@@ -25,22 +29,21 @@ func (h *UserController) Prepare() {
 			h.ServeJSON()
 		}
 	} else {
-		if h.GetSession("id") == nil {
+		id := h.GetSession("id")
+		if id == nil {
 			h.Data["json"] = map[string]string{
 				"error": "You need login first.",
 			}
 			h.Ctx.Output.SetStatus(http.StatusUnauthorized)
 			h.ServeJSON()
-		}
-		if models.CheckPrivileges(
-			h.GetSession("id").(string),
-			models.RoleFlagOperator,
-		) {
-			h.Data["json"] = map[string]string{
-				"error": "No privilege",
+		} else {
+			if !CheckPrivileges(id.(string), h.Ctx) {
+				h.Data["json"] = map[string]string{
+					"error": "No privileges.",
+				}
+				h.Ctx.Output.SetStatus(http.StatusForbidden)
+				h.ServeJSON()
 			}
-			h.Ctx.Output.SetStatus(http.StatusForbidden)
-			h.ServeJSON()
 		}
 	}
 }
@@ -48,17 +51,6 @@ func (h *UserController) Prepare() {
 // @Title createUser
 // @router / [post]
 func (h *UserController) Post() {
-	if models.CheckPrivileges(
-		h.GetSession("id").(string),
-		models.RoleFlagOperator,
-	) {
-		h.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		h.Ctx.Output.SetStatus(http.StatusForbidden)
-		h.ServeJSON()
-	}
-
 	user := new(models.Users)
 	err := json.Unmarshal(h.Ctx.Input.RequestBody, user)
 	if err != nil {
@@ -96,17 +88,6 @@ func (h *UserController) Post() {
 // @Title getUser
 // @router /:name [get]
 func (h *UserController) Get() {
-	if models.CheckPrivileges(
-		h.GetSession("id").(string),
-		models.RoleFlagUser,
-	) {
-		h.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		h.Ctx.Output.SetStatus(http.StatusForbidden)
-		h.ServeJSON()
-	}
-
 	name := h.GetString(":name")
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
@@ -141,17 +122,6 @@ func (h *UserController) Get() {
 // @Title listUser
 // @router / [get]
 func (h *UserController) GetAll() {
-	if models.CheckPrivileges(
-		h.GetSession("id").(string),
-		models.RoleFlagOperator,
-	) {
-		h.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		h.Ctx.Output.SetStatus(http.StatusForbidden)
-		h.ServeJSON()
-	}
-
 	limit, _ := h.GetInt("limit", 0)
 	index, _ := h.GetInt("index", 0)
 
@@ -183,17 +153,6 @@ func (h *UserController) GetAll() {
 // @Title deleteUser
 // @router /:name [delete]
 func (h *UserController) Delete() {
-	if models.CheckPrivileges(
-		h.GetSession("id").(string),
-		models.RoleFlagOperator,
-	) {
-		h.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		h.Ctx.Output.SetStatus(http.StatusForbidden)
-		h.ServeJSON()
-	}
-
 	name := h.GetString(":name")
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
@@ -238,17 +197,6 @@ func (h *UserController) Delete() {
 // @Title updateUser
 // @router /:name [put]
 func (h *UserController) Put() {
-	if models.CheckPrivileges(
-		h.GetSession("id").(string),
-		models.RoleFlagOperator,
-	) {
-		h.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		h.Ctx.Output.SetStatus(http.StatusForbidden)
-		h.ServeJSON()
-	}
-
 	name := h.GetString(":name")
 	beego.Debug("[C] Got user name:", name)
 	if name != "" {
@@ -308,17 +256,6 @@ func (h *UserController) Put() {
 
 // @router /:name/roles [post]
 func (h *UserController) AddUserRoles() {
-	if models.CheckPrivileges(
-		h.GetSession("id").(string),
-		models.RoleFlagOperator,
-	) {
-		h.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		h.Ctx.Output.SetStatus(http.StatusForbidden)
-		h.ServeJSON()
-	}
-
 	name := h.GetString(":name")
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
@@ -376,17 +313,6 @@ func (h *UserController) AddUserRoles() {
 
 // @router /:name/roles [delete]
 func (h *UserController) DeleteUserRoles() {
-	if models.CheckPrivileges(
-		h.GetSession("id").(string),
-		models.RoleFlagOperator,
-	) {
-		h.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		h.Ctx.Output.SetStatus(http.StatusForbidden)
-		h.ServeJSON()
-	}
-
 	name := h.GetString(":name")
 	beego.Debug("[C] Got name:", name)
 	if name != "" {

@@ -11,6 +11,10 @@ import (
 	"github.com/astaxie/beego"
 )
 
+func init() {
+	AddPrivilege("GET", "^/api/v1/records", models.RoleFlagUser)
+}
+
 type RecordsController struct {
 	beego.Controller
 }
@@ -26,22 +30,21 @@ func (h *RecordsController) Prepare() {
 			h.ServeJSON()
 		}
 	} else {
-		if h.GetSession("id") == nil {
+		id := h.GetSession("id")
+		if id == nil {
 			h.Data["json"] = map[string]string{
 				"error": "You need login first.",
 			}
 			h.Ctx.Output.SetStatus(http.StatusUnauthorized)
 			h.ServeJSON()
-		}
-		if models.CheckPrivileges(
-			h.GetSession("id").(string),
-			models.RoleFlagOperator,
-		) {
-			h.Data["json"] = map[string]string{
-				"error": "No privilege",
+		} else {
+			if !CheckPrivileges(id.(string), h.Ctx) {
+				h.Data["json"] = map[string]string{
+					"error": "No privileges.",
+				}
+				h.Ctx.Output.SetStatus(http.StatusForbidden)
+				h.ServeJSON()
 			}
-			h.Ctx.Output.SetStatus(http.StatusForbidden)
-			h.ServeJSON()
 		}
 	}
 }
@@ -54,17 +57,6 @@ func (h *RecordsController) Prepare() {
 // @Failure 500 Failure on writing database
 // @router / [post]
 func (h *RecordsController) Post() {
-	if models.CheckPrivileges(
-		h.GetSession("id").(string),
-		models.RoleFlagOperator,
-	) {
-		h.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		h.Ctx.Output.SetStatus(http.StatusForbidden)
-		h.ServeJSON()
-	}
-
 	record := new(models.Records)
 	err := json.Unmarshal(h.Ctx.Input.RequestBody, record)
 	if err != nil {
@@ -104,17 +96,6 @@ func (h *RecordsController) Post() {
 // @Success 200
 // @router / [get]
 func (h *RecordsController) GetAll() {
-	if models.CheckPrivileges(
-		h.GetSession("id").(string),
-		models.RoleFlagUser,
-	) {
-		h.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		h.Ctx.Output.SetStatus(http.StatusForbidden)
-		h.ServeJSON()
-	}
-
 	limit, _ := h.GetInt("limit", 50)
 	index, _ := h.GetInt("index", 0)
 	filename := h.GetString("filename")
@@ -181,17 +162,6 @@ func (h *RecordsController) GetAll() {
 // @Failure 404
 // @router /:id [delete]
 func (h *RecordsController) Delete() {
-	if models.CheckPrivileges(
-		h.GetSession("id").(string),
-		models.RoleFlagOperator,
-	) {
-		h.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		h.Ctx.Output.SetStatus(http.StatusForbidden)
-		h.ServeJSON()
-	}
-
 	id := h.GetString(":id")
 	beego.Debug("[C] Got id:", id)
 	if id != "" {
@@ -235,17 +205,6 @@ func (h *RecordsController) Delete() {
 
 // @router /:id/recover [get]
 func (h *RecordsController) Recover() {
-	if models.CheckPrivileges(
-		h.GetSession("id").(string),
-		models.RoleFlagUser,
-	) {
-		h.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		h.Ctx.Output.SetStatus(http.StatusForbidden)
-		h.ServeJSON()
-	}
-
 	id := h.GetString(":id")
 	beego.Debug("[C] Got id:", id)
 	if id != "" {

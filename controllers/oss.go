@@ -10,6 +10,10 @@ import (
 	"github.com/astaxie/beego"
 )
 
+func init() {
+	AddPrivilege("GET", "^/api/v1/oss", models.RoleFlagUser)
+}
+
 type OssController struct {
 	beego.Controller
 }
@@ -25,22 +29,21 @@ func (h *OssController) Prepare() {
 			h.ServeJSON()
 		}
 	} else {
-		if h.GetSession("id") == nil {
+		id := h.GetSession("id")
+		if id == nil {
 			h.Data["json"] = map[string]string{
 				"error": "You need login first.",
 			}
 			h.Ctx.Output.SetStatus(http.StatusUnauthorized)
 			h.ServeJSON()
-		}
-		if models.CheckPrivileges(
-			h.GetSession("id").(string),
-			models.RoleFlagOperator,
-		) {
-			h.Data["json"] = map[string]string{
-				"error": "No privilege",
+		} else {
+			if !CheckPrivileges(id.(string), h.Ctx) {
+				h.Data["json"] = map[string]string{
+					"error": "No privileges.",
+				}
+				h.Ctx.Output.SetStatus(http.StatusForbidden)
+				h.ServeJSON()
 			}
-			h.Ctx.Output.SetStatus(http.StatusForbidden)
-			h.ServeJSON()
 		}
 	}
 }
@@ -48,17 +51,6 @@ func (h *OssController) Prepare() {
 // @Title createOSS
 // @router / [post]
 func (a *OssController) Post() {
-	if models.CheckPrivileges(
-		a.GetSession("id").(string),
-		models.RoleFlagOperator,
-	) {
-		a.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		a.Ctx.Output.SetStatus(http.StatusForbidden)
-		a.ServeJSON()
-	}
-
 	oss := new(models.Oss)
 	err := json.Unmarshal(a.Ctx.Input.RequestBody, oss)
 	if err != nil {
@@ -96,17 +88,6 @@ func (a *OssController) Post() {
 // @Title getOSS
 // @router /:name [get]
 func (a *OssController) Get() {
-	if models.CheckPrivileges(
-		a.GetSession("id").(string),
-		models.RoleFlagUser,
-	) {
-		a.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		a.Ctx.Output.SetStatus(http.StatusForbidden)
-		a.ServeJSON()
-	}
-
 	name := a.GetString(":name")
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
@@ -141,17 +122,6 @@ func (a *OssController) Get() {
 // @Title listOSS
 // @router / [get]
 func (a *OssController) GetAll() {
-	if models.CheckPrivileges(
-		a.GetSession("id").(string),
-		models.RoleFlagUser,
-	) {
-		a.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		a.Ctx.Output.SetStatus(http.StatusForbidden)
-		a.ServeJSON()
-	}
-
 	limit, _ := a.GetInt("limit", 0)
 	index, _ := a.GetInt("index", 0)
 
@@ -183,17 +153,6 @@ func (a *OssController) GetAll() {
 // @Title deleteOSS
 // @router /:name [delete]
 func (a *OssController) Delete() {
-	if models.CheckPrivileges(
-		a.GetSession("id").(string),
-		models.RoleFlagOperator,
-	) {
-		a.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		a.Ctx.Output.SetStatus(http.StatusForbidden)
-		a.ServeJSON()
-	}
-
 	name := a.GetString(":name")
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
@@ -238,17 +197,6 @@ func (a *OssController) Delete() {
 // @Title updateOSS
 // @router /:name [put]
 func (a *OssController) Put() {
-	if models.CheckPrivileges(
-		a.GetSession("id").(string),
-		models.RoleFlagOperator,
-	) {
-		a.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		a.Ctx.Output.SetStatus(http.StatusForbidden)
-		a.ServeJSON()
-	}
-
 	name := a.GetString(":name")
 	beego.Debug("[C] Got oss name:", name)
 	if name != "" {

@@ -10,6 +10,10 @@ import (
 	"github.com/astaxie/beego"
 )
 
+func init() {
+	AddPrivilege("GET", "^/api/v1/backupSets", models.RoleFlagUser)
+}
+
 type BackupSetsController struct {
 	beego.Controller
 }
@@ -25,22 +29,21 @@ func (h *BackupSetsController) Prepare() {
 			h.ServeJSON()
 		}
 	} else {
-		if h.GetSession("id") == nil {
+		id := h.GetSession("id")
+		if id == nil {
 			h.Data["json"] = map[string]string{
 				"error": "You need login first.",
 			}
 			h.Ctx.Output.SetStatus(http.StatusUnauthorized)
 			h.ServeJSON()
-		}
-		if models.CheckPrivileges(
-			h.GetSession("id").(string),
-			models.RoleFlagOperator,
-		) {
-			h.Data["json"] = map[string]string{
-				"error": "No privilege",
+		} else {
+			if !CheckPrivileges(id.(string), h.Ctx) {
+				h.Data["json"] = map[string]string{
+					"error": "No privileges.",
+				}
+				h.Ctx.Output.SetStatus(http.StatusForbidden)
+				h.ServeJSON()
 			}
-			h.Ctx.Output.SetStatus(http.StatusForbidden)
-			h.ServeJSON()
 		}
 	}
 }
@@ -48,17 +51,6 @@ func (h *BackupSetsController) Prepare() {
 // @Title createBackupSet
 // @router / [post]
 func (h *BackupSetsController) Post() {
-	if models.CheckPrivileges(
-		h.GetSession("id").(string),
-		models.RoleFlagOperator,
-	) {
-		h.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		h.Ctx.Output.SetStatus(http.StatusForbidden)
-		h.ServeJSON()
-	}
-
 	backupSet := new(models.BackupSets)
 	err := json.Unmarshal(h.Ctx.Input.RequestBody, backupSet)
 	if err != nil {
@@ -96,17 +88,6 @@ func (h *BackupSetsController) Post() {
 // @Title getBackupSet
 // @router /:name [get]
 func (h *BackupSetsController) Get() {
-	if models.CheckPrivileges(
-		h.GetSession("id").(string),
-		models.RoleFlagUser,
-	) {
-		h.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		h.Ctx.Output.SetStatus(http.StatusForbidden)
-		h.ServeJSON()
-	}
-
 	name := h.GetString(":name")
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
@@ -141,17 +122,6 @@ func (h *BackupSetsController) Get() {
 // @Title listBackupSets
 // @router / [get]
 func (h *BackupSetsController) GetAll() {
-	if models.CheckPrivileges(
-		h.GetSession("id").(string),
-		models.RoleFlagUser,
-	) {
-		h.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		h.Ctx.Output.SetStatus(http.StatusForbidden)
-		h.ServeJSON()
-	}
-
 	limit, _ := h.GetInt("limit", 0)
 	index, _ := h.GetInt("index", 0)
 
@@ -183,17 +153,6 @@ func (h *BackupSetsController) GetAll() {
 // @Title deleteBackupSet
 // @router /:name [delete]
 func (h *BackupSetsController) Delete() {
-	if models.CheckPrivileges(
-		h.GetSession("id").(string),
-		models.RoleFlagOperator,
-	) {
-		h.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		h.Ctx.Output.SetStatus(http.StatusForbidden)
-		h.ServeJSON()
-	}
-
 	name := h.GetString(":name")
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
@@ -238,17 +197,6 @@ func (h *BackupSetsController) Delete() {
 // @Title updateBackupSet
 // @router /:name [put]
 func (h *BackupSetsController) Put() {
-	if models.CheckPrivileges(
-		h.GetSession("id").(string),
-		models.RoleFlagOperator,
-	) {
-		h.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		h.Ctx.Output.SetStatus(http.StatusForbidden)
-		h.ServeJSON()
-	}
-
 	name := h.GetString(":name")
 	beego.Debug("[C] Got backupSet name:", name)
 	if name != "" {
@@ -310,17 +258,6 @@ func (h *BackupSetsController) Put() {
 
 // @router /:name/hosts [post]
 func (h *BackupSetsController) AddBackupSetsHosts() {
-	if models.CheckPrivileges(
-		h.GetSession("id").(string),
-		models.RoleFlagOperator,
-	) {
-		h.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		h.Ctx.Output.SetStatus(http.StatusForbidden)
-		h.ServeJSON()
-	}
-
 	name := h.GetString(":name")
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
@@ -378,17 +315,6 @@ func (h *BackupSetsController) AddBackupSetsHosts() {
 
 // @router /:name/hosts [delete]
 func (h *BackupSetsController) DeleteBackupSetsHosts() {
-	if models.CheckPrivileges(
-		h.GetSession("id").(string),
-		models.RoleFlagOperator,
-	) {
-		h.Data["json"] = map[string]string{
-			"error": "No privilege",
-		}
-		h.Ctx.Output.SetStatus(http.StatusForbidden)
-		h.ServeJSON()
-	}
-
 	name := h.GetString(":name")
 	beego.Debug("[C] Got name:", name)
 	if name != "" {

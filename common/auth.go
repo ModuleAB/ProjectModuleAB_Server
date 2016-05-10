@@ -20,12 +20,14 @@ func AuthWithKey(ctx *context.Context) error {
 	if err != nil {
 		return err
 	}
-	if time.Now().Sub(pTime) > AuthExpireDuration ||
-		time.Now().Sub(pTime) < AuthExpireDuration {
+	if time.Now().UTC().Sub(pTime) > AuthExpireDuration ||
+		time.Now().UTC().Sub(pTime) < -AuthExpireDuration {
 		return fmt.Errorf("Client time is out of server time")
 	}
 	sign := ctx.Input.Header("Signature")
 	h := hmac.New(sha1.New, []byte(key))
+	beego.Debug("Got URL:", ctx.Input.URL())
+	beego.Debug("Got date:", sTime)
 	h.Write(
 		[]byte(
 			fmt.Sprintf(
