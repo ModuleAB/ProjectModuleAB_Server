@@ -15,14 +15,7 @@ type RecordsController struct {
 	beego.Controller
 }
 
-// @Title createRecord
-// @Description create Record
-// @Param	record 	body 	object true	"record"
-// @Success 201 {object} models.Records
-// @Failure 400 Recordname or IP missing
-// @Failure 500 Failure on writing database
-// @router / [post]
-func (h *RecordsController) Post() {
+func (h *RecordsController) Prepare() {
 	if h.Ctx.Input.Header("Signature") != "" {
 		err := common.AuthWithKey(h.Ctx)
 		if err != nil {
@@ -50,6 +43,26 @@ func (h *RecordsController) Post() {
 			h.Ctx.Output.SetStatus(http.StatusForbidden)
 			h.ServeJSON()
 		}
+	}
+}
+
+// @Title createRecord
+// @Description create Record
+// @Param	record 	body 	object true	"record"
+// @Success 201 {object} models.Records
+// @Failure 400 Recordname or IP missing
+// @Failure 500 Failure on writing database
+// @router / [post]
+func (h *RecordsController) Post() {
+	if models.CheckPrivileges(
+		h.GetSession("id").(string),
+		models.RoleFlagOperator,
+	) {
+		h.Data["json"] = map[string]string{
+			"error": "No privilege",
+		}
+		h.Ctx.Output.SetStatus(http.StatusForbidden)
+		h.ServeJSON()
 	}
 
 	record := new(models.Records)
@@ -91,33 +104,15 @@ func (h *RecordsController) Post() {
 // @Success 200
 // @router / [get]
 func (h *RecordsController) GetAll() {
-	if h.Ctx.Input.Header("Signature") != "" {
-		err := common.AuthWithKey(h.Ctx)
-		if err != nil {
-			h.Data["json"] = map[string]string{
-				"error": err.Error(),
-			}
-			h.Ctx.Output.SetStatus(http.StatusForbidden)
-			h.ServeJSON()
+	if models.CheckPrivileges(
+		h.GetSession("id").(string),
+		models.RoleFlagUser,
+	) {
+		h.Data["json"] = map[string]string{
+			"error": "No privilege",
 		}
-	} else {
-		if h.GetSession("id") == nil {
-			h.Data["json"] = map[string]string{
-				"error": "You need login first.",
-			}
-			h.Ctx.Output.SetStatus(http.StatusUnauthorized)
-			h.ServeJSON()
-		}
-		if models.CheckPrivileges(
-			h.GetSession("id").(string),
-			models.RoleFlagUser,
-		) {
-			h.Data["json"] = map[string]string{
-				"error": "No privilege",
-			}
-			h.Ctx.Output.SetStatus(http.StatusForbidden)
-			h.ServeJSON()
-		}
+		h.Ctx.Output.SetStatus(http.StatusForbidden)
+		h.ServeJSON()
 	}
 
 	limit, _ := h.GetInt("limit", 50)
@@ -186,33 +181,15 @@ func (h *RecordsController) GetAll() {
 // @Failure 404
 // @router /:id [delete]
 func (h *RecordsController) Delete() {
-	if h.Ctx.Input.Header("Signature") != "" {
-		err := common.AuthWithKey(h.Ctx)
-		if err != nil {
-			h.Data["json"] = map[string]string{
-				"error": err.Error(),
-			}
-			h.Ctx.Output.SetStatus(http.StatusForbidden)
-			h.ServeJSON()
+	if models.CheckPrivileges(
+		h.GetSession("id").(string),
+		models.RoleFlagOperator,
+	) {
+		h.Data["json"] = map[string]string{
+			"error": "No privilege",
 		}
-	} else {
-		if h.GetSession("id") == nil {
-			h.Data["json"] = map[string]string{
-				"error": "You need login first.",
-			}
-			h.Ctx.Output.SetStatus(http.StatusUnauthorized)
-			h.ServeJSON()
-		}
-		if models.CheckPrivileges(
-			h.GetSession("id").(string),
-			models.RoleFlagOperator,
-		) {
-			h.Data["json"] = map[string]string{
-				"error": "No privilege",
-			}
-			h.Ctx.Output.SetStatus(http.StatusForbidden)
-			h.ServeJSON()
-		}
+		h.Ctx.Output.SetStatus(http.StatusForbidden)
+		h.ServeJSON()
 	}
 
 	id := h.GetString(":id")
@@ -258,33 +235,15 @@ func (h *RecordsController) Delete() {
 
 // @router /:id/recover [get]
 func (h *RecordsController) Recover() {
-	if h.Ctx.Input.Header("Signature") != "" {
-		err := common.AuthWithKey(h.Ctx)
-		if err != nil {
-			h.Data["json"] = map[string]string{
-				"error": err.Error(),
-			}
-			h.Ctx.Output.SetStatus(http.StatusForbidden)
-			h.ServeJSON()
+	if models.CheckPrivileges(
+		h.GetSession("id").(string),
+		models.RoleFlagUser,
+	) {
+		h.Data["json"] = map[string]string{
+			"error": "No privilege",
 		}
-	} else {
-		if h.GetSession("id") == nil {
-			h.Data["json"] = map[string]string{
-				"error": "You need login first.",
-			}
-			h.Ctx.Output.SetStatus(http.StatusUnauthorized)
-			h.ServeJSON()
-		}
-		if models.CheckPrivileges(
-			h.GetSession("id").(string),
-			models.RoleFlagUser,
-		) {
-			h.Data["json"] = map[string]string{
-				"error": "No privilege",
-			}
-			h.Ctx.Output.SetStatus(http.StatusForbidden)
-			h.ServeJSON()
-		}
+		h.Ctx.Output.SetStatus(http.StatusForbidden)
+		h.ServeJSON()
 	}
 
 	id := h.GetString(":id")

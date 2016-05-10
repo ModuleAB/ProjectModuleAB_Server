@@ -13,36 +13,49 @@ type OasJobsController struct {
 	beego.Controller
 }
 
+func (h *OasJobsController) Prepare() {
+	if h.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(h.Ctx)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	} else {
+		if h.GetSession("id") == nil {
+			h.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			h.Ctx.Output.SetStatus(http.StatusUnauthorized)
+			h.ServeJSON()
+		}
+		if models.CheckPrivileges(
+			h.GetSession("id").(string),
+			models.RoleFlagOperator,
+		) {
+			h.Data["json"] = map[string]string{
+				"error": "No privilege",
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	}
+}
+
 // @Title getOAS
 // @router /:job_id [get]
 func (a *OasJobsController) Get() {
-	if a.Ctx.Input.Header("Signature") != "" {
-		err := common.AuthWithKey(a.Ctx)
-		if err != nil {
-			a.Data["json"] = map[string]string{
-				"error": err.Error(),
-			}
-			a.Ctx.Output.SetStatus(http.StatusForbidden)
-			a.ServeJSON()
+	if models.CheckPrivileges(
+		a.GetSession("id").(string),
+		models.RoleFlagUser,
+	) {
+		a.Data["json"] = map[string]string{
+			"error": "No privilege",
 		}
-	} else {
-		if a.GetSession("id") == nil {
-			a.Data["json"] = map[string]string{
-				"error": "You need login first.",
-			}
-			a.Ctx.Output.SetStatus(http.StatusUnauthorized)
-			a.ServeJSON()
-		}
-		if models.CheckPrivileges(
-			a.GetSession("id").(string),
-			models.RoleFlagUser,
-		) {
-			a.Data["json"] = map[string]string{
-				"error": "No privilege",
-			}
-			a.Ctx.Output.SetStatus(http.StatusForbidden)
-			a.ServeJSON()
-		}
+		a.Ctx.Output.SetStatus(http.StatusForbidden)
+		a.ServeJSON()
 	}
 
 	jobId := a.GetString(":job_id")
@@ -79,33 +92,15 @@ func (a *OasJobsController) Get() {
 // @Title listOAS
 // @router / [get]
 func (a *OasJobsController) GetAll() {
-	if a.Ctx.Input.Header("Signature") != "" {
-		err := common.AuthWithKey(a.Ctx)
-		if err != nil {
-			a.Data["json"] = map[string]string{
-				"error": err.Error(),
-			}
-			a.Ctx.Output.SetStatus(http.StatusForbidden)
-			a.ServeJSON()
+	if models.CheckPrivileges(
+		a.GetSession("id").(string),
+		models.RoleFlagUser,
+	) {
+		a.Data["json"] = map[string]string{
+			"error": "No privilege",
 		}
-	} else {
-		if a.GetSession("id") == nil {
-			a.Data["json"] = map[string]string{
-				"error": "You need login first.",
-			}
-			a.Ctx.Output.SetStatus(http.StatusUnauthorized)
-			a.ServeJSON()
-		}
-		if models.CheckPrivileges(
-			a.GetSession("id").(string),
-			models.RoleFlagUser,
-		) {
-			a.Data["json"] = map[string]string{
-				"error": "No privilege",
-			}
-			a.Ctx.Output.SetStatus(http.StatusForbidden)
-			a.ServeJSON()
-		}
+		a.Ctx.Output.SetStatus(http.StatusForbidden)
+		a.ServeJSON()
 	}
 
 	limit, _ := a.GetInt("limit", 0)

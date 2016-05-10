@@ -14,36 +14,49 @@ type OasController struct {
 	beego.Controller
 }
 
+func (h *OasController) Prepare() {
+	if h.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(h.Ctx)
+		if err != nil {
+			h.Data["json"] = map[string]string{
+				"error": err.Error(),
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	} else {
+		if h.GetSession("id") == nil {
+			h.Data["json"] = map[string]string{
+				"error": "You need login first.",
+			}
+			h.Ctx.Output.SetStatus(http.StatusUnauthorized)
+			h.ServeJSON()
+		}
+		if models.CheckPrivileges(
+			h.GetSession("id").(string),
+			models.RoleFlagOperator,
+		) {
+			h.Data["json"] = map[string]string{
+				"error": "No privilege",
+			}
+			h.Ctx.Output.SetStatus(http.StatusForbidden)
+			h.ServeJSON()
+		}
+	}
+}
+
 // @Title createOAS
 // @router / [post]
 func (a *OasController) Post() {
-	if a.Ctx.Input.Header("Signature") != "" {
-		err := common.AuthWithKey(a.Ctx)
-		if err != nil {
-			a.Data["json"] = map[string]string{
-				"error": err.Error(),
-			}
-			a.Ctx.Output.SetStatus(http.StatusForbidden)
-			a.ServeJSON()
+	if models.CheckPrivileges(
+		a.GetSession("id").(string),
+		models.RoleFlagOperator,
+	) {
+		a.Data["json"] = map[string]string{
+			"error": "No privilege",
 		}
-	} else {
-		if a.GetSession("id") == nil {
-			a.Data["json"] = map[string]string{
-				"error": "You need login first.",
-			}
-			a.Ctx.Output.SetStatus(http.StatusUnauthorized)
-			a.ServeJSON()
-		}
-		if models.CheckPrivileges(
-			a.GetSession("id").(string),
-			models.RoleFlagOperator,
-		) {
-			a.Data["json"] = map[string]string{
-				"error": "No privilege",
-			}
-			a.Ctx.Output.SetStatus(http.StatusForbidden)
-			a.ServeJSON()
-		}
+		a.Ctx.Output.SetStatus(http.StatusForbidden)
+		a.ServeJSON()
 	}
 
 	oas := new(models.Oas)
@@ -106,33 +119,15 @@ func (a *OasController) Post() {
 // @Title getOAS
 // @router /:name [get]
 func (a *OasController) Get() {
-	if a.Ctx.Input.Header("Signature") != "" {
-		err := common.AuthWithKey(a.Ctx)
-		if err != nil {
-			a.Data["json"] = map[string]string{
-				"error": err.Error(),
-			}
-			a.Ctx.Output.SetStatus(http.StatusForbidden)
-			a.ServeJSON()
+	if models.CheckPrivileges(
+		a.GetSession("id").(string),
+		models.RoleFlagUser,
+	) {
+		a.Data["json"] = map[string]string{
+			"error": "No privilege",
 		}
-	} else {
-		if a.GetSession("id") == nil {
-			a.Data["json"] = map[string]string{
-				"error": "You need login first.",
-			}
-			a.Ctx.Output.SetStatus(http.StatusUnauthorized)
-			a.ServeJSON()
-		}
-		if models.CheckPrivileges(
-			a.GetSession("id").(string),
-			models.RoleFlagUser,
-		) {
-			a.Data["json"] = map[string]string{
-				"error": "No privilege",
-			}
-			a.Ctx.Output.SetStatus(http.StatusForbidden)
-			a.ServeJSON()
-		}
+		a.Ctx.Output.SetStatus(http.StatusForbidden)
+		a.ServeJSON()
 	}
 
 	name := a.GetString(":name")
@@ -169,33 +164,15 @@ func (a *OasController) Get() {
 // @Title listOAS
 // @router / [get]
 func (a *OasController) GetAll() {
-	if a.Ctx.Input.Header("Signature") != "" {
-		err := common.AuthWithKey(a.Ctx)
-		if err != nil {
-			a.Data["json"] = map[string]string{
-				"error": err.Error(),
-			}
-			a.Ctx.Output.SetStatus(http.StatusForbidden)
-			a.ServeJSON()
+	if models.CheckPrivileges(
+		a.GetSession("id").(string),
+		models.RoleFlagUser,
+	) {
+		a.Data["json"] = map[string]string{
+			"error": "No privilege",
 		}
-	} else {
-		if a.GetSession("id") == nil {
-			a.Data["json"] = map[string]string{
-				"error": "You need login first.",
-			}
-			a.Ctx.Output.SetStatus(http.StatusUnauthorized)
-			a.ServeJSON()
-		}
-		if models.CheckPrivileges(
-			a.GetSession("id").(string),
-			models.RoleFlagUser,
-		) {
-			a.Data["json"] = map[string]string{
-				"error": "No privilege",
-			}
-			a.Ctx.Output.SetStatus(http.StatusForbidden)
-			a.ServeJSON()
-		}
+		a.Ctx.Output.SetStatus(http.StatusForbidden)
+		a.ServeJSON()
 	}
 
 	limit, _ := a.GetInt("limit", 0)
@@ -229,33 +206,15 @@ func (a *OasController) GetAll() {
 // @Title deleteOAS
 // @router /:name [delete]
 func (a *OasController) Delete() {
-	if a.Ctx.Input.Header("Signature") != "" {
-		err := common.AuthWithKey(a.Ctx)
-		if err != nil {
-			a.Data["json"] = map[string]string{
-				"error": err.Error(),
-			}
-			a.Ctx.Output.SetStatus(http.StatusForbidden)
-			a.ServeJSON()
+	if models.CheckPrivileges(
+		a.GetSession("id").(string),
+		models.RoleFlagOperator,
+	) {
+		a.Data["json"] = map[string]string{
+			"error": "No privilege",
 		}
-	} else {
-		if a.GetSession("id") == nil {
-			a.Data["json"] = map[string]string{
-				"error": "You need login first.",
-			}
-			a.Ctx.Output.SetStatus(http.StatusUnauthorized)
-			a.ServeJSON()
-		}
-		if models.CheckPrivileges(
-			a.GetSession("id").(string),
-			models.RoleFlagOperator,
-		) {
-			a.Data["json"] = map[string]string{
-				"error": "No privilege",
-			}
-			a.Ctx.Output.SetStatus(http.StatusForbidden)
-			a.ServeJSON()
-		}
+		a.Ctx.Output.SetStatus(http.StatusForbidden)
+		a.ServeJSON()
 	}
 
 	name := a.GetString(":name")
@@ -302,33 +261,15 @@ func (a *OasController) Delete() {
 // @Title updateOAS
 // @router /:name [put]
 func (a *OasController) Put() {
-	if a.Ctx.Input.Header("Signature") != "" {
-		err := common.AuthWithKey(a.Ctx)
-		if err != nil {
-			a.Data["json"] = map[string]string{
-				"error": err.Error(),
-			}
-			a.Ctx.Output.SetStatus(http.StatusForbidden)
-			a.ServeJSON()
+	if models.CheckPrivileges(
+		a.GetSession("id").(string),
+		models.RoleFlagOperator,
+	) {
+		a.Data["json"] = map[string]string{
+			"error": "No privilege",
 		}
-	} else {
-		if a.GetSession("id") == nil {
-			a.Data["json"] = map[string]string{
-				"error": "You need login first.",
-			}
-			a.Ctx.Output.SetStatus(http.StatusUnauthorized)
-			a.ServeJSON()
-		}
-		if models.CheckPrivileges(
-			a.GetSession("id").(string),
-			models.RoleFlagOperator,
-		) {
-			a.Data["json"] = map[string]string{
-				"error": "No privilege",
-			}
-			a.Ctx.Output.SetStatus(http.StatusForbidden)
-			a.ServeJSON()
-		}
+		a.Ctx.Output.SetStatus(http.StatusForbidden)
+		a.ServeJSON()
 	}
 
 	name := a.GetString(":name")

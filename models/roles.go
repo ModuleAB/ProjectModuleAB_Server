@@ -11,7 +11,8 @@ import (
 )
 
 const (
-	RoleFlagAdmin = iota
+	RoleFlagNone = iota - 1
+	RoleFlagAdmin
 	RoleFlagOperator
 	RoleFlagUser
 )

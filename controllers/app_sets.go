@@ -146,33 +146,15 @@ func (a *AppSetsController) Get() {
 // @Title listAppSets
 // @router / [get]
 func (a *AppSetsController) GetAll() {
-	if a.Ctx.Input.Header("Signature") != "" {
-		err := common.AuthWithKey(a.Ctx)
-		if err != nil {
-			a.Data["json"] = map[string]string{
-				"error": err.Error(),
-			}
-			a.Ctx.Output.SetStatus(http.StatusForbidden)
-			a.ServeJSON()
+	if models.CheckPrivileges(
+		a.GetSession("id").(string),
+		models.RoleFlagUser,
+	) {
+		a.Data["json"] = map[string]string{
+			"error": "No privilege",
 		}
-	} else {
-		if a.GetSession("id") == nil {
-			a.Data["json"] = map[string]string{
-				"error": "You need login first.",
-			}
-			a.Ctx.Output.SetStatus(http.StatusUnauthorized)
-			a.ServeJSON()
-		}
-		if models.CheckPrivileges(
-			a.GetSession("id").(string),
-			models.RoleFlagUser,
-		) {
-			a.Data["json"] = map[string]string{
-				"error": "No privilege",
-			}
-			a.Ctx.Output.SetStatus(http.StatusForbidden)
-			a.ServeJSON()
-		}
+		a.Ctx.Output.SetStatus(http.StatusForbidden)
+		a.ServeJSON()
 	}
 
 	limit, _ := a.GetInt("limit", 0)
@@ -206,33 +188,15 @@ func (a *AppSetsController) GetAll() {
 // @Title deleteAppSet
 // @router /:name [delete]
 func (a *AppSetsController) Delete() {
-	if a.Ctx.Input.Header("Signature") != "" {
-		err := common.AuthWithKey(a.Ctx)
-		if err != nil {
-			a.Data["json"] = map[string]string{
-				"error": err.Error(),
-			}
-			a.Ctx.Output.SetStatus(http.StatusForbidden)
-			a.ServeJSON()
+	if models.CheckPrivileges(
+		a.GetSession("id").(string),
+		models.RoleFlagOperator,
+	) {
+		a.Data["json"] = map[string]string{
+			"error": "No privilege",
 		}
-	} else {
-		if a.GetSession("id") == nil {
-			a.Data["json"] = map[string]string{
-				"error": "You need login first.",
-			}
-			a.Ctx.Output.SetStatus(http.StatusUnauthorized)
-			a.ServeJSON()
-		}
-		if models.CheckPrivileges(
-			a.GetSession("id").(string),
-			models.RoleFlagOperator,
-		) {
-			a.Data["json"] = map[string]string{
-				"error": "No privilege",
-			}
-			a.Ctx.Output.SetStatus(http.StatusForbidden)
-			a.ServeJSON()
-		}
+		a.Ctx.Output.SetStatus(http.StatusForbidden)
+		a.ServeJSON()
 	}
 
 	name := a.GetString(":name")
@@ -279,33 +243,15 @@ func (a *AppSetsController) Delete() {
 // @Title updateAppSet
 // @router /:name [put]
 func (a *AppSetsController) Put() {
-	if a.Ctx.Input.Header("Signature") != "" {
-		err := common.AuthWithKey(a.Ctx)
-		if err != nil {
-			a.Data["json"] = map[string]string{
-				"error": err.Error(),
-			}
-			a.Ctx.Output.SetStatus(http.StatusForbidden)
-			a.ServeJSON()
+	if models.CheckPrivileges(
+		a.GetSession("id").(string),
+		models.RoleFlagOperator,
+	) {
+		a.Data["json"] = map[string]string{
+			"error": "No privilege",
 		}
-	} else {
-		if a.GetSession("id") == nil {
-			a.Data["json"] = map[string]string{
-				"error": "You need login first.",
-			}
-			a.Ctx.Output.SetStatus(http.StatusUnauthorized)
-			a.ServeJSON()
-		}
-		if models.CheckPrivileges(
-			a.GetSession("id").(string),
-			models.RoleFlagOperator,
-		) {
-			a.Data["json"] = map[string]string{
-				"error": "No privilege",
-			}
-			a.Ctx.Output.SetStatus(http.StatusForbidden)
-			a.ServeJSON()
-		}
+		a.Ctx.Output.SetStatus(http.StatusForbidden)
+		a.ServeJSON()
 	}
 
 	name := a.GetString(":name")
