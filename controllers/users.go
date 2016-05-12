@@ -11,7 +11,8 @@ import (
 )
 
 func init() {
-	AddPrivilege("GET", "^/api/v1/hosts", models.RoleFlagUser)
+	AddPrivilege("GET", "^/api/v1/users", models.RoleFlagUser)
+	AddPrivilege("PUT", "^/api/v1/users", models.RoleFlagUser)
 }
 
 type UserController struct {
@@ -219,6 +220,47 @@ func (h *UserController) Put() {
 			h.Ctx.Output.SetStatus(http.StatusNotFound)
 			h.ServeJSON()
 			return
+		}
+
+		sessionId := h.GetSession("id")
+		if sessionId != nil {
+			userNow := &models.Users{
+				Id: sessionId.(string),
+			}
+			userNows, err := models.GetUser(userNow, 0, 0)
+			if err != nil {
+				h.Data["json"] = map[string]string{
+					"message": fmt.Sprint("Failed to get with name:", name),
+					"error":   err.Error(),
+				}
+				beego.Warn("[C] Got error:", err)
+				h.Ctx.Output.SetStatus(http.StatusInternalServerError)
+				h.ServeJSON()
+				return
+			}
+			if len(userNows) == 0 {
+				beego.Debug("[C] Invalid user id:", sessionId)
+				h.Ctx.Output.SetStatus(http.StatusNotFound)
+				h.ServeJSON()
+				return
+			}
+			isRoleUser := false
+			for _, role := range userNows[0].Roles {
+				if role.RoleFlag < models.RoleFlagUser {
+					isRoleUser = false
+					break
+				}
+				isRoleUser = true
+			}
+			if isRoleUser {
+				if users[0].Id != sessionId {
+					h.Data["json"] = map[string]string{
+						"error": "No privileges.",
+					}
+					h.Ctx.Output.SetStatus(http.StatusForbidden)
+					h.ServeJSON()
+				}
+			}
 		}
 
 		err = json.Unmarshal(h.Ctx.Input.RequestBody, user)
