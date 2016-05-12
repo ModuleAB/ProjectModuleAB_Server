@@ -3,6 +3,7 @@ package models
 import (
 	"fmt"
 	"moduleab_server/common"
+	"regexp"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
@@ -51,6 +52,9 @@ func AddPath(path *Paths) (string, error) {
 			errS = fmt.Sprintf("%s, %s:%s", errS, err.Key, err.Message)
 		}
 		return "", fmt.Errorf("Bad info: %s", errS)
+	}
+	if !regexp.MustCompile("^/.*[^/]$").MatchString(path.Path) {
+		return "", fmt.Errorf("Invalid path format")
 	}
 
 	beego.Debug("[M] Got new data:", path)
@@ -147,7 +151,6 @@ func UpdatePath(h *Paths) error {
 
 // If get all, just use &Path{}
 func GetPaths(cond *Paths, limit, index int) ([]*Paths, error) {
-
 	r := make([]*Paths, 0)
 	o := orm.NewOrm()
 	q := o.QueryTable("paths")
