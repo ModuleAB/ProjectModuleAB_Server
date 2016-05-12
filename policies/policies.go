@@ -25,6 +25,7 @@ func init() {
 }
 
 func RunPolicies() {
+	beego.Debug("Policy running...")
 	policies, err := models.GetPolicies(&models.Policies{}, 0, 0)
 	if err != nil {
 		beego.Warn("Run policies error:", err)
