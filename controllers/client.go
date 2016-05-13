@@ -111,12 +111,15 @@ func (c *ClientController) WebSocket() {
 			c.ServeJSON()
 			return
 		}
+		defer ws.Close()
+
 		tick, err := beego.AppConfig.Int64("websocket::pingperiod")
 		if err != nil {
 			tick = 5
 		}
 		ticker := time.NewTicker(
 			time.Duration(tick) * time.Second)
+		defer ticker.Stop()
 
 		timeout, err := beego.AppConfig.Int64("websocket::timeout")
 		if err != nil {
@@ -157,14 +160,11 @@ func (c *ClientController) WebSocket() {
 			case <-ticker.C:
 				err := ws.WriteMessage(websocket.PingMessage, []byte{})
 				if err != nil {
+					beego.Warn("Got error on ping", err.Error())
 					return
 				}
 			}
 		}
-		defer func() {
-			ticker.Stop()
-			ws.Close()
-		}()
 	}
 }
 

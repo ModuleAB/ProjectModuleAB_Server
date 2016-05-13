@@ -126,7 +126,7 @@ func NotifySignal(hostId, signalId string) error {
 
 func MakeDownloadSignal(path, endpoint, bucket string) Signal {
 	s := make(Signal)
-	s["type"] = "download"
+	s["type"] = SignalTypeDownload
 	s["path"] = path
 	s["endpoint"] = endpoint
 	s["bucket"] = bucket
