@@ -65,10 +65,37 @@ func (h *LoginController) Logout() {
 		}
 		h.Ctx.Output.SetStatus(http.StatusUnauthorized)
 		h.ServeJSON()
+		return
 	}
 
 	h.DelSession("id")
 	h.Ctx.Output.SetStatus(http.StatusOK)
 	h.ServeJSON()
-	return
+}
+
+// @router /check [get]
+func (h *LoginController) Check() {
+	id := h.GetSession("id")
+	if id == nil {
+		h.Data["json"] = map[string]string{
+			"error": "You need login first.",
+		}
+		h.Ctx.Output.SetStatus(http.StatusUnauthorized)
+		h.ServeJSON()
+		return
+	} else if _, ok := id.(string); !ok {
+		h.Data["json"] = map[string]string{
+			"error": "Invalid user id.",
+		}
+		h.Ctx.Output.SetStatus(http.StatusUnauthorized)
+		h.ServeJSON()
+		return
+	}
+	h.Data["json"] = map[string]interface{}{
+		"id":        id,
+		"name":      h.GetSession("name"),
+		"show_name": h.GetSession("show_name"),
+	}
+	h.Ctx.Output.SetStatus(http.StatusOK)
+	h.ServeJSON()
 }

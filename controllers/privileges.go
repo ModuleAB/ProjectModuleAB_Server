@@ -20,6 +20,9 @@ func init() {
 }
 
 func CheckPrivileges(userid string, ctx *context.Context) bool {
+	if userid == "" {
+		return false
+	}
 	users, err := models.GetUser(&models.Users{Id: userid}, 1, 0)
 	if err != nil {
 		return false
