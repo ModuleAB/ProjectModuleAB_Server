@@ -7,6 +7,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"runtime"
 
 	"moduleab_server/common"
 	_ "moduleab_server/docs"
@@ -105,4 +106,14 @@ func main() {
 	beego.BConfig.WebConfig.Session.SessionName = "Session_MobuleAB"
 	beego.BConfig.WebConfig.StaticDir["/"] = "web/app"
 	beego.Run()
+	defer func() {
+		x := recover()
+		if x != nil {
+			beego.Error("Got fatal error:", x)
+			stack := make([]byte, 0)
+			runtime.Stack(stack, true)
+			beego.Error("Stack trace:\n", string(stack))
+			os.Exit(1)
+		}
+	}()
 }
