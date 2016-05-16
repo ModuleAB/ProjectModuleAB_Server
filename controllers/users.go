@@ -122,7 +122,7 @@ func (h *UserController) Get() {
 
 // @Title listUser
 // @router / [get]
-func (h *UserController) GetAll() {
+func (h *RolesController) GetAll() {
 	limit, _ := h.GetInt("limit", 0)
 	index, _ := h.GetInt("index", 0)
 

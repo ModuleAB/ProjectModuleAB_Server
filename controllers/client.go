@@ -231,7 +231,7 @@ func (c *ClientController) GetSignal() {
 		signal, err := models.GetSignal(hosts[0].Id, id)
 		if err != nil {
 			c.Data["json"] = map[string]string{
-				"message": fmt.Sprintf("Got nothing with id:", id),
+				"message": fmt.Sprint("Got nothing with id:", id),
 			}
 			c.Ctx.Output.SetStatus(http.StatusNotFound)
 			c.ServeJSON()
@@ -348,7 +348,7 @@ func (c *ClientController) DeleteSignal() {
 		}
 
 		c.Data["json"] = map[string]string{
-			"message": fmt.Sprintf("Got nothing with id:", id),
+			"message": fmt.Sprint("Got nothing with id:", id),
 		}
 		c.Ctx.Output.SetStatus(http.StatusNotFound)
 		c.ServeJSON()
