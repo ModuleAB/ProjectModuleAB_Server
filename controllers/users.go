@@ -264,7 +264,6 @@ func (h *UserController) Put() {
 		}
 
 		err = json.Unmarshal(h.Ctx.Input.RequestBody, user)
-		user.Id = users[0].Id
 		if err != nil {
 			beego.Warn("[C] Got error:", err)
 			h.Data["json"] = map[string]string{
@@ -274,6 +273,11 @@ func (h *UserController) Put() {
 			h.Ctx.Output.SetStatus(http.StatusBadRequest)
 			h.ServeJSON()
 			return
+		}
+		user.Id = users[0].Id
+		user.Removable = users[0].Removable // Removable should not be changed.
+		if user.Password != users[0].Password {
+			user.Password = common.EncryptPassword(user.Password)
 		}
 		beego.Debug("[C] Got user data:", user)
 		err = models.UpdateUser(user)
