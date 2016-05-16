@@ -39,7 +39,7 @@ func (h *LoginController) Login() {
 		h.ServeJSON()
 		return
 	}
-	if len(users) == 0 {
+	if len(users) == 0 || user.Password == "" {
 		beego.Debug("[C] Got nothing with name:", user.Name)
 		h.Ctx.Output.SetStatus(http.StatusForbidden)
 		h.ServeJSON()
