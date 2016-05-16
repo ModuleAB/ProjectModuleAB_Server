@@ -8,12 +8,26 @@ package routers
 
 import (
 	"moduleab_server/controllers"
+	"net/http"
+	"path"
+	"strings"
 
 	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/context"
 )
+
+func StaticFileServer(ctx *context.Context) {
+	if strings.HasPrefix(ctx.Input.URL(), "/api") {
+		return
+	}
+	filename := path.Join("web/app", ctx.Input.URL())
+	http.ServeFile(ctx.ResponseWriter, ctx.Request, filename)
+}
 
 func init() {
 	beego.ErrorController(&controllers.ErrorController{})
+	beego.InsertFilter("/", beego.BeforeRouter, StaticFileServer)
+	beego.InsertFilter("/*", beego.BeforeRouter, StaticFileServer)
 	ns := beego.NewNamespace("/api/v1",
 		beego.NSNamespace("/hosts",
 			beego.NSInclude(

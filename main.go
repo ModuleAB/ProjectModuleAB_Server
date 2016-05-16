@@ -104,7 +104,6 @@ func main() {
 	beego.Info("All is ready, go running...")
 	beego.BConfig.WebConfig.Session.SessionOn = true
 	beego.BConfig.WebConfig.Session.SessionName = "Session_MobuleAB"
-	beego.BConfig.WebConfig.StaticDir["/"] = "web/app"
 	beego.Run()
 	defer func() {
 		x := recover()
