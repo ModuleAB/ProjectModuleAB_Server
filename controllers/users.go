@@ -244,23 +244,6 @@ func (h *UserController) Put() {
 				h.ServeJSON()
 				return
 			}
-			isRoleUser := false
-			for _, role := range userNows[0].Roles {
-				if role.RoleFlag < models.RoleFlagUser {
-					isRoleUser = false
-					break
-				}
-				isRoleUser = true
-			}
-			if isRoleUser {
-				if users[0].Id != sessionId {
-					h.Data["json"] = map[string]string{
-						"error": "No privileges.",
-					}
-					h.Ctx.Output.SetStatus(http.StatusForbidden)
-					h.ServeJSON()
-				}
-			}
 		}
 
 		err = json.Unmarshal(h.Ctx.Input.RequestBody, user)
@@ -290,7 +273,6 @@ func (h *UserController) Put() {
 			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
 			h.ServeJSON()
 			return
-
 		}
 		h.Ctx.Output.SetStatus(http.StatusAccepted)
 		h.ServeJSON()
