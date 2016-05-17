@@ -49,7 +49,7 @@ func (h *RolesController) Prepare() {
 
 // @Title getAllRoles
 // @route / [get]
-func (h *UserController) GetAll() {
+func (h *RolesController) GetAll() {
 	limit, _ := h.GetInt("limit", 0)
 	index, _ := h.GetInt("index", 0)
 
