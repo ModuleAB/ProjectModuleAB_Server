@@ -131,6 +131,18 @@ func UpdateUser(a *Users) error {
 		o.Rollback()
 		return err
 	}
+	if a.Roles != nil {
+		_, err = o.QueryM2M(a, "Roles").Clear()
+		if err != nil {
+			o.Rollback()
+			return err
+		}
+		_, err = o.QueryM2M(a, "Roles").Add(a.Roles)
+		if err != nil {
+			o.Rollback()
+			return err
+		}
+	}
 	o.Commit()
 	return nil
 }
