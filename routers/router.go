@@ -94,6 +94,11 @@ func init() {
 				&controllers.LoginController{},
 			),
 		),
+		beego.NSNamespace("/roles",
+			beego.NSInclude(
+				&controllers.RolesController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }
