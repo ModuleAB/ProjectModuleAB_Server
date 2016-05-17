@@ -48,7 +48,7 @@ func (h *RolesController) Prepare() {
 }
 
 // @Title getAllRoles
-// @route / [get]
+// @router / [get]
 func (h *RolesController) GetAll() {
 	limit, _ := h.GetInt("limit", 0)
 	index, _ := h.GetInt("index", 0)

@@ -16,6 +16,7 @@ import (
 	"github.com/astaxie/beego/context"
 )
 
+// Show web
 func StaticFileServer(ctx *context.Context) {
 	if strings.HasPrefix(ctx.Input.URL(), "/api") {
 		return
@@ -26,8 +27,6 @@ func StaticFileServer(ctx *context.Context) {
 
 func init() {
 	beego.ErrorController(&controllers.ErrorController{})
-	beego.InsertFilter("/", beego.BeforeRouter, StaticFileServer)
-	beego.InsertFilter("/*", beego.BeforeRouter, StaticFileServer)
 	ns := beego.NewNamespace("/api/v1",
 		beego.NSNamespace("/hosts",
 			beego.NSInclude(
@@ -101,4 +100,6 @@ func init() {
 		),
 	)
 	beego.AddNamespace(ns)
+	beego.InsertFilter("/", beego.BeforeRouter, StaticFileServer)
+	beego.InsertFilter("/*", beego.BeforeRouter, StaticFileServer)
 }
