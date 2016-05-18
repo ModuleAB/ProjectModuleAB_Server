@@ -39,10 +39,6 @@ type Records struct {
 	Jobs         []*OasJobs  `orm:"reverse(many);null" json:"jobs"`
 }
 
-func (r *Records) TableEngine() string {
-	return "TokuDB"
-}
-
 func (r *Records) GetFullPath() string {
 	return fmt.Sprintf("%s/%s/%s/%s",
 		r.AppSet.Name,
