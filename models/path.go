@@ -15,8 +15,8 @@ type Paths struct {
 	Id         string        `orm:"pk;size(36)" json:"id" valid:"Match(/^[A-Fa-f0-9]{8}-([A-Fa-f0-9]{4}-){3}[A-Fa-f0-9]{12}$/)"`
 	Path       string        `orm:"unique;index" json:"path" valid:"Required"`
 	Host       []*Hosts      `orm:"reverse(many)" json:"host"`
-	AppSet     []*AppSets    `orm:"rel(m2m)" json:"app_set"`
-	BackupSet  *BackupSets   `orm:"rel(fk)" json:"backup_set"`
+	AppSet     []*AppSets    `orm:"rel(m2m)" json:"appset"`
+	BackupSet  *BackupSets   `orm:"rel(fk)" json:"backupset"`
 	ClientJobs []*ClientJobs `orm:"rel(m2m)" json:"jobs"`
 	Records    []*Records    `orm:"reverse(many)" json:"records"`
 }
@@ -145,6 +145,18 @@ func UpdatePath(h *Paths) error {
 		o.Rollback()
 		return err
 	}
+	if h.AppSet != nil {
+		_, err = o.QueryM2M(h, "AppSet").Clear()
+		if err != nil {
+			o.Rollback()
+			return err
+		}
+		_, err = o.QueryM2M(h, "AppSet").Add(h.AppSet)
+		if err != nil {
+			o.Rollback()
+			return err
+		}
+	}
 	o.Commit()
 	return nil
 }
@@ -189,7 +201,7 @@ func AddPathsAppSets(path *Paths, appSets []*AppSets) error {
 	}
 
 	if appSets != nil {
-		_, err = o.QueryM2M(path, "AppSets").Add(appSets)
+		_, err = o.QueryM2M(path, "AppSet").Add(appSets)
 		if err != nil {
 			o.Rollback()
 			return err
@@ -208,7 +220,7 @@ func DeletePathsAppSets(path *Paths, appSets []*AppSets) error {
 	}
 
 	if appSets != nil {
-		_, err = o.QueryM2M(path, "AppSets").Remove(appSets)
+		_, err = o.QueryM2M(path, "AppSet").Remove(appSets)
 		if err != nil {
 			o.Rollback()
 			return err
@@ -225,7 +237,7 @@ func ClearPathsAppSets(path *Paths) error {
 		o.Rollback()
 		return err
 	}
-	_, err = o.QueryM2M(path, "AppSets").Clear()
+	_, err = o.QueryM2M(path, "AppSet").Clear()
 	if err != nil {
 		o.Rollback()
 		return err
