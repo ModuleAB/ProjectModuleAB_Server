@@ -63,6 +63,7 @@ func (a *OasController) Post() {
 		a.ServeJSON()
 		return
 	}
+	beego.Debug("Got data:", oas)
 
 	o, err := common.NewOasClient(oas.Endpoint)
 	if err != nil {

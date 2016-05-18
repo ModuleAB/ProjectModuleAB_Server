@@ -17,10 +17,11 @@ func (o *OasClient) GetOasVaultId(name string) (string, error) {
 		id, v, err := o.ListVaults(-1, v.Marker)
 		beego.Debug("OAS request ID:", id)
 		if err != nil {
-
 			return "", err
 		}
+		beego.Debug(v)
 		for _, xv := range v.VaultList {
+			beego.Debug(xv.VaultName, name)
 			if xv.VaultName == name {
 				return xv.VaultID, nil
 			}

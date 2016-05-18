@@ -13,8 +13,8 @@ import (
 type Oas struct {
 	Id         string        `orm:"pk;size(36)" json:"id" valid:"Match(/^[A-Fa-f0-9]{8}-([A-Fa-f0-9]{4}-){3}[A-Fa-f0-9]{12}$/)"`
 	Endpoint   string        `json:"endpoint" valid:"Required"`
-	VaultName  string        `orm:"size(32) json:"vault_name" valid:"Required"`
-	VaultId    string        `orm:"size(32) json:"vault_id" valid:"Required"`
+	VaultName  string        `orm:"size(32) json:"vaultName" valid:"Required"`
+	VaultId    string        `orm:"size(32) json:"vaultId" valid:"Required"`
 	BackupSets []*BackupSets `orm:"reverse(many)"`
 	Jobs       []*OasJobs    `orm:"reverse(many)"`
 }
@@ -135,7 +135,7 @@ func GetOas(cond *Oas, limit, index int) ([]*Oas, error) {
 		q = q.Filter("endpoint", cond.Endpoint)
 	}
 	if cond.VaultName != "" {
-		q = q.Filter("name", cond.VaultName)
+		q = q.Filter("vault_name", cond.VaultName)
 	}
 	if limit > 0 {
 		q = q.Limit(limit)
