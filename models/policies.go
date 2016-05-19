@@ -38,13 +38,13 @@ type Policies struct {
 	Id          string      `orm:"pk;size(36)" json:"id" valid:"Match(/^[A-Fa-f0-9]{8}-([A-Fa-f0-9]{4}-){3}[A-Fa-f0-9]{12}$/)"`
 	Name        string      `orm:"size(32);uniq" json:"name" valid:"Required"`
 	Desc        string      `orm:"size(128);null" json:"description"`
-	BackupSet   *BackupSets `orm:"rel(fk)" json:"backup_set"`
-	AppSet      *AppSets    `orm:"rel(fk);null" json:"app_set"` // null means all
+	BackupSet   *BackupSets `orm:"rel(fk)" json:"backupset"`
+	AppSets     []*AppSets  `orm:"rel(m2m);null" json:"appsets"` // null means all
 	Target      int         `json:"target"`
 	Action      int         `json:"action"`
-	TargetStart int         `orm:"default(0)" json:"start_time"` // Seconds, 0 means now
-	TargetEnd   int         `orm:"default(-1)" json:"end_tile"`  // Seconds, -1 means long long ago
-	Step        int         `orm:"default(-1)" json:"step"`      // Seconds, 0 means reserve none, -1 means all
+	TargetStart int         `orm:"default(0)" json:"starttime"` // Seconds, 0 means now
+	TargetEnd   int         `orm:"default(-1)" json:"endtime"`  // Seconds, -1 means long long ago
+	Step        int         `orm:"default(-1)" json:"step"`     // Seconds, 0 means reserve none, -1 means all
 }
 
 func init() {
@@ -85,6 +85,13 @@ func AddPolicy(a *Policies) (string, error) {
 		o.Rollback()
 		return "", err
 	}
+	if a.AppSets != nil {
+		_, err = o.QueryM2M(a, "AppSets").Add(a.AppSets)
+		if err != nil {
+			o.Rollback()
+			return "", err
+		}
+	}
 	beego.Debug("[M] Policy info saved")
 	o.Commit()
 	return a.Id, nil
@@ -110,6 +117,11 @@ func DeletePolicy(a *Policies) error {
 			errS = fmt.Sprintf("%s, %s:%s", errS, err.Key, err.Message)
 		}
 		return fmt.Errorf("Bad info: %s", errS)
+	}
+	_, err = o.QueryM2M(a, "AppSets").Clear()
+	if err != nil {
+		o.Rollback()
+		return err
 	}
 	_, err = o.Delete(a)
 	if err != nil {
@@ -146,6 +158,18 @@ func UpdatePolicy(a *Policies) error {
 		o.Rollback()
 		return err
 	}
+	if a.AppSets != nil {
+		_, err = o.QueryM2M(a, "AppSets").Clear()
+		if err != nil {
+			o.Rollback()
+			return err
+		}
+		_, err = o.QueryM2M(a, "AppSets").Add(a.AppSets)
+		if err != nil {
+			o.Rollback()
+			return err
+		}
+	}
 	o.Commit()
 	return nil
 }
@@ -180,6 +204,7 @@ func GetPolicies(cond *Policies, limit, index int) ([]*Policies, error) {
 	}
 	for _, v := range r {
 		o.LoadRelated(v, "BackupSets", common.RelDepth)
+		o.LoadRelated(v, "AppSets", common.RelDepth)
 		o.LoadRelated(v, "Jobs", common.RelDepth)
 	}
 	return r, nil

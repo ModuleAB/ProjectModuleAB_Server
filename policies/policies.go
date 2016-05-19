@@ -63,60 +63,155 @@ func RunPolicies() {
 				continue
 			}
 		}
-		records, err := models.GetRecords(
-			&models.Records{
-				BackupSet: p.BackupSet,
-				AppSet:    p.AppSet,
-				Type:      p.Target,
-			},
-			0, 0,
-			backupStart, backupEnd,
-			archiveStart, archiveEnd,
-		)
-		if err != nil {
-			beego.Warn("Get records failed", err)
-			continue
-		}
-
-		baseLine := records[0]
-		for _, r := range records {
-			oas, err := common.NewOasClient(r.BackupSet.Oas.Endpoint)
+		for _, appSet := range p.AppSets {
+			records, err := models.GetRecords(
+				&models.Records{
+					BackupSet: p.BackupSet,
+					AppSet:    appSet,
+					Type:      p.Target,
+				},
+				0, 0,
+				backupStart, backupEnd,
+				archiveStart, archiveEnd,
+			)
 			if err != nil {
-				beego.Warn("Cannot connect OAS Service:", err)
+				beego.Warn("Get records failed", err)
 				continue
 			}
-			switch p.Action {
-			case models.PolicyActionArchive:
-				switch r.Type {
-				case models.RecordTypeBackup:
-					oss, err := common.NewOssClient(r.BackupSet.Oss.Endpoint)
-					if err != nil {
-						beego.Warn("Cannot connect OSS Service:", err)
-						continue
-					}
-					bucket, err := oss.Bucket(r.BackupSet.Oss.BucketName)
-					if err != nil {
-						beego.Warn(
-							"Cannot get bucket:", r.BackupSet.Oss.BucketName,
-							"error:", err,
-						)
-						continue
-					}
 
-					step := r.BackupTime.Sub(baseLine.BackupTime)
-					if (step >= time.Duration(p.Step)*time.Second ||
-						p.Step == models.PolicyReserveAll) &&
-						p.Step != models.PolicyReserveNone {
-						baseLine = r
-						reqId, jobId, err := oas.ArchiveToOas(
+			baseLine := records[0]
+			for _, r := range records {
+				oas, err := common.NewOasClient(r.BackupSet.Oas.Endpoint)
+				if err != nil {
+					beego.Warn("Cannot connect OAS Service:", err)
+					continue
+				}
+				switch p.Action {
+				case models.PolicyActionArchive:
+					switch r.Type {
+					case models.RecordTypeBackup:
+						oss, err := common.NewOssClient(r.BackupSet.Oss.Endpoint)
+						if err != nil {
+							beego.Warn("Cannot connect OSS Service:", err)
+							continue
+						}
+						bucket, err := oss.Bucket(r.BackupSet.Oss.BucketName)
+						if err != nil {
+							beego.Warn(
+								"Cannot get bucket:", r.BackupSet.Oss.BucketName,
+								"error:", err,
+							)
+							continue
+						}
+
+						step := r.BackupTime.Sub(baseLine.BackupTime)
+						if (step >= time.Duration(p.Step)*time.Second ||
+							p.Step == models.PolicyReserveAll) &&
+							p.Step != models.PolicyReserveNone {
+							baseLine = r
+							reqId, jobId, err := oas.ArchiveToOas(
+								r.BackupSet.Oas.VaultId,
+								r.BackupSet.Oss.Endpoint,
+								r.BackupSet.Oss.BucketName,
+								r.GetFullPath(),
+								r.GetFullPath(),
+							)
+							if err != nil {
+								beego.Warn("Cannot make job to archive:", err)
+								continue
+							}
+							_, err = models.AddOasJobs(
+								&models.OasJobs{
+									Vault:     r.BackupSet.Oas,
+									RequestId: reqId,
+									JobId:     jobId,
+									JobType:   models.OasJobTypePullFromOSS,
+									Status:    models.OasJobStatusIncomplete,
+									Records:   r,
+								},
+							)
+							if err != nil {
+								beego.Warn("Cannot make oas job:", err)
+								continue
+							}
+						}
+						err = bucket.DeleteObject(r.GetFullPath())
+						if err != nil {
+							beego.Warn(
+								"Cannot delete backup:", r.GetFullPath(),
+								"error:", err,
+							)
+							continue
+						}
+						r.Type = models.RecordTypeArchive
+						r.ArchivedTime = time.Now()
+						err = models.UpdateRecord(r)
+						if err != nil {
+							beego.Warn(
+								"Cannot update record:", r.Id,
+								"error:", err,
+							)
+							continue
+						}
+
+					case models.RecordTypeArchive:
+						beego.Debug("Skip archived data:", r.Id)
+						continue
+					}
+				case models.PolicyActionDelete:
+					switch r.Type {
+					case models.RecordTypeBackup:
+						oss, err := common.NewOssClient(r.BackupSet.Oss.Endpoint)
+						if err != nil {
+							beego.Warn("Cannot connect OSS Service:", err)
+							continue
+						}
+						bucket, err := oss.Bucket(r.BackupSet.Oss.BucketName)
+						if err != nil {
+							beego.Warn(
+								"Cannot get bucket:", r.BackupSet.Oss.BucketName,
+								"error:", err,
+							)
+							continue
+						}
+						step := r.BackupTime.Sub(baseLine.BackupTime)
+						if (step >= time.Duration(p.Step)*time.Second ||
+							p.Step == models.PolicyReserveAll) &&
+							p.Step != models.PolicyReserveNone {
+							baseLine = r
+							continue
+						}
+						err = bucket.DeleteObject(r.GetFullPath())
+						if err != nil {
+							beego.Warn(
+								"Cannot delete backup:", r.GetFullPath(),
+								"error:", err,
+							)
+							continue
+						}
+						err = models.DeleteRecord(r)
+						if err != nil {
+							beego.Warn(
+								"Cannot delete record:", r.Id,
+								"error:", err,
+							)
+							continue
+						}
+
+					case models.RecordTypeArchive:
+						step := r.ArchivedTime.Sub(baseLine.ArchivedTime)
+						if (step >= time.Duration(p.Step)*time.Second ||
+							p.Step == models.PolicyReserveAll) &&
+							p.Step != models.PolicyReserveNone {
+							baseLine = r
+							continue
+						}
+						reqId, jobId, err := oas.DeleteArchive(
 							r.BackupSet.Oas.VaultId,
-							r.BackupSet.Oss.Endpoint,
-							r.BackupSet.Oss.BucketName,
-							r.GetFullPath(),
-							r.GetFullPath(),
+							r.ArchiveId,
 						)
 						if err != nil {
-							beego.Warn("Cannot make job to archive:", err)
+							beego.Warn("Cannot make job to delete archive:", err)
 							continue
 						}
 						_, err = models.AddOasJobs(
@@ -124,7 +219,7 @@ func RunPolicies() {
 								Vault:     r.BackupSet.Oas,
 								RequestId: reqId,
 								JobId:     jobId,
-								JobType:   models.OasJobTypePullFromOSS,
+								JobType:   models.OasJobTypeDeleteArchive,
 								Status:    models.OasJobStatusIncomplete,
 								Records:   r,
 							},
@@ -133,99 +228,6 @@ func RunPolicies() {
 							beego.Warn("Cannot make oas job:", err)
 							continue
 						}
-					}
-					err = bucket.DeleteObject(r.GetFullPath())
-					if err != nil {
-						beego.Warn(
-							"Cannot delete backup:", r.GetFullPath(),
-							"error:", err,
-						)
-						continue
-					}
-					r.Type = models.RecordTypeArchive
-					r.ArchivedTime = time.Now()
-					err = models.UpdateRecord(r)
-					if err != nil {
-						beego.Warn(
-							"Cannot update record:", r.Id,
-							"error:", err,
-						)
-						continue
-					}
-
-				case models.RecordTypeArchive:
-					beego.Debug("Skip archived data:", r.Id)
-					continue
-				}
-			case models.PolicyActionDelete:
-				switch r.Type {
-				case models.RecordTypeBackup:
-					oss, err := common.NewOssClient(r.BackupSet.Oss.Endpoint)
-					if err != nil {
-						beego.Warn("Cannot connect OSS Service:", err)
-						continue
-					}
-					bucket, err := oss.Bucket(r.BackupSet.Oss.BucketName)
-					if err != nil {
-						beego.Warn(
-							"Cannot get bucket:", r.BackupSet.Oss.BucketName,
-							"error:", err,
-						)
-						continue
-					}
-					step := r.BackupTime.Sub(baseLine.BackupTime)
-					if (step >= time.Duration(p.Step)*time.Second ||
-						p.Step == models.PolicyReserveAll) &&
-						p.Step != models.PolicyReserveNone {
-						baseLine = r
-						continue
-					}
-					err = bucket.DeleteObject(r.GetFullPath())
-					if err != nil {
-						beego.Warn(
-							"Cannot delete backup:", r.GetFullPath(),
-							"error:", err,
-						)
-						continue
-					}
-					err = models.DeleteRecord(r)
-					if err != nil {
-						beego.Warn(
-							"Cannot delete record:", r.Id,
-							"error:", err,
-						)
-						continue
-					}
-
-				case models.RecordTypeArchive:
-					step := r.ArchivedTime.Sub(baseLine.ArchivedTime)
-					if (step >= time.Duration(p.Step)*time.Second ||
-						p.Step == models.PolicyReserveAll) &&
-						p.Step != models.PolicyReserveNone {
-						baseLine = r
-						continue
-					}
-					reqId, jobId, err := oas.DeleteArchive(
-						r.BackupSet.Oas.VaultId,
-						r.ArchiveId,
-					)
-					if err != nil {
-						beego.Warn("Cannot make job to delete archive:", err)
-						continue
-					}
-					_, err = models.AddOasJobs(
-						&models.OasJobs{
-							Vault:     r.BackupSet.Oas,
-							RequestId: reqId,
-							JobId:     jobId,
-							JobType:   models.OasJobTypeDeleteArchive,
-							Status:    models.OasJobStatusIncomplete,
-							Records:   r,
-						},
-					)
-					if err != nil {
-						beego.Warn("Cannot make oas job:", err)
-						continue
 					}
 				}
 			}

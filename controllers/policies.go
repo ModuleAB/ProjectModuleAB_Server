@@ -202,7 +202,7 @@ func (a *PolicyController) Put() {
 	if name != "" {
 		policy := &models.Policies{
 			Name:      name,
-			AppSet:    new(models.AppSets),
+			AppSets:   make([]*models.AppSets, 0),
 			BackupSet: new(models.BackupSets),
 		}
 		policies, err := models.GetPolicies(policy, 0, 0)
