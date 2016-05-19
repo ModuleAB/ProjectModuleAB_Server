@@ -203,9 +203,8 @@ func GetPolicies(cond *Policies, limit, index int) ([]*Policies, error) {
 		return nil, err
 	}
 	for _, v := range r {
-		o.LoadRelated(v, "BackupSets", common.RelDepth)
+		o.LoadRelated(v, "BackupSet", common.RelDepth)
 		o.LoadRelated(v, "AppSets", common.RelDepth)
-		o.LoadRelated(v, "Jobs", common.RelDepth)
 	}
 	return r, nil
 }
