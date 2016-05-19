@@ -15,8 +15,8 @@ type Hosts struct {
 	Id         string        `orm:"pk;size(36)" json:"id" valid:"Match(/^[A-Fa-f0-9]{8}-([A-Fa-f0-9]{4}-){3}[A-Fa-f0-9]{12}$/)"`
 	Name       string        `orm:"index;unique;size(64)" json:"name" valid:"Required"`
 	IpAddr     string        `orm:"index;unique;size(15)" json:"ip" valid:"Required;IP"`
-	AppSet     *AppSets      `orm:"rel(fk);on_delete(set_null);null" json:"app_set"`
-	BackupSets []*BackupSets `orm:"reverse(many)" json:"backup_sets"`
+	AppSet     *AppSets      `orm:"rel(fk);on_delete(set_null);null" json:"appset"`
+	BackupSets []*BackupSets `orm:"rel(m2m);on_delete(set_null)" json:"backupsets"`
 	Paths      []*Paths      `orm:"rel(m2m);on_delete(set_null)" json:"path"`
 	ClientJobs []*ClientJobs `orm:"rel(m2m);on_delete(set_null)" json:"jobs"`
 }
@@ -60,15 +60,26 @@ func AddHost(host *Hosts) (string, error) {
 		o.Rollback()
 		return "", err
 	}
-	err = AddHostPaths(host, host.Paths)
-	if err != nil {
-		o.Rollback()
-		return "", err
+	if host.Paths != nil {
+		err = AddHostPaths(host, host.Paths)
+		if err != nil {
+			o.Rollback()
+			return "", err
+		}
 	}
-	err = AddHostClientJobs(host, host.ClientJobs)
-	if err != nil {
-		o.Rollback()
-		return "", err
+	if host.ClientJobs != nil {
+		err = AddHostClientJobs(host, host.ClientJobs)
+		if err != nil {
+			o.Rollback()
+			return "", err
+		}
+	}
+	if host.BackupSets != nil {
+		err = AddHostBackupSets(host, host.BackupSets)
+		if err != nil {
+			o.Rollback()
+			return "", err
+		}
 	}
 	beego.Debug("[M] Host data saved")
 	o.Commit()
@@ -107,6 +118,11 @@ func DeleteHost(h *Hosts) error {
 		o.Rollback()
 		return err
 	}
+	err = ClearHostBackupSets(h)
+	if err != nil {
+		o.Rollback()
+		return err
+	}
 	_, err = o.Delete(h)
 	if err != nil {
 		o.Rollback()
@@ -141,6 +157,30 @@ func UpdateHost(h *Hosts) error {
 	if err != nil {
 		o.Rollback()
 		return err
+	}
+	if h.Paths != nil {
+		err = ClearHostPaths(h)
+		if err != nil {
+			o.Rollback()
+			return err
+		}
+		err = AddHostPaths(h, h.Paths)
+		if err != nil {
+			o.Rollback()
+			return err
+		}
+	}
+	if h.BackupSets != nil {
+		err = ClearHostBackupSets(h)
+		if err != nil {
+			o.Rollback()
+			return err
+		}
+		err = AddHostBackupSets(h, h.BackupSets)
+		if err != nil {
+			o.Rollback()
+			return err
+		}
 	}
 	o.Commit()
 	return nil
@@ -275,6 +315,41 @@ func ClearHostClientJobs(host *Hosts) error {
 		return err
 	}
 	_, err = o.QueryM2M(host, "ClientJobs").Clear()
+	if err != nil {
+		o.Rollback()
+		return err
+	}
+	o.Commit()
+	return nil
+}
+
+func AddHostBackupSets(host *Hosts, backupSets []*BackupSets) error {
+	o := orm.NewOrm()
+	err := o.Begin()
+	if err != nil {
+		o.Rollback()
+		return err
+	}
+
+	if backupSets != nil {
+		_, err = o.QueryM2M(host, "BackupSets").Add(backupSets)
+		if err != nil {
+			o.Rollback()
+			return err
+		}
+	}
+	o.Commit()
+	return nil
+}
+
+func ClearHostBackupSets(host *Hosts) error {
+	o := orm.NewOrm()
+	err := o.Begin()
+	if err != nil {
+		o.Rollback()
+		return err
+	}
+	_, err = o.QueryM2M(host, "BackupSets").Clear()
 	if err != nil {
 		o.Rollback()
 		return err
