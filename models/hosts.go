@@ -18,7 +18,7 @@ type Hosts struct {
 	AppSet     *AppSets      `orm:"rel(fk);on_delete(set_null);null" json:"appset"`
 	BackupSets []*BackupSets `orm:"rel(m2m);on_delete(set_null)" json:"backupsets"`
 	Paths      []*Paths      `orm:"rel(m2m);on_delete(set_null)" json:"path"`
-	ClientJobs []*ClientJobs `orm:"rel(m2m);on_delete(set_null)" json:"jobs"`
+	ClientJobs []*ClientJobs `orm:"reverse(many);" json:"jobs"`
 }
 
 func init() {

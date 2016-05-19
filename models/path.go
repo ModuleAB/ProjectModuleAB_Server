@@ -17,7 +17,7 @@ type Paths struct {
 	Host       []*Hosts      `orm:"reverse(many)" json:"host"`
 	AppSet     []*AppSets    `orm:"rel(m2m)" json:"appset"`
 	BackupSet  *BackupSets   `orm:"rel(fk)" json:"backupset"`
-	ClientJobs []*ClientJobs `orm:"rel(m2m)" json:"jobs"`
+	ClientJobs []*ClientJobs `orm:"reverse(many)" json:"jobs"`
 	Records    []*Records    `orm:"reverse(many)" json:"records"`
 }
 
@@ -68,11 +68,6 @@ func AddPath(path *Paths) (string, error) {
 		o.Rollback()
 		return "", err
 	}
-	err = AddPathsClientJobs(path, path.ClientJobs)
-	if err != nil {
-		o.Rollback()
-		return "", err
-	}
 	beego.Debug("[M] Path data saved")
 	o.Commit()
 	return path.Id, nil
@@ -101,11 +96,6 @@ func DeletePath(h *Paths) error {
 		return fmt.Errorf("Bad info: %s", errS)
 	}
 	err = ClearPathsAppSets(h)
-	if err != nil {
-		o.Rollback()
-		return err
-	}
-	err = ClearPathsClientJobs(h)
 	if err != nil {
 		o.Rollback()
 		return err
@@ -238,59 +228,6 @@ func ClearPathsAppSets(path *Paths) error {
 		return err
 	}
 	_, err = o.QueryM2M(path, "AppSet").Clear()
-	if err != nil {
-		o.Rollback()
-		return err
-	}
-	o.Commit()
-	return nil
-}
-
-func AddPathsClientJobs(path *Paths, clientJobs []*ClientJobs) error {
-	o := orm.NewOrm()
-	err := o.Begin()
-	if err != nil {
-		o.Rollback()
-		return err
-	}
-
-	if clientJobs != nil {
-		_, err = o.QueryM2M(path, "ClientJobs").Add(clientJobs)
-		if err != nil {
-			o.Rollback()
-			return err
-		}
-	}
-	o.Commit()
-	return nil
-}
-
-func DeletePathsClientJobs(path *Paths, clientJobs []*ClientJobs) error {
-	o := orm.NewOrm()
-	err := o.Begin()
-	if err != nil {
-		o.Rollback()
-		return err
-	}
-	if clientJobs != nil {
-		_, err = o.QueryM2M(path, "ClientJobs").Remove(clientJobs)
-		if err != nil {
-			o.Rollback()
-			return err
-		}
-	}
-	o.Commit()
-	return nil
-}
-
-func ClearPathsClientJobs(path *Paths) error {
-	o := orm.NewOrm()
-	err := o.Begin()
-	if err != nil {
-		o.Rollback()
-		return err
-	}
-	_, err = o.QueryM2M(path, "ClientJobs").Clear()
 	if err != nil {
 		o.Rollback()
 		return err

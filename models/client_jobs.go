@@ -20,8 +20,8 @@ type ClientJobs struct {
 	Period       int      `json:"period" valid:"Required;Min(10)"` // Second
 	Type         int      `json:"type" valid:"Required"`
 	ReservedTime int      `json:"reserved_time" valid:"Required"` // Second
-	Host         []*Hosts `orm:"reverse(many)" json:"hosts"`
-	Paths        []*Paths `orm:"reverse(many)" json:"paths"`
+	Host         []*Hosts `orm:"rel(m2m);on_delete(set_null)" json:"hosts"`
+	Paths        []*Paths `orm:"rel(m2m);on_delete(set_null)" json:"paths"`
 }
 
 func init() {
@@ -62,6 +62,20 @@ func AddClientJob(a *ClientJobs) (string, error) {
 		o.Rollback()
 		return "", err
 	}
+	if a.Host != nil {
+		_, err = o.QueryM2M(a, "Host").Add(a.Host)
+		if err != nil {
+			o.Rollback()
+			return "", err
+		}
+	}
+	if a.Paths != nil {
+		_, err = o.QueryM2M(a, "Paths").Add(a.Paths)
+		if err != nil {
+			o.Rollback()
+			return "", err
+		}
+	}
 	beego.Debug("[M] App set saved")
 	o.Commit()
 	return a.Id, nil
@@ -87,6 +101,16 @@ func DeleteClientJob(a *ClientJobs) error {
 			errS = fmt.Sprintf("%s, %s:%s", errS, err.Key, err.Message)
 		}
 		return fmt.Errorf("Bad info: %s", errS)
+	}
+	_, err = o.QueryM2M(a, "Host").Clear()
+	if err != nil {
+		o.Rollback()
+		return err
+	}
+	_, err = o.QueryM2M(a, "Paths").Clear()
+	if err != nil {
+		o.Rollback()
+		return err
 	}
 	_, err = o.Delete(a)
 	if err != nil {
@@ -122,6 +146,30 @@ func UpdateClientJob(a *ClientJobs) error {
 	if err != nil {
 		o.Rollback()
 		return err
+	}
+	if a.Host != nil {
+		_, err = o.QueryM2M(a, "Host").Clear()
+		if err != nil {
+			o.Rollback()
+			return err
+		}
+		_, err = o.QueryM2M(a, "Host").Add(a.Host)
+		if err != nil {
+			o.Rollback()
+			return err
+		}
+	}
+	if a.Paths != nil {
+		_, err = o.QueryM2M(a, "Paths").Clear()
+		if err != nil {
+			o.Rollback()
+			return err
+		}
+		_, err = o.QueryM2M(a, "Paths").Add(a.Paths)
+		if err != nil {
+			o.Rollback()
+			return err
+		}
 	}
 	o.Commit()
 	return nil
