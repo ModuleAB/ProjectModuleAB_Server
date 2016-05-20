@@ -6,6 +6,7 @@ staticpage:
 	cd web && bower i
 
 pack:
+	echo 'package docs' > docs/docs.go
 	bee pack -exs=".go:.DS_Store:.tmp:.log:.pid:.pprof:.memprof:Makefile:.bowerrc:.git:.gitignore:.travis.yml" -exp=".:swagger"
 
 clean:
