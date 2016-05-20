@@ -28,14 +28,14 @@ const (
 type Records struct {
 	Id           string      `orm:"pk;size(36)" json:"id" valid:"Match(/^[A-Fa-f0-9]{8}-([A-Fa-f0-9]{4}-){3}[A-Fa-f0-9]{12}$/)"`
 	Host         *Hosts      `orm:"rel(fk)" json:"host"`
-	BackupSet    *BackupSets `orm:"rel(fk)" json:"backup_set"`
-	AppSet       *AppSets    `orm:"rel(fk)" json:"app_set"`
+	BackupSet    *BackupSets `orm:"rel(fk)" json:"backupset"`
+	AppSet       *AppSets    `orm:"rel(fk)" json:"appset"`
 	Path         *Paths      `orm:"rel(fk)" json:"path" valid:"Required"`
-    Filename     string      `orm:"key" json:"path" valid:Required`
+	Filename     string      `orm:"key" json:"filename" valid:"Required"`
 	Type         int         `json:"type" valid:"Required"` // 0 - All, 1 - Backup, 2 - Archive
-	ArchiveId    string      `orm:"null" json:"archive_id"` // 如果Type是1（归档）时，这里应该有数据
-	BackupTime   time.Time   `orm:"type(datetime)" json:"backup_time"`
-	ArchivedTime time.Time   `orm:"type(datatime);null" json:"archived_time"`
+	ArchiveId    string      `orm:"null" json:"archiveid"`  // 如果Type是1（归档）时，这里应该有数据
+	BackupTime   time.Time   `orm:"type(datetime)" json:"backuptime"`
+	ArchivedTime time.Time   `orm:"type(datatime);null" json:"archivedtime"`
 	Jobs         []*OasJobs  `orm:"reverse(many);null" json:"jobs"`
 }
 

@@ -19,7 +19,7 @@ type ClientJobs struct {
 	Id           string   `orm:"pk;size(36)" json:"id" valid:"Match(/^[A-Fa-f0-9]{8}-([A-Fa-f0-9]{4}-){3}[A-Fa-f0-9]{12}$/)"`
 	Period       int      `json:"period" valid:"Required;Min(10)"` // Second
 	Type         int      `json:"type" valid:"Required"`
-	ReservedTime int      `json:"reserved_time" valid:"Required"` // Second
+	ReservedTime int      `json:"reservedtime" valid:"Required"` // Second
 	Host         []*Hosts `orm:"rel(m2m);on_delete(set_null)" json:"hosts"`
 	Paths        []*Paths `orm:"rel(m2m);on_delete(set_null)" json:"paths"`
 }
@@ -195,7 +195,7 @@ func GetClientJobs(cond *ClientJobs, limit, index int) ([]*ClientJobs, error) {
 		return nil, err
 	}
 	for _, v := range r {
-		o.LoadRelated(v, "Hosts", common.RelDepth)
+		o.LoadRelated(v, "Host", common.RelDepth)
 		o.LoadRelated(v, "Paths", common.RelDepth)
 	}
 	return r, nil
