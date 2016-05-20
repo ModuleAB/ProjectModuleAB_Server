@@ -13,7 +13,6 @@ clean:
 	rm -rf *.pprof *.memprof
 	rm *.tar.gz || echo 'nothing'
 	rm lastupdate.tmp || echo 'nothing'
-	rm docs/* || echo 'nothing'
 	rm routers/commentsRouter_moduleab_server_controllers.go || echo 'nothing'
 	rm moduleab_server || echo 'nothing'
 	rm -rf web/app/bower_components

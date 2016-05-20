@@ -5,5 +5,4 @@ routers/commentsRouter_moduleab_server_controllers.go
 swagger/
 cpu-*
 mem-*
-docs/docs.go
 conf/app.conf
