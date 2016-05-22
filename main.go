@@ -9,10 +9,10 @@ import (
 	"io/ioutil"
 	"runtime"
 
-	"moduleab_server/common"
 	_ "moduleab_server/docs"
 	"moduleab_server/policies"
 	_ "moduleab_server/routers"
+	"moduleab_server/version"
 	"os"
 
 	"github.com/astaxie/beego"
@@ -39,7 +39,7 @@ func init() {
 }
 
 func main() {
-	beego.Info("ModuleAB server", common.Version, "starting...")
+	beego.Info("ModuleAB server", version.Version, "starting...")
 	logfile := beego.AppConfig.String("logFile")
 	if logfile == "" {
 		logfile = "logs/moduleab_server.log"

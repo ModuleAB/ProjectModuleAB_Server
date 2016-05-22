@@ -98,6 +98,11 @@ func init() {
 				&controllers.RolesController{},
 			),
 		),
+		beego.NSNamespace("/version",
+			beego.NSInclude(
+				&controllers.VersionController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 	beego.InsertFilter("/", beego.BeforeRouter, StaticFileServer)
