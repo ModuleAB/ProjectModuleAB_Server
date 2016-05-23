@@ -172,6 +172,7 @@ func (c *ClientController) WebSocket() {
 // @router /signal/:name [get]
 func (c *ClientController) GetSignals() {
 	name := c.GetString(":name")
+	defer c.ServeJSON()
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
 		host := &models.Hosts{
@@ -185,19 +186,15 @@ func (c *ClientController) GetSignals() {
 			}
 			beego.Warn("[C] Got error:", err)
 			c.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			c.ServeJSON()
 			return
 		}
 		if len(hosts) == 0 {
 			beego.Debug("[C] Got nothing with name:", name)
 			c.Ctx.Output.SetStatus(http.StatusNotFound)
-			c.ServeJSON()
 			return
 		}
 		c.Data["json"] = models.GetSignals(hosts[0].Id)
 		c.Ctx.Output.SetStatus(http.StatusOK)
-		c.ServeJSON()
-		return
 	}
 }
 
@@ -206,6 +203,7 @@ func (c *ClientController) GetSignals() {
 func (c *ClientController) GetSignal() {
 	name := c.GetString(":name")
 	id := c.GetString(":id")
+	defer c.ServeJSON()
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
 		host := &models.Hosts{
@@ -219,13 +217,11 @@ func (c *ClientController) GetSignal() {
 			}
 			beego.Warn("[C] Got error:", err)
 			c.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			c.ServeJSON()
 			return
 		}
 		if len(hosts) == 0 {
 			beego.Debug("[C] Got nothing with name:", name)
 			c.Ctx.Output.SetStatus(http.StatusNotFound)
-			c.ServeJSON()
 			return
 		}
 		signal, err := models.GetSignal(hosts[0].Id, id)
@@ -234,14 +230,11 @@ func (c *ClientController) GetSignal() {
 				"message": fmt.Sprint("Got nothing with id:", id),
 			}
 			c.Ctx.Output.SetStatus(http.StatusNotFound)
-			c.ServeJSON()
 			return
 		}
 
 		c.Data["json"] = signal
 		c.Ctx.Output.SetStatus(http.StatusOK)
-		c.ServeJSON()
-		return
 	}
 }
 
@@ -249,6 +242,7 @@ func (c *ClientController) GetSignal() {
 // @router /signal/:name [post]
 func (c *ClientController) PostSignal() {
 	name := c.GetString(":name")
+	defer c.ServeJSON()
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
 		host := &models.Hosts{
@@ -262,13 +256,11 @@ func (c *ClientController) PostSignal() {
 			}
 			beego.Warn("[C] Got error:", err)
 			c.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			c.ServeJSON()
 			return
 		}
 		if len(hosts) == 0 {
 			beego.Debug("[C] Got nothing with name:", name)
 			c.Ctx.Output.SetStatus(http.StatusNotFound)
-			c.ServeJSON()
 			return
 		}
 		var signal models.Signal
@@ -280,7 +272,6 @@ func (c *ClientController) PostSignal() {
 				"error":   err.Error(),
 			}
 			c.Ctx.Output.SetStatus(http.StatusBadRequest)
-			c.ServeJSON()
 			return
 		}
 		beego.Debug("[C] Got data:", signal)
@@ -292,15 +283,12 @@ func (c *ClientController) PostSignal() {
 				"error":   err.Error(),
 			}
 			c.Ctx.Output.SetStatus(http.StatusBadRequest)
-			c.ServeJSON()
 			return
 		}
 		c.Data["json"] = map[string]string{
 			"id": id,
 		}
 		c.Ctx.Output.SetStatus(http.StatusCreated)
-		c.ServeJSON()
-		return
 	}
 }
 
@@ -309,6 +297,7 @@ func (c *ClientController) PostSignal() {
 func (c *ClientController) DeleteSignal() {
 	name := c.GetString(":name")
 	id := c.GetString(":id")
+	defer c.ServeJSON()
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
 		host := &models.Hosts{
@@ -322,13 +311,11 @@ func (c *ClientController) DeleteSignal() {
 			}
 			beego.Warn("[C] Got error:", err)
 			c.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			c.ServeJSON()
 			return
 		}
 		if len(hosts) == 0 {
 			beego.Debug("[C] Got nothing with name:", name)
 			c.Ctx.Output.SetStatus(http.StatusNotFound)
-			c.ServeJSON()
 			return
 		}
 		err = models.DeleteSignal(hosts[0].Id, id)
@@ -343,7 +330,6 @@ func (c *ClientController) DeleteSignal() {
 			} else {
 				c.Ctx.Output.SetStatus(http.StatusInternalServerError)
 			}
-			c.ServeJSON()
 			return
 		}
 
@@ -351,8 +337,6 @@ func (c *ClientController) DeleteSignal() {
 			"message": fmt.Sprint("Got nothing with id:", id),
 		}
 		c.Ctx.Output.SetStatus(http.StatusNotFound)
-		c.ServeJSON()
-		return
 	}
 }
 
@@ -361,6 +345,7 @@ func (c *ClientController) DeleteSignal() {
 func (c *ClientController) NotifySignal() {
 	name := c.GetString(":name")
 	id := c.GetString(":id")
+	defer c.ServeJSON()
 	if name != "" {
 		host := &models.Hosts{
 			Name: name,
@@ -373,18 +358,15 @@ func (c *ClientController) NotifySignal() {
 			}
 			beego.Warn("[C] Got error:", err)
 			c.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			c.ServeJSON()
 			return
 		}
 		if len(hosts) == 0 {
 			beego.Debug("[C] Got nothing with name:", name)
 			c.Ctx.Output.SetStatus(http.StatusNotFound)
-			c.ServeJSON()
 			return
 		}
 		if id == "" {
 			c.Ctx.Output.SetStatus(http.StatusBadRequest)
-			c.ServeJSON()
 			return
 		}
 
@@ -396,12 +378,9 @@ func (c *ClientController) NotifySignal() {
 			}
 			beego.Warn("[C] Got error:", err)
 			c.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			c.ServeJSON()
 			return
 		}
 		c.Ctx.Output.SetStatus(http.StatusOK)
-		c.ServeJSON()
 		return
 	}
-
 }

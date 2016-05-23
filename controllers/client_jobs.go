@@ -51,6 +51,7 @@ func (h *ClientJobsController) Prepare() {
 // @Title createClientJob
 // @router / [post]
 func (a *ClientJobsController) Post() {
+	defer a.ServeJSON()
 	clientJob := new(models.ClientJobs)
 	err := json.Unmarshal(a.Ctx.Input.RequestBody, clientJob)
 	if err != nil {
@@ -60,7 +61,6 @@ func (a *ClientJobsController) Post() {
 			"error":   err.Error(),
 		}
 		a.Ctx.Output.SetStatus(http.StatusBadRequest)
-		a.ServeJSON()
 		return
 	}
 	beego.Debug("[C] Got data:", clientJob)
@@ -72,7 +72,6 @@ func (a *ClientJobsController) Post() {
 			"error":   err.Error(),
 		}
 		a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-		a.ServeJSON()
 		return
 	}
 
@@ -81,14 +80,13 @@ func (a *ClientJobsController) Post() {
 		"id": id,
 	}
 	a.Ctx.Output.SetStatus(http.StatusCreated)
-	a.ServeJSON()
-	return
 }
 
 // @Title getClientJob
 // @router /:id [get]
 func (a *ClientJobsController) Get() {
 	id := a.GetString(":id")
+	defer a.ServeJSON()
 	beego.Debug("[C] Got id:", id)
 	if id != "" {
 		clientJob := &models.ClientJobs{
@@ -102,19 +100,14 @@ func (a *ClientJobsController) Get() {
 			}
 			beego.Warn("[C] Got error:", err)
 			a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			a.ServeJSON()
 			return
 		}
 		a.Data["json"] = clientJobs
 		if len(clientJobs) == 0 {
 			beego.Debug("[C] Got nothing with id:", id)
 			a.Ctx.Output.SetStatus(http.StatusNotFound)
-			a.ServeJSON()
-			return
 		} else {
 			a.Ctx.Output.SetStatus(http.StatusOK)
-			a.ServeJSON()
-			return
 		}
 	}
 }
@@ -125,6 +118,7 @@ func (a *ClientJobsController) GetAll() {
 	limit, _ := a.GetInt("limit", 0)
 	index, _ := a.GetInt("index", 0)
 
+	defer a.ServeJSON()
 	clientJob := &models.ClientJobs{}
 	clientJobs, err := models.GetClientJobs(clientJob, limit, index)
 	if err != nil {
@@ -134,19 +128,14 @@ func (a *ClientJobsController) GetAll() {
 		}
 		beego.Warn("[C] Got error:", err)
 		a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-		a.ServeJSON()
 		return
 	}
 	a.Data["json"] = clientJobs
 	if len(clientJobs) == 0 {
 		beego.Debug("[C] Got nothing")
 		a.Ctx.Output.SetStatus(http.StatusNotFound)
-		a.ServeJSON()
-		return
 	} else {
 		a.Ctx.Output.SetStatus(http.StatusOK)
-		a.ServeJSON()
-		return
 	}
 }
 
@@ -154,6 +143,7 @@ func (a *ClientJobsController) GetAll() {
 // @router /:id [delete]
 func (a *ClientJobsController) Delete() {
 	id := a.GetString(":id")
+	defer a.ServeJSON()
 	beego.Debug("[C] Got id:", id)
 	if id != "" {
 		clientJob := &models.ClientJobs{
@@ -167,13 +157,11 @@ func (a *ClientJobsController) Delete() {
 			}
 			beego.Warn("[C] Got error:", err)
 			a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			a.ServeJSON()
 			return
 		}
 		if len(clientJobs) == 0 {
 			beego.Debug("[C] Got nothing with id:", id)
 			a.Ctx.Output.SetStatus(http.StatusNotFound)
-			a.ServeJSON()
 			return
 		}
 		err = models.DeleteClientJob(clientJobs[0])
@@ -184,13 +172,10 @@ func (a *ClientJobsController) Delete() {
 			}
 			beego.Warn("[C] Got error:", err)
 			a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			a.ServeJSON()
 			return
 
 		}
 		a.Ctx.Output.SetStatus(http.StatusNoContent)
-		a.ServeJSON()
-		return
 	}
 }
 
@@ -198,6 +183,7 @@ func (a *ClientJobsController) Delete() {
 // @router /:id [put]
 func (a *ClientJobsController) Put() {
 	id := a.GetString(":id")
+	defer a.ServeJSON()
 	beego.Debug("[C] Got clientJob id:", id)
 	if id != "" {
 		clientJob := &models.ClientJobs{
@@ -211,13 +197,11 @@ func (a *ClientJobsController) Put() {
 			}
 			beego.Warn("[C] Got error:", err)
 			a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			a.ServeJSON()
 			return
 		}
 		if len(clientJobs) == 0 {
 			beego.Debug("[C] Got nothing with id:", id)
 			a.Ctx.Output.SetStatus(http.StatusNotFound)
-			a.ServeJSON()
 			return
 		}
 
@@ -230,7 +214,6 @@ func (a *ClientJobsController) Put() {
 				"error":   err.Error(),
 			}
 			a.Ctx.Output.SetStatus(http.StatusBadRequest)
-			a.ServeJSON()
 			return
 		}
 		beego.Debug("[C] Got clientJob data:", clientJob)
@@ -242,12 +225,8 @@ func (a *ClientJobsController) Put() {
 			}
 			beego.Warn("[C] Got error:", err)
 			a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			a.ServeJSON()
 			return
-
 		}
 		a.Ctx.Output.SetStatus(http.StatusAccepted)
-		a.ServeJSON()
-		return
 	}
 }

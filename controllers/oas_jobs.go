@@ -51,6 +51,7 @@ func (h *OasJobsController) Prepare() {
 // @router /:job_id [get]
 func (a *OasJobsController) Get() {
 	jobId := a.GetString(":job_id")
+	defer a.ServeJSON()
 	beego.Debug("[C] Got job id:", jobId)
 	if jobId != "" {
 		oasJob := &models.OasJobs{
@@ -64,19 +65,14 @@ func (a *OasJobsController) Get() {
 			}
 			beego.Warn("[C] Got error:", err)
 			a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			a.ServeJSON()
 			return
 		}
 		a.Data["json"] = oasJobs
 		if len(oasJobs) == 0 {
 			beego.Debug("[C] Got nothing with job id:", jobId)
 			a.Ctx.Output.SetStatus(http.StatusNotFound)
-			a.ServeJSON()
-			return
 		} else {
 			a.Ctx.Output.SetStatus(http.StatusOK)
-			a.ServeJSON()
-			return
 		}
 	}
 }
@@ -87,6 +83,8 @@ func (a *OasJobsController) GetAll() {
 	limit, _ := a.GetInt("limit", 0)
 	index, _ := a.GetInt("index", 0)
 
+	defer a.ServeJSON()
+
 	oasJob := &models.OasJobs{}
 	oasJobs, err := models.GetOasJobs(oasJob, limit, index)
 	if err != nil {
@@ -96,18 +94,13 @@ func (a *OasJobsController) GetAll() {
 		}
 		beego.Warn("[C] Got error:", err)
 		a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-		a.ServeJSON()
 		return
 	}
 	a.Data["json"] = oasJobs
 	if len(oasJobs) == 0 {
 		beego.Debug("[C] Got nothing")
 		a.Ctx.Output.SetStatus(http.StatusNotFound)
-		a.ServeJSON()
-		return
 	} else {
 		a.Ctx.Output.SetStatus(http.StatusOK)
-		a.ServeJSON()
-		return
 	}
 }

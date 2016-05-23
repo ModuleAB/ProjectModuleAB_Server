@@ -51,6 +51,7 @@ func (h *PolicyController) Prepare() {
 // @Title createOAS
 // @router / [post]
 func (a *PolicyController) Post() {
+	defer a.ServeJSON()
 	policy := new(models.Policies)
 	err := json.Unmarshal(a.Ctx.Input.RequestBody, policy)
 	if err != nil {
@@ -60,7 +61,6 @@ func (a *PolicyController) Post() {
 			"error":   err.Error(),
 		}
 		a.Ctx.Output.SetStatus(http.StatusBadRequest)
-		a.ServeJSON()
 		return
 	}
 
@@ -73,7 +73,6 @@ func (a *PolicyController) Post() {
 			"error":   err.Error(),
 		}
 		a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-		a.ServeJSON()
 		return
 	}
 
@@ -82,13 +81,13 @@ func (a *PolicyController) Post() {
 		"id": id,
 	}
 	a.Ctx.Output.SetStatus(http.StatusCreated)
-	a.ServeJSON()
 }
 
 // @Title getPolicy
 // @router /:name [get]
 func (a *PolicyController) Get() {
 	name := a.GetString(":name")
+	defer a.ServeJSON()
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
 		policy := &models.Policies{
@@ -102,19 +101,14 @@ func (a *PolicyController) Get() {
 			}
 			beego.Warn("[C] Got error:", err)
 			a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			a.ServeJSON()
 			return
 		}
 		a.Data["json"] = policies
 		if len(policies) == 0 {
 			beego.Debug("[C] Got nothing with name:", name)
 			a.Ctx.Output.SetStatus(http.StatusNotFound)
-			a.ServeJSON()
-			return
 		} else {
 			a.Ctx.Output.SetStatus(http.StatusOK)
-			a.ServeJSON()
-			return
 		}
 	}
 }
@@ -124,7 +118,7 @@ func (a *PolicyController) Get() {
 func (a *PolicyController) GetAll() {
 	limit, _ := a.GetInt("limit", 0)
 	index, _ := a.GetInt("index", 0)
-
+	defer a.ServeJSON()
 	policy := &models.Policies{}
 	policies, err := models.GetPolicies(policy, limit, index)
 	if err != nil {
@@ -134,19 +128,14 @@ func (a *PolicyController) GetAll() {
 		}
 		beego.Warn("[C] Got error:", err)
 		a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-		a.ServeJSON()
 		return
 	}
 	a.Data["json"] = policies
 	if len(policies) == 0 {
 		beego.Debug("[C] Got nothing")
 		a.Ctx.Output.SetStatus(http.StatusNotFound)
-		a.ServeJSON()
-		return
 	} else {
 		a.Ctx.Output.SetStatus(http.StatusOK)
-		a.ServeJSON()
-		return
 	}
 }
 
@@ -154,6 +143,7 @@ func (a *PolicyController) GetAll() {
 // @router /:name [delete]
 func (a *PolicyController) Delete() {
 	name := a.GetString(":name")
+	a.ServeJSON()
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
 		policy := &models.Policies{
@@ -167,13 +157,11 @@ func (a *PolicyController) Delete() {
 			}
 			beego.Warn("[C] Got error:", err)
 			a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			a.ServeJSON()
 			return
 		}
 		if len(policies) == 0 {
 			beego.Debug("[C] Got nothing with name:", name)
 			a.Ctx.Output.SetStatus(http.StatusNotFound)
-			a.ServeJSON()
 			return
 		}
 		err = models.DeletePolicy(policies[0])
@@ -184,13 +172,9 @@ func (a *PolicyController) Delete() {
 			}
 			beego.Warn("[C] Got error:", err)
 			a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			a.ServeJSON()
 			return
-
 		}
 		a.Ctx.Output.SetStatus(http.StatusNoContent)
-		a.ServeJSON()
-		return
 	}
 }
 
@@ -198,6 +182,7 @@ func (a *PolicyController) Delete() {
 // @router /:name [put]
 func (a *PolicyController) Put() {
 	name := a.GetString(":name")
+	defer a.ServeJSON()
 	beego.Debug("[C] Got policy name:", name)
 	if name != "" {
 		policy := &models.Policies{
@@ -213,13 +198,11 @@ func (a *PolicyController) Put() {
 			}
 			beego.Warn("[C] Got error:", err)
 			a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			a.ServeJSON()
 			return
 		}
 		if len(policies) == 0 {
 			beego.Debug("[C] Got nothing with name:", name)
 			a.Ctx.Output.SetStatus(http.StatusNotFound)
-			a.ServeJSON()
 			return
 		}
 
@@ -232,7 +215,6 @@ func (a *PolicyController) Put() {
 				"error":   err.Error(),
 			}
 			a.Ctx.Output.SetStatus(http.StatusBadRequest)
-			a.ServeJSON()
 			return
 		}
 		beego.Debug("[C] Got policy data:", policy)
@@ -244,12 +226,8 @@ func (a *PolicyController) Put() {
 			}
 			beego.Warn("[C] Got error:", err)
 			a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			a.ServeJSON()
 			return
-
 		}
 		a.Ctx.Output.SetStatus(http.StatusAccepted)
-		a.ServeJSON()
-		return
 	}
 }

@@ -52,6 +52,7 @@ func (h *UserController) Prepare() {
 // @Title createUser
 // @router / [post]
 func (h *UserController) Post() {
+	defer h.ServeJSON()
 	user := new(models.Users)
 	err := json.Unmarshal(h.Ctx.Input.RequestBody, user)
 	if err != nil {
@@ -61,7 +62,6 @@ func (h *UserController) Post() {
 			"error":   err.Error(),
 		}
 		h.Ctx.Output.SetStatus(http.StatusBadRequest)
-		h.ServeJSON()
 		return
 	}
 	beego.Debug("[C] Got data:", user)
@@ -73,7 +73,6 @@ func (h *UserController) Post() {
 			"error":   err.Error(),
 		}
 		h.Ctx.Output.SetStatus(http.StatusInternalServerError)
-		h.ServeJSON()
 		return
 	}
 
@@ -82,8 +81,6 @@ func (h *UserController) Post() {
 		"id": id,
 	}
 	h.Ctx.Output.SetStatus(http.StatusCreated)
-	h.ServeJSON()
-	return
 }
 
 // @Title getUser
@@ -91,6 +88,7 @@ func (h *UserController) Post() {
 func (h *UserController) Get() {
 	name := h.GetString(":name")
 	beego.Debug("[C] Got name:", name)
+	defer h.ServeJSON()
 	if name != "" {
 		user := &models.Users{
 			Name: name,
@@ -103,19 +101,14 @@ func (h *UserController) Get() {
 			}
 			beego.Warn("[C] Got error:", err)
 			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			h.ServeJSON()
 			return
 		}
 		h.Data["json"] = users
 		if len(users) == 0 {
 			beego.Debug("[C] Got nothing with name:", name)
 			h.Ctx.Output.SetStatus(http.StatusNotFound)
-			h.ServeJSON()
-			return
 		} else {
 			h.Ctx.Output.SetStatus(http.StatusOK)
-			h.ServeJSON()
-			return
 		}
 	}
 }
@@ -126,6 +119,7 @@ func (h *UserController) GetAll() {
 	limit, _ := h.GetInt("limit", 0)
 	index, _ := h.GetInt("index", 0)
 
+	defer h.ServeJSON()
 	user := &models.Users{}
 	users, err := models.GetUser(user, limit, index)
 	if err != nil {
@@ -135,19 +129,14 @@ func (h *UserController) GetAll() {
 		}
 		beego.Warn("[C] Got error:", err)
 		h.Ctx.Output.SetStatus(http.StatusInternalServerError)
-		h.ServeJSON()
 		return
 	}
 	h.Data["json"] = users
 	if len(users) == 0 {
 		beego.Debug("[C] Got nothing")
 		h.Ctx.Output.SetStatus(http.StatusNotFound)
-		h.ServeJSON()
-		return
 	} else {
 		h.Ctx.Output.SetStatus(http.StatusOK)
-		h.ServeJSON()
-		return
 	}
 }
 
@@ -156,6 +145,7 @@ func (h *UserController) GetAll() {
 func (h *UserController) Delete() {
 	name := h.GetString(":name")
 	beego.Debug("[C] Got name:", name)
+	defer h.ServeJSON()
 	if name != "" {
 		user := &models.Users{
 			Name: name,
@@ -168,13 +158,11 @@ func (h *UserController) Delete() {
 			}
 			beego.Warn("[C] Got error:", err)
 			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			h.ServeJSON()
 			return
 		}
 		if len(users) == 0 {
 			beego.Debug("[C] Got nothing with name:", name)
 			h.Ctx.Output.SetStatus(http.StatusNotFound)
-			h.ServeJSON()
 			return
 		}
 		err = models.DeleteUser(users[0])
@@ -185,13 +173,10 @@ func (h *UserController) Delete() {
 			}
 			beego.Warn("[C] Got error:", err)
 			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			h.ServeJSON()
 			return
 
 		}
 		h.Ctx.Output.SetStatus(http.StatusNoContent)
-		h.ServeJSON()
-		return
 	}
 }
 
@@ -199,6 +184,7 @@ func (h *UserController) Delete() {
 // @router /:name [put]
 func (h *UserController) Put() {
 	name := h.GetString(":name")
+	defer h.ServeJSON()
 	beego.Debug("[C] Got user name:", name)
 	if name != "" {
 		user := &models.Users{
@@ -212,13 +198,11 @@ func (h *UserController) Put() {
 			}
 			beego.Warn("[C] Got error:", err)
 			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			h.ServeJSON()
 			return
 		}
 		if len(users) == 0 {
 			beego.Debug("[C] Got nothing with name:", name)
 			h.Ctx.Output.SetStatus(http.StatusNotFound)
-			h.ServeJSON()
 			return
 		}
 
@@ -235,13 +219,11 @@ func (h *UserController) Put() {
 				}
 				beego.Warn("[C] Got error:", err)
 				h.Ctx.Output.SetStatus(http.StatusInternalServerError)
-				h.ServeJSON()
 				return
 			}
 			if len(userNows) == 0 {
 				beego.Debug("[C] Invalid user id:", sessionId)
 				h.Ctx.Output.SetStatus(http.StatusNotFound)
-				h.ServeJSON()
 				return
 			}
 		}
@@ -254,7 +236,6 @@ func (h *UserController) Put() {
 				"error":   err.Error(),
 			}
 			h.Ctx.Output.SetStatus(http.StatusBadRequest)
-			h.ServeJSON()
 			return
 		}
 		user.Id = users[0].Id
@@ -271,11 +252,8 @@ func (h *UserController) Put() {
 			}
 			beego.Warn("[C] Got error:", err)
 			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			h.ServeJSON()
 			return
 		}
 		h.Ctx.Output.SetStatus(http.StatusAccepted)
-		h.ServeJSON()
-		return
 	}
 }

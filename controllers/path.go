@@ -56,6 +56,7 @@ func (h *PathsController) Prepare() {
 // @Failure 500 Failure on writing database
 // @router / [post]
 func (h *PathsController) Post() {
+	defer h.ServeJSON()
 	path := new(models.Paths)
 	err := json.Unmarshal(h.Ctx.Input.RequestBody, path)
 	if err != nil {
@@ -65,7 +66,6 @@ func (h *PathsController) Post() {
 			"error":   err.Error(),
 		}
 		h.Ctx.Output.SetStatus(http.StatusBadRequest)
-		h.ServeJSON()
 		return
 	}
 	beego.Debug("[C] Got data:", path)
@@ -77,7 +77,6 @@ func (h *PathsController) Post() {
 			"error":   err.Error(),
 		}
 		h.Ctx.Output.SetStatus(http.StatusInternalServerError)
-		h.ServeJSON()
 		return
 	}
 
@@ -86,8 +85,6 @@ func (h *PathsController) Post() {
 		"id": id,
 	}
 	h.Ctx.Output.SetStatus(http.StatusCreated)
-	h.ServeJSON()
-	return
 }
 
 // @Title getPath
@@ -98,6 +95,7 @@ func (h *PathsController) Post() {
 // @router /:id [get]
 func (h *PathsController) Get() {
 	id := h.GetString(":id")
+	defer h.ServeJSON()
 	beego.Debug("[C] Got id:", id)
 	if id != "" {
 		path := &models.Paths{
@@ -111,19 +109,14 @@ func (h *PathsController) Get() {
 			}
 			beego.Warn("[C] Got error:", err)
 			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			h.ServeJSON()
 			return
 		}
 		h.Data["json"] = paths
 		if len(paths) == 0 {
 			beego.Debug("[C] Got nothing with id:", id)
 			h.Ctx.Output.SetStatus(http.StatusNotFound)
-			h.ServeJSON()
-			return
 		} else {
 			h.Ctx.Output.SetStatus(http.StatusOK)
-			h.ServeJSON()
-			return
 		}
 	}
 }
@@ -136,6 +129,8 @@ func (h *PathsController) GetAll() {
 	limit, _ := h.GetInt("limit", 0)
 	index, _ := h.GetInt("index", 0)
 
+	defer h.ServeJSON()
+
 	path := &models.Paths{}
 	paths, err := models.GetPaths(path, limit, index)
 	if err != nil {
@@ -145,19 +140,14 @@ func (h *PathsController) GetAll() {
 		}
 		beego.Warn("[C] Got error:", err)
 		h.Ctx.Output.SetStatus(http.StatusInternalServerError)
-		h.ServeJSON()
 		return
 	}
 	h.Data["json"] = paths
 	if len(paths) == 0 {
 		beego.Debug("[C] Got nothing")
 		h.Ctx.Output.SetStatus(http.StatusNotFound)
-		h.ServeJSON()
-		return
 	} else {
 		h.Ctx.Output.SetStatus(http.StatusOK)
-		h.ServeJSON()
-		return
 	}
 }
 
@@ -168,6 +158,7 @@ func (h *PathsController) GetAll() {
 // @router /:id [delete]
 func (h *PathsController) Delete() {
 	id := h.GetString(":id")
+	defer h.ServeJSON()
 	beego.Debug("[C] Got id:", id)
 	if id != "" {
 		path := &models.Paths{
@@ -181,13 +172,11 @@ func (h *PathsController) Delete() {
 			}
 			beego.Warn("[C] Got error:", err)
 			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			h.ServeJSON()
 			return
 		}
 		if len(paths) == 0 {
 			beego.Debug("[C] Got nothing with id:", id)
 			h.Ctx.Output.SetStatus(http.StatusNotFound)
-			h.ServeJSON()
 			return
 		}
 		err = models.DeletePath(paths[0])
@@ -198,13 +187,9 @@ func (h *PathsController) Delete() {
 			}
 			beego.Warn("[C] Got error:", err)
 			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			h.ServeJSON()
 			return
-
 		}
 		h.Ctx.Output.SetStatus(http.StatusNoContent)
-		h.ServeJSON()
-		return
 	}
 }
 
@@ -215,6 +200,7 @@ func (h *PathsController) Delete() {
 // @router /:id [put]
 func (h *PathsController) Put() {
 	id := h.GetString(":id")
+	defer h.ServeJSON()
 	beego.Debug("[C] Got id:", id)
 	if id != "" {
 		path := &models.Paths{
@@ -230,13 +216,11 @@ func (h *PathsController) Put() {
 			}
 			beego.Warn("[C] Got error:", err)
 			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			h.ServeJSON()
 			return
 		}
 		if len(paths) == 0 {
 			beego.Debug("[C] Got nothing with id:", id)
 			h.Ctx.Output.SetStatus(http.StatusNotFound)
-			h.ServeJSON()
 			return
 		}
 
@@ -248,7 +232,6 @@ func (h *PathsController) Put() {
 				"error":   err.Error(),
 			}
 			h.Ctx.Output.SetStatus(http.StatusBadRequest)
-			h.ServeJSON()
 			return
 		}
 		path.Id = paths[0].Id
@@ -264,12 +247,8 @@ func (h *PathsController) Put() {
 			}
 			beego.Warn("[C] Got error:", err)
 			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			h.ServeJSON()
 			return
-
 		}
 		h.Ctx.Output.SetStatus(http.StatusAccepted)
-		h.ServeJSON()
-		return
 	}
 }

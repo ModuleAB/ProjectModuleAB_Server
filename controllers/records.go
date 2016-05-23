@@ -58,6 +58,7 @@ func (h *RecordsController) Prepare() {
 // @router / [post]
 func (h *RecordsController) Post() {
 	record := new(models.Records)
+	defer h.ServeJSON()
 	err := json.Unmarshal(h.Ctx.Input.RequestBody, record)
 	if err != nil {
 		beego.Warn("[C] Got error:", err)
@@ -66,7 +67,6 @@ func (h *RecordsController) Post() {
 			"error":   err.Error(),
 		}
 		h.Ctx.Output.SetStatus(http.StatusBadRequest)
-		h.ServeJSON()
 		return
 	}
 	beego.Debug("[C] Got data:", record)
@@ -78,7 +78,6 @@ func (h *RecordsController) Post() {
 			"error":   err.Error(),
 		}
 		h.Ctx.Output.SetStatus(http.StatusInternalServerError)
-		h.ServeJSON()
 		return
 	}
 
@@ -87,8 +86,6 @@ func (h *RecordsController) Post() {
 		"id": id,
 	}
 	h.Ctx.Output.SetStatus(http.StatusCreated)
-	h.ServeJSON()
-	return
 }
 
 // @Title listRecords
@@ -133,6 +130,7 @@ func (h *RecordsController) GetAll() {
 	tAtEnd, _ := time.Parse(time.RFC3339, atEnd)
 	records, err := models.GetRecords(record, limit, index,
 		tBtStart, tBtEnd, tAtStart, tAtEnd)
+	defer h.ServeJSON()
 	if err != nil {
 		h.Data["json"] = map[string]string{
 			"message": fmt.Sprint("Failed to get"),
@@ -140,19 +138,14 @@ func (h *RecordsController) GetAll() {
 		}
 		beego.Warn("[C] Got error:", err)
 		h.Ctx.Output.SetStatus(http.StatusInternalServerError)
-		h.ServeJSON()
 		return
 	}
 	h.Data["json"] = records
 	if len(records) == 0 {
 		beego.Debug("[C] Got nothing")
 		h.Ctx.Output.SetStatus(http.StatusNotFound)
-		h.ServeJSON()
-		return
 	} else {
 		h.Ctx.Output.SetStatus(http.StatusOK)
-		h.ServeJSON()
-		return
 	}
 }
 
@@ -164,6 +157,7 @@ func (h *RecordsController) GetAll() {
 func (h *RecordsController) Delete() {
 	id := h.GetString(":id")
 	beego.Debug("[C] Got id:", id)
+	defer h.ServeJSON()
 	if id != "" {
 		record := &models.Records{
 			Id: id,
@@ -176,13 +170,11 @@ func (h *RecordsController) Delete() {
 			}
 			beego.Warn("[C] Got error:", err)
 			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			h.ServeJSON()
 			return
 		}
 		if len(records) == 0 {
 			beego.Debug("[C] Got nothing with id:", id)
 			h.Ctx.Output.SetStatus(http.StatusNotFound)
-			h.ServeJSON()
 			return
 		}
 		err = models.DeleteRecord(records[0])
@@ -193,12 +185,9 @@ func (h *RecordsController) Delete() {
 			}
 			beego.Warn("[C] Got error:", err)
 			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			h.ServeJSON()
 			return
-
 		}
 		h.Ctx.Output.SetStatus(http.StatusNoContent)
-		h.ServeJSON()
 		return
 	}
 }
@@ -207,6 +196,7 @@ func (h *RecordsController) Delete() {
 func (h *RecordsController) Recover() {
 	id := h.GetString(":id")
 	beego.Debug("[C] Got id:", id)
+	defer h.ServeJSON()
 	if id != "" {
 		record := &models.Records{
 			Id: id,
@@ -219,13 +209,11 @@ func (h *RecordsController) Recover() {
 			}
 			beego.Warn("[C] Got error:", err)
 			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			h.ServeJSON()
 			return
 		}
 		if len(records) == 0 {
 			beego.Debug("[C] Got nothing with id:", id)
 			h.Ctx.Output.SetStatus(http.StatusNotFound)
-			h.ServeJSON()
 			return
 		}
 
@@ -250,7 +238,6 @@ func (h *RecordsController) Recover() {
 				}
 				beego.Warn("[C] Got error:", err)
 				h.Ctx.Output.SetStatus(http.StatusInternalServerError)
-				h.ServeJSON()
 				return
 			}
 			id, err := models.AddOasJobs(oasJob)
@@ -261,7 +248,6 @@ func (h *RecordsController) Recover() {
 				}
 				beego.Warn("[C] Got error:", err)
 				h.Ctx.Output.SetStatus(http.StatusInternalServerError)
-				h.ServeJSON()
 				return
 			}
 			h.Data["json"] = map[string]string{
@@ -294,7 +280,6 @@ func (h *RecordsController) Recover() {
 				}
 				beego.Warn("[C] Got error:", err)
 				h.Ctx.Output.SetStatus(http.StatusInternalServerError)
-				h.ServeJSON()
 				return
 			}
 			h.Data["json"] = map[string]string{
@@ -303,8 +288,5 @@ func (h *RecordsController) Recover() {
 			}
 			h.Ctx.Output.SetStatus(http.StatusOK)
 		}
-
-		h.ServeJSON()
-		return
 	}
 }

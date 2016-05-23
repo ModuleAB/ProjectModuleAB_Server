@@ -51,6 +51,7 @@ func (h *AppSetsController) Prepare() {
 // @Title createAppSet
 // @router / [post]
 func (a *AppSetsController) Post() {
+	defer a.ServeJSON()
 	appSet := new(models.AppSets)
 	err := json.Unmarshal(a.Ctx.Input.RequestBody, appSet)
 	if err != nil {
@@ -60,7 +61,6 @@ func (a *AppSetsController) Post() {
 			"error":   err.Error(),
 		}
 		a.Ctx.Output.SetStatus(http.StatusBadRequest)
-		a.ServeJSON()
 		return
 	}
 	beego.Debug("[C] Got data:", appSet)
@@ -72,7 +72,6 @@ func (a *AppSetsController) Post() {
 			"error":   err.Error(),
 		}
 		a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-		a.ServeJSON()
 		return
 	}
 
@@ -81,7 +80,6 @@ func (a *AppSetsController) Post() {
 		"id": id,
 	}
 	a.Ctx.Output.SetStatus(http.StatusCreated)
-	a.ServeJSON()
 	return
 }
 
@@ -89,6 +87,7 @@ func (a *AppSetsController) Post() {
 // @router /:name [get]
 func (a *AppSetsController) Get() {
 	name := a.GetString(":name")
+	defer a.ServeJSON()
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
 		appSet := &models.AppSets{
@@ -102,19 +101,14 @@ func (a *AppSetsController) Get() {
 			}
 			beego.Warn("[C] Got error:", err)
 			a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			a.ServeJSON()
 			return
 		}
 		a.Data["json"] = appSets
 		if len(appSets) == 0 {
 			beego.Debug("[C] Got nothing with name:", name)
 			a.Ctx.Output.SetStatus(http.StatusNotFound)
-			a.ServeJSON()
-			return
 		} else {
 			a.Ctx.Output.SetStatus(http.StatusOK)
-			a.ServeJSON()
-			return
 		}
 	}
 }
@@ -125,6 +119,8 @@ func (a *AppSetsController) GetAll() {
 	limit, _ := a.GetInt("limit", 0)
 	index, _ := a.GetInt("index", 0)
 
+	defer a.ServeJSON()
+
 	appSet := &models.AppSets{}
 	appSets, err := models.GetAppSets(appSet, limit, index)
 	if err != nil {
@@ -134,19 +130,14 @@ func (a *AppSetsController) GetAll() {
 		}
 		beego.Warn("[C] Got error:", err)
 		a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-		a.ServeJSON()
 		return
 	}
 	a.Data["json"] = appSets
 	if len(appSets) == 0 {
 		beego.Debug("[C] Got nothing")
 		a.Ctx.Output.SetStatus(http.StatusNotFound)
-		a.ServeJSON()
-		return
 	} else {
 		a.Ctx.Output.SetStatus(http.StatusOK)
-		a.ServeJSON()
-		return
 	}
 }
 
@@ -154,6 +145,7 @@ func (a *AppSetsController) GetAll() {
 // @router /:name [delete]
 func (a *AppSetsController) Delete() {
 	name := a.GetString(":name")
+	defer a.ServeJSON()
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
 		appSet := &models.AppSets{
@@ -167,13 +159,11 @@ func (a *AppSetsController) Delete() {
 			}
 			beego.Warn("[C] Got error:", err)
 			a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			a.ServeJSON()
 			return
 		}
 		if len(appSets) == 0 {
 			beego.Debug("[C] Got nothing with name:", name)
 			a.Ctx.Output.SetStatus(http.StatusNotFound)
-			a.ServeJSON()
 			return
 		}
 		err = models.DeleteAppSet(appSets[0])
@@ -184,13 +174,9 @@ func (a *AppSetsController) Delete() {
 			}
 			beego.Warn("[C] Got error:", err)
 			a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			a.ServeJSON()
 			return
-
 		}
 		a.Ctx.Output.SetStatus(http.StatusNoContent)
-		a.ServeJSON()
-		return
 	}
 }
 
@@ -198,6 +184,7 @@ func (a *AppSetsController) Delete() {
 // @router /:name [put]
 func (a *AppSetsController) Put() {
 	name := a.GetString(":name")
+	defer a.ServeJSON()
 	beego.Debug("[C] Got appSet name:", name)
 	if name != "" {
 		appSet := &models.AppSets{
@@ -211,13 +198,11 @@ func (a *AppSetsController) Put() {
 			}
 			beego.Warn("[C] Got error:", err)
 			a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			a.ServeJSON()
 			return
 		}
 		if len(appSets) == 0 {
 			beego.Debug("[C] Got nothing with name:", name)
 			a.Ctx.Output.SetStatus(http.StatusNotFound)
-			a.ServeJSON()
 			return
 		}
 
@@ -230,7 +215,6 @@ func (a *AppSetsController) Put() {
 				"error":   err.Error(),
 			}
 			a.Ctx.Output.SetStatus(http.StatusBadRequest)
-			a.ServeJSON()
 			return
 		}
 		beego.Debug("[C] Got appSet data:", appSet)
@@ -242,12 +226,8 @@ func (a *AppSetsController) Put() {
 			}
 			beego.Warn("[C] Got error:", err)
 			a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			a.ServeJSON()
 			return
-
 		}
 		a.Ctx.Output.SetStatus(http.StatusAccepted)
-		a.ServeJSON()
-		return
 	}
 }

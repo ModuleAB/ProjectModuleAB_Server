@@ -45,26 +45,19 @@ func AddSignal(hostId string, signal Signal) (string, error) {
 		buf []byte
 		err error
 	)
-	if !common.DefaultRedisClient.IsExist(keyName) {
-		var v = make([]Signal, 0)
-		v = append(v, signal)
-		// You have 30 minutes to take it out, or failed
-		buf, err = toGob(v)
-		if err != nil {
-			return "", err
-		}
-	} else {
+	var v = make([]Signal, 0)
+	if common.DefaultRedisClient.IsExist(keyName) {
 		b := common.DefaultRedisClient.Get(keyName)
-		v, err := fromGob(b.([]byte))
+		v, err = fromGob(b.([]byte))
 		if err != nil {
 			return "", err
 		}
 		beego.Debug("Got from redis:", v)
-		v = append(v, signal)
-		buf, err = toGob(v)
-		if err != nil {
-			return "", err
-		}
+	}
+	v = append(v, signal)
+	buf, err = toGob(v)
+	if err != nil {
+		return "", err
 	}
 	return newId, common.DefaultRedisClient.Put(keyName, buf, 30*time.Minute)
 }

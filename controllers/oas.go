@@ -51,6 +51,7 @@ func (h *OasController) Prepare() {
 // @Title createOAS
 // @router / [post]
 func (a *OasController) Post() {
+	defer a.ServeJSON()
 	oas := new(models.Oas)
 	err := json.Unmarshal(a.Ctx.Input.RequestBody, oas)
 	if err != nil {
@@ -60,7 +61,6 @@ func (a *OasController) Post() {
 			"error":   err.Error(),
 		}
 		a.Ctx.Output.SetStatus(http.StatusBadRequest)
-		a.ServeJSON()
 		return
 	}
 	beego.Debug("Got data:", oas)
@@ -73,7 +73,6 @@ func (a *OasController) Post() {
 			"error":   err.Error(),
 		}
 		a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-		a.ServeJSON()
 		return
 	}
 	oas.VaultId, err = o.GetOasVaultId(oas.VaultName)
@@ -84,7 +83,6 @@ func (a *OasController) Post() {
 			"error":   err.Error(),
 		}
 		a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-		a.ServeJSON()
 		return
 	}
 
@@ -97,7 +95,6 @@ func (a *OasController) Post() {
 			"error":   err.Error(),
 		}
 		a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-		a.ServeJSON()
 		return
 	}
 
@@ -106,13 +103,13 @@ func (a *OasController) Post() {
 		"id": id,
 	}
 	a.Ctx.Output.SetStatus(http.StatusCreated)
-	a.ServeJSON()
 }
 
 // @Title getOAS
 // @router /:name [get]
 func (a *OasController) Get() {
 	name := a.GetString(":name")
+	defer a.ServeJSON()
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
 		oas := &models.Oas{
@@ -126,19 +123,14 @@ func (a *OasController) Get() {
 			}
 			beego.Warn("[C] Got error:", err)
 			a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			a.ServeJSON()
 			return
 		}
 		a.Data["json"] = oass
 		if len(oass) == 0 {
 			beego.Debug("[C] Got nothing with name:", name)
 			a.Ctx.Output.SetStatus(http.StatusNotFound)
-			a.ServeJSON()
-			return
 		} else {
 			a.Ctx.Output.SetStatus(http.StatusOK)
-			a.ServeJSON()
-			return
 		}
 	}
 }
@@ -149,6 +141,8 @@ func (a *OasController) GetAll() {
 	limit, _ := a.GetInt("limit", 0)
 	index, _ := a.GetInt("index", 0)
 
+	defer a.ServeJSON()
+
 	oas := &models.Oas{}
 	oass, err := models.GetOas(oas, limit, index)
 	if err != nil {
@@ -158,19 +152,14 @@ func (a *OasController) GetAll() {
 		}
 		beego.Warn("[C] Got error:", err)
 		a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-		a.ServeJSON()
 		return
 	}
 	a.Data["json"] = oass
 	if len(oass) == 0 {
 		beego.Debug("[C] Got nothing")
 		a.Ctx.Output.SetStatus(http.StatusNotFound)
-		a.ServeJSON()
-		return
 	} else {
 		a.Ctx.Output.SetStatus(http.StatusOK)
-		a.ServeJSON()
-		return
 	}
 }
 
@@ -178,6 +167,7 @@ func (a *OasController) GetAll() {
 // @router /:name [delete]
 func (a *OasController) Delete() {
 	name := a.GetString(":name")
+	defer a.ServeJSON()
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
 		oas := &models.Oas{
@@ -191,13 +181,11 @@ func (a *OasController) Delete() {
 			}
 			beego.Warn("[C] Got error:", err)
 			a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			a.ServeJSON()
 			return
 		}
 		if len(oass) == 0 {
 			beego.Debug("[C] Got nothing with name:", name)
 			a.Ctx.Output.SetStatus(http.StatusNotFound)
-			a.ServeJSON()
 			return
 		}
 		err = models.DeleteOas(oass[0])
@@ -208,13 +196,10 @@ func (a *OasController) Delete() {
 			}
 			beego.Warn("[C] Got error:", err)
 			a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			a.ServeJSON()
 			return
 
 		}
 		a.Ctx.Output.SetStatus(http.StatusNoContent)
-		a.ServeJSON()
-		return
 	}
 }
 
@@ -222,6 +207,7 @@ func (a *OasController) Delete() {
 // @router /:name [put]
 func (a *OasController) Put() {
 	name := a.GetString(":name")
+	defer a.ServeJSON()
 	beego.Debug("[C] Got oas name:", name)
 	if name != "" {
 		oas := &models.Oas{
@@ -235,13 +221,11 @@ func (a *OasController) Put() {
 			}
 			beego.Warn("[C] Got error:", err)
 			a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			a.ServeJSON()
 			return
 		}
 		if len(oass) == 0 {
 			beego.Debug("[C] Got nothing with name:", name)
 			a.Ctx.Output.SetStatus(http.StatusNotFound)
-			a.ServeJSON()
 			return
 		}
 
@@ -254,7 +238,6 @@ func (a *OasController) Put() {
 				"error":   err.Error(),
 			}
 			a.Ctx.Output.SetStatus(http.StatusBadRequest)
-			a.ServeJSON()
 			return
 		}
 		beego.Debug("[C] Got oas data:", oas)
@@ -266,12 +249,8 @@ func (a *OasController) Put() {
 			}
 			beego.Warn("[C] Got error:", err)
 			a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			a.ServeJSON()
 			return
-
 		}
 		a.Ctx.Output.SetStatus(http.StatusAccepted)
-		a.ServeJSON()
-		return
 	}
 }

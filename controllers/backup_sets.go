@@ -51,6 +51,7 @@ func (h *BackupSetsController) Prepare() {
 // @Title createBackupSet
 // @router / [post]
 func (h *BackupSetsController) Post() {
+	defer h.ServeJSON()
 	backupSet := new(models.BackupSets)
 	err := json.Unmarshal(h.Ctx.Input.RequestBody, backupSet)
 	if err != nil {
@@ -60,7 +61,6 @@ func (h *BackupSetsController) Post() {
 			"error":   err.Error(),
 		}
 		h.Ctx.Output.SetStatus(http.StatusBadRequest)
-		h.ServeJSON()
 		return
 	}
 	beego.Debug("[C] Got data:", backupSet)
@@ -72,7 +72,6 @@ func (h *BackupSetsController) Post() {
 			"error":   err.Error(),
 		}
 		h.Ctx.Output.SetStatus(http.StatusInternalServerError)
-		h.ServeJSON()
 		return
 	}
 
@@ -81,14 +80,13 @@ func (h *BackupSetsController) Post() {
 		"id": id,
 	}
 	h.Ctx.Output.SetStatus(http.StatusCreated)
-	h.ServeJSON()
-	return
 }
 
 // @Title getBackupSet
 // @router /:name [get]
 func (h *BackupSetsController) Get() {
 	name := h.GetString(":name")
+	defer h.ServeJSON()
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
 		backupSet := &models.BackupSets{
@@ -102,19 +100,14 @@ func (h *BackupSetsController) Get() {
 			}
 			beego.Warn("[C] Got error:", err)
 			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			h.ServeJSON()
 			return
 		}
 		h.Data["json"] = backupSets
 		if len(backupSets) == 0 {
 			beego.Debug("[C] Got nothing with name:", name)
 			h.Ctx.Output.SetStatus(http.StatusNotFound)
-			h.ServeJSON()
-			return
 		} else {
 			h.Ctx.Output.SetStatus(http.StatusOK)
-			h.ServeJSON()
-			return
 		}
 	}
 }
@@ -125,6 +118,8 @@ func (h *BackupSetsController) GetAll() {
 	limit, _ := h.GetInt("limit", 0)
 	index, _ := h.GetInt("index", 0)
 
+	defer h.ServeJSON()
+
 	backupSet := &models.BackupSets{}
 	backupSets, err := models.GetBackupSets(backupSet, limit, index)
 	if err != nil {
@@ -134,19 +129,14 @@ func (h *BackupSetsController) GetAll() {
 		}
 		beego.Warn("[C] Got error:", err)
 		h.Ctx.Output.SetStatus(http.StatusInternalServerError)
-		h.ServeJSON()
 		return
 	}
 	h.Data["json"] = backupSets
 	if len(backupSets) == 0 {
 		beego.Debug("[C] Got nothing")
 		h.Ctx.Output.SetStatus(http.StatusNotFound)
-		h.ServeJSON()
-		return
 	} else {
 		h.Ctx.Output.SetStatus(http.StatusOK)
-		h.ServeJSON()
-		return
 	}
 }
 
@@ -154,6 +144,7 @@ func (h *BackupSetsController) GetAll() {
 // @router /:name [delete]
 func (h *BackupSetsController) Delete() {
 	name := h.GetString(":name")
+	defer h.ServeJSON()
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
 		backupSet := &models.BackupSets{
@@ -167,13 +158,11 @@ func (h *BackupSetsController) Delete() {
 			}
 			beego.Warn("[C] Got error:", err)
 			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			h.ServeJSON()
 			return
 		}
 		if len(backupSets) == 0 {
 			beego.Debug("[C] Got nothing with name:", name)
 			h.Ctx.Output.SetStatus(http.StatusNotFound)
-			h.ServeJSON()
 			return
 		}
 		err = models.DeleteBackupSet(backupSets[0])
@@ -184,13 +173,9 @@ func (h *BackupSetsController) Delete() {
 			}
 			beego.Warn("[C] Got error:", err)
 			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			h.ServeJSON()
 			return
-
 		}
 		h.Ctx.Output.SetStatus(http.StatusNoContent)
-		h.ServeJSON()
-		return
 	}
 }
 
@@ -198,6 +183,7 @@ func (h *BackupSetsController) Delete() {
 // @router /:name [put]
 func (h *BackupSetsController) Put() {
 	name := h.GetString(":name")
+	defer h.ServeJSON()
 	beego.Debug("[C] Got backupSet name:", name)
 	if name != "" {
 		backupSet := &models.BackupSets{
@@ -213,13 +199,11 @@ func (h *BackupSetsController) Put() {
 			}
 			beego.Warn("[C] Got error:", err)
 			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			h.ServeJSON()
 			return
 		}
 		if len(backupSets) == 0 {
 			beego.Debug("[C] Got nothing with name:", name)
 			h.Ctx.Output.SetStatus(http.StatusNotFound)
-			h.ServeJSON()
 			return
 		}
 
@@ -232,7 +216,6 @@ func (h *BackupSetsController) Put() {
 				"error":   err.Error(),
 			}
 			h.Ctx.Output.SetStatus(http.StatusBadRequest)
-			h.ServeJSON()
 			return
 		}
 		beego.Debug("[C] Got backupSet data:", backupSet)
@@ -244,12 +227,8 @@ func (h *BackupSetsController) Put() {
 			}
 			beego.Warn("[C] Got error:", err)
 			h.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			h.ServeJSON()
 			return
-
 		}
 		h.Ctx.Output.SetStatus(http.StatusAccepted)
-		h.ServeJSON()
-		return
 	}
 }

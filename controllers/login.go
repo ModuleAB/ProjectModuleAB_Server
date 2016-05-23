@@ -15,6 +15,7 @@ type LoginController struct {
 
 // @router /login [post]
 func (h *LoginController) Login() {
+	defer h.ServeJSON()
 	user := new(models.Users)
 	err := json.Unmarshal(h.Ctx.Input.RequestBody, user)
 	if err != nil {
@@ -24,7 +25,6 @@ func (h *LoginController) Login() {
 			"error":   err.Error(),
 		}
 		h.Ctx.Output.SetStatus(http.StatusBadRequest)
-		h.ServeJSON()
 		return
 	}
 	beego.Debug("[C] Got data:", user)
@@ -36,59 +36,53 @@ func (h *LoginController) Login() {
 		}
 		beego.Warn("[C] Got error:", err)
 		h.Ctx.Output.SetStatus(http.StatusInternalServerError)
-		h.ServeJSON()
 		return
 	}
 	if len(users) == 0 || user.Password == "" {
 		beego.Debug("[C] Got nothing with name:", user.Name)
 		h.Ctx.Output.SetStatus(http.StatusForbidden)
-		h.ServeJSON()
 		return
 	} else if len(users) > 1 {
 		beego.Debug("[C] Got duplicate user with name:", user.Name)
 		h.Ctx.Output.SetStatus(http.StatusForbidden)
-		h.ServeJSON()
 		return
 	}
 	h.SetSession("id", users[0].Id)
 	h.SetSession("name", users[0].Name)
 	h.SetSession("show_name", users[0].ShowName)
 	h.Ctx.Output.SetStatus(http.StatusOK)
-	h.ServeJSON()
 }
 
 // @router /logout [get]
 func (h *LoginController) Logout() {
+	defer h.ServeJSON()
 	if h.GetSession("id") == nil {
 		h.Data["json"] = map[string]string{
 			"error": "You need login first.",
 		}
 		h.Ctx.Output.SetStatus(http.StatusUnauthorized)
-		h.ServeJSON()
 		return
 	}
 
 	h.DelSession("id")
 	h.Ctx.Output.SetStatus(http.StatusOK)
-	h.ServeJSON()
 }
 
 // @router /check [get]
 func (h *LoginController) Check() {
 	id := h.GetSession("id")
+	defer h.ServeJSON()
 	if id == nil {
 		h.Data["json"] = map[string]string{
 			"error": "You need login first.",
 		}
 		h.Ctx.Output.SetStatus(http.StatusUnauthorized)
-		h.ServeJSON()
 		return
 	} else if _, ok := id.(string); !ok {
 		h.Data["json"] = map[string]string{
 			"error": "Invalid user id.",
 		}
 		h.Ctx.Output.SetStatus(http.StatusUnauthorized)
-		h.ServeJSON()
 		return
 	}
 	h.Data["json"] = map[string]interface{}{
@@ -97,5 +91,4 @@ func (h *LoginController) Check() {
 		"show_name": h.GetSession("show_name"),
 	}
 	h.Ctx.Output.SetStatus(http.StatusOK)
-	h.ServeJSON()
 }

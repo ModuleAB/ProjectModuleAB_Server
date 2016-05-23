@@ -52,6 +52,7 @@ func (h *OssController) Prepare() {
 // @router / [post]
 func (a *OssController) Post() {
 	oss := new(models.Oss)
+	defer a.ServeJSON()
 	err := json.Unmarshal(a.Ctx.Input.RequestBody, oss)
 	if err != nil {
 		beego.Warn("[C] Got error:", err)
@@ -60,7 +61,6 @@ func (a *OssController) Post() {
 			"error":   err.Error(),
 		}
 		a.Ctx.Output.SetStatus(http.StatusBadRequest)
-		a.ServeJSON()
 		return
 	}
 	beego.Debug("[C] Got data:", oss)
@@ -72,7 +72,6 @@ func (a *OssController) Post() {
 			"error":   err.Error(),
 		}
 		a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-		a.ServeJSON()
 		return
 	}
 
@@ -81,14 +80,13 @@ func (a *OssController) Post() {
 		"id": id,
 	}
 	a.Ctx.Output.SetStatus(http.StatusCreated)
-	a.ServeJSON()
-	return
 }
 
 // @Title getOSS
 // @router /:name [get]
 func (a *OssController) Get() {
 	name := a.GetString(":name")
+	defer a.ServeJSON()
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
 		oss := &models.Oss{
@@ -102,19 +100,14 @@ func (a *OssController) Get() {
 			}
 			beego.Warn("[C] Got error:", err)
 			a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			a.ServeJSON()
 			return
 		}
 		a.Data["json"] = osss
 		if len(osss) == 0 {
 			beego.Debug("[C] Got nothing with name:", name)
 			a.Ctx.Output.SetStatus(http.StatusNotFound)
-			a.ServeJSON()
-			return
 		} else {
 			a.Ctx.Output.SetStatus(http.StatusOK)
-			a.ServeJSON()
-			return
 		}
 	}
 }
@@ -125,6 +118,8 @@ func (a *OssController) GetAll() {
 	limit, _ := a.GetInt("limit", 0)
 	index, _ := a.GetInt("index", 0)
 
+	defer a.ServeJSON()
+
 	oss := &models.Oss{}
 	osss, err := models.GetOss(oss, limit, index)
 	if err != nil {
@@ -134,19 +129,14 @@ func (a *OssController) GetAll() {
 		}
 		beego.Warn("[C] Got error:", err)
 		a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-		a.ServeJSON()
 		return
 	}
 	a.Data["json"] = osss
 	if len(osss) == 0 {
 		beego.Debug("[C] Got nothing")
 		a.Ctx.Output.SetStatus(http.StatusNotFound)
-		a.ServeJSON()
-		return
 	} else {
 		a.Ctx.Output.SetStatus(http.StatusOK)
-		a.ServeJSON()
-		return
 	}
 }
 
@@ -154,6 +144,7 @@ func (a *OssController) GetAll() {
 // @router /:name [delete]
 func (a *OssController) Delete() {
 	name := a.GetString(":name")
+	defer a.ServeJSON()
 	beego.Debug("[C] Got name:", name)
 	if name != "" {
 		oss := &models.Oss{
@@ -167,13 +158,11 @@ func (a *OssController) Delete() {
 			}
 			beego.Warn("[C] Got error:", err)
 			a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			a.ServeJSON()
 			return
 		}
 		if len(osss) == 0 {
 			beego.Debug("[C] Got nothing with name:", name)
 			a.Ctx.Output.SetStatus(http.StatusNotFound)
-			a.ServeJSON()
 			return
 		}
 		err = models.DeleteOss(osss[0])
@@ -184,13 +173,9 @@ func (a *OssController) Delete() {
 			}
 			beego.Warn("[C] Got error:", err)
 			a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			a.ServeJSON()
 			return
-
 		}
 		a.Ctx.Output.SetStatus(http.StatusNoContent)
-		a.ServeJSON()
-		return
 	}
 }
 
@@ -198,6 +183,7 @@ func (a *OssController) Delete() {
 // @router /:name [put]
 func (a *OssController) Put() {
 	name := a.GetString(":name")
+	defer a.ServeJSON()
 	beego.Debug("[C] Got oss name:", name)
 	if name != "" {
 		oss := &models.Oss{
@@ -211,13 +197,11 @@ func (a *OssController) Put() {
 			}
 			beego.Warn("[C] Got error:", err)
 			a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			a.ServeJSON()
 			return
 		}
 		if len(osss) == 0 {
 			beego.Debug("[C] Got nothing with name:", name)
 			a.Ctx.Output.SetStatus(http.StatusNotFound)
-			a.ServeJSON()
 			return
 		}
 
@@ -230,7 +214,6 @@ func (a *OssController) Put() {
 				"error":   err.Error(),
 			}
 			a.Ctx.Output.SetStatus(http.StatusBadRequest)
-			a.ServeJSON()
 			return
 		}
 		beego.Debug("[C] Got oss data:", oss)
@@ -242,12 +225,8 @@ func (a *OssController) Put() {
 			}
 			beego.Warn("[C] Got error:", err)
 			a.Ctx.Output.SetStatus(http.StatusInternalServerError)
-			a.ServeJSON()
 			return
-
 		}
 		a.Ctx.Output.SetStatus(http.StatusAccepted)
-		a.ServeJSON()
-		return
 	}
 }

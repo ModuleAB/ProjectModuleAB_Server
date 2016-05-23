@@ -53,6 +53,8 @@ func (h *RolesController) GetAll() {
 	limit, _ := h.GetInt("limit", 0)
 	index, _ := h.GetInt("index", 0)
 
+	defer h.ServeJSON()
+
 	role := &models.Roles{}
 	roles, err := models.GetRole(role, limit, index)
 	if err != nil {
@@ -62,18 +64,13 @@ func (h *RolesController) GetAll() {
 		}
 		beego.Warn("[C] Got error:", err)
 		h.Ctx.Output.SetStatus(http.StatusInternalServerError)
-		h.ServeJSON()
 		return
 	}
 	h.Data["json"] = roles
 	if len(roles) == 0 {
 		beego.Debug("[C] Got nothing")
 		h.Ctx.Output.SetStatus(http.StatusNotFound)
-		h.ServeJSON()
-		return
 	} else {
 		h.Ctx.Output.SetStatus(http.StatusOK)
-		h.ServeJSON()
-		return
 	}
 }
