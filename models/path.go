@@ -63,7 +63,7 @@ func AddPath(path *Paths) (string, error) {
 		o.Rollback()
 		return "", err
 	}
-	err = AddPathsAppSets(path, path.AppSet)
+	_, err = o.QueryM2M(path, "AppSet").Add(path.AppSet)
 	if err != nil {
 		o.Rollback()
 		return "", err
@@ -95,7 +95,7 @@ func DeletePath(h *Paths) error {
 		}
 		return fmt.Errorf("Bad info: %s", errS)
 	}
-	err = ClearPathsAppSets(h)
+	_, err = o.QueryM2M(h, "AppSet").Clear()
 	if err != nil {
 		o.Rollback()
 		return err
@@ -135,7 +135,7 @@ func UpdatePath(h *Paths) error {
 		o.Rollback()
 		return err
 	}
-	if h.AppSet != nil {
+	if h.AppSet != nil && len(h.AppSet) != 0 {
 		_, err = o.QueryM2M(h, "AppSet").Clear()
 		if err != nil {
 			o.Rollback()
@@ -180,58 +180,4 @@ func GetPaths(cond *Paths, limit, index int) ([]*Paths, error) {
 		o.LoadRelated(v, "Records", common.RelDepth)
 	}
 	return r, nil
-}
-
-func AddPathsAppSets(path *Paths, appSets []*AppSets) error {
-	o := orm.NewOrm()
-	err := o.Begin()
-	if err != nil {
-		o.Rollback()
-		return err
-	}
-
-	if appSets != nil && len(appSets) != 0 {
-		_, err = o.QueryM2M(path, "AppSet").Add(appSets)
-		if err != nil {
-			o.Rollback()
-			return err
-		}
-	}
-	o.Commit()
-	return nil
-}
-
-func DeletePathsAppSets(path *Paths, appSets []*AppSets) error {
-	o := orm.NewOrm()
-	err := o.Begin()
-	if err != nil {
-		o.Rollback()
-		return err
-	}
-
-	if appSets != nil {
-		_, err = o.QueryM2M(path, "AppSet").Remove(appSets)
-		if err != nil {
-			o.Rollback()
-			return err
-		}
-	}
-	o.Commit()
-	return nil
-}
-
-func ClearPathsAppSets(path *Paths) error {
-	o := orm.NewOrm()
-	err := o.Begin()
-	if err != nil {
-		o.Rollback()
-		return err
-	}
-	_, err = o.QueryM2M(path, "AppSet").Clear()
-	if err != nil {
-		o.Rollback()
-		return err
-	}
-	o.Commit()
-	return nil
 }

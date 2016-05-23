@@ -60,22 +60,15 @@ func AddHost(host *Hosts) (string, error) {
 		o.Rollback()
 		return "", err
 	}
-	if host.Paths != nil {
-		err = AddHostPaths(host, host.Paths)
+	if host.Paths != nil && len(host.Paths) != 0 {
+		_, err = o.QueryM2M(host, "Paths").Add(host.Paths)
 		if err != nil {
 			o.Rollback()
 			return "", err
 		}
 	}
-	if host.ClientJobs != nil {
-		err = AddHostClientJobs(host, host.ClientJobs)
-		if err != nil {
-			o.Rollback()
-			return "", err
-		}
-	}
-	if host.BackupSets != nil {
-		err = AddHostBackupSets(host, host.BackupSets)
+	if host.BackupSets != nil && len(host.BackupSets) != 0 {
+		_, err = o.QueryM2M(host, "BackupSets").Add(host.BackupSets)
 		if err != nil {
 			o.Rollback()
 			return "", err
@@ -108,17 +101,17 @@ func DeleteHost(h *Hosts) error {
 		}
 		return fmt.Errorf("Bad info: %s", errS)
 	}
-	err = ClearHostPaths(h)
+	_, err = o.QueryM2M(h, "Paths").Clear()
 	if err != nil {
 		o.Rollback()
 		return err
 	}
-	err = ClearHostClientJobs(h)
+	_, err = o.QueryM2M(h, "ClientJobs").Clear()
 	if err != nil {
 		o.Rollback()
 		return err
 	}
-	err = ClearHostBackupSets(h)
+	_, err = o.QueryM2M(h, "BackupSets").Clear()
 	if err != nil {
 		o.Rollback()
 		return err
@@ -159,24 +152,24 @@ func UpdateHost(h *Hosts) error {
 		return err
 	}
 	if h.Paths != nil {
-		err = ClearHostPaths(h)
+		_, err = o.QueryM2M(h, "Paths").Clear()
 		if err != nil {
 			o.Rollback()
 			return err
 		}
-		err = AddHostPaths(h, h.Paths)
+		_, err = o.QueryM2M(h, "Paths").Add(h.Paths)
 		if err != nil {
 			o.Rollback()
 			return err
 		}
 	}
 	if h.BackupSets != nil {
-		err = ClearHostBackupSets(h)
+		_, err = o.QueryM2M(h, "BackupSets").Clear()
 		if err != nil {
 			o.Rollback()
 			return err
 		}
-		err = AddHostBackupSets(h, h.BackupSets)
+		_, err = o.QueryM2M(h, "BackupSets").Add(h.BackupSets)
 		if err != nil {
 			o.Rollback()
 			return err
@@ -217,143 +210,4 @@ func GetHosts(cond *Hosts, limit, index int) ([]*Hosts, error) {
 		o.LoadRelated(v, "ClientJobs", common.RelDepth)
 	}
 	return r, nil
-}
-
-func AddHostPaths(host *Hosts, paths []*Paths) error {
-	o := orm.NewOrm()
-	err := o.Begin()
-	if err != nil {
-		return err
-	}
-
-	if paths != nil && len(paths) != 0 {
-		_, err = o.QueryM2M(host, "Paths").Add(paths)
-		if err != nil {
-			o.Rollback()
-			return err
-		}
-	}
-	o.Commit()
-	return nil
-}
-
-func DeleteHostPaths(host *Hosts, paths []*Paths) error {
-	o := orm.NewOrm()
-	err := o.Begin()
-	if err != nil {
-		return err
-	}
-
-	if paths != nil {
-		_, err = o.QueryM2M(host, "Paths").Remove(paths)
-		if err != nil {
-			o.Rollback()
-			return err
-		}
-	}
-	o.Commit()
-	return nil
-}
-
-func ClearHostPaths(host *Hosts) error {
-	o := orm.NewOrm()
-	err := o.Begin()
-	if err != nil {
-		o.Rollback()
-		return err
-	}
-	_, err = o.QueryM2M(host, "Paths").Clear()
-	if err != nil {
-		o.Rollback()
-		return err
-	}
-	o.Commit()
-	return nil
-}
-
-func AddHostClientJobs(host *Hosts, jobs []*ClientJobs) error {
-	o := orm.NewOrm()
-	err := o.Begin()
-	if err != nil {
-		return err
-	}
-
-	if jobs != nil {
-		_, err = o.QueryM2M(host, "ClientJobs").Add(jobs)
-		if err != nil {
-			o.Rollback()
-			return err
-		}
-	}
-	o.Commit()
-	return nil
-}
-
-func DeleteHostClientJobs(host *Hosts, jobs []*ClientJobs) error {
-	o := orm.NewOrm()
-	err := o.Begin()
-	if err != nil {
-		return err
-	}
-
-	if jobs != nil {
-		_, err = o.QueryM2M(host, "ClientJobs").Remove(jobs)
-		if err != nil {
-			o.Rollback()
-			return err
-		}
-	}
-	o.Commit()
-	return nil
-}
-
-func ClearHostClientJobs(host *Hosts) error {
-	o := orm.NewOrm()
-	err := o.Begin()
-	if err != nil {
-		o.Rollback()
-		return err
-	}
-	_, err = o.QueryM2M(host, "ClientJobs").Clear()
-	if err != nil {
-		o.Rollback()
-		return err
-	}
-	o.Commit()
-	return nil
-}
-
-func AddHostBackupSets(host *Hosts, backupSets []*BackupSets) error {
-	o := orm.NewOrm()
-	err := o.Begin()
-	if err != nil {
-		o.Rollback()
-		return err
-	}
-
-	if backupSets != nil {
-		_, err = o.QueryM2M(host, "BackupSets").Add(backupSets)
-		if err != nil {
-			o.Rollback()
-			return err
-		}
-	}
-	o.Commit()
-	return nil
-}
-
-func ClearHostBackupSets(host *Hosts) error {
-	o := orm.NewOrm()
-	err := o.Begin()
-	if err != nil {
-		o.Rollback()
-		return err
-	}
-	_, err = o.QueryM2M(host, "BackupSets").Clear()
-	if err != nil {
-		o.Rollback()
-		return err
-	}
-	o.Commit()
-	return nil
 }

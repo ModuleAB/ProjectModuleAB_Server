@@ -59,7 +59,7 @@ func AddUser(a *Users) (string, error) {
 		o.Rollback()
 		return "", err
 	}
-	err = AddUsersRoles(a, a.Roles)
+	_, err = o.QueryM2M(a, "Roles").Add(a.Roles)
 	if err != nil {
 		o.Rollback()
 		return "", err
@@ -90,7 +90,7 @@ func DeleteUser(a *Users) error {
 		}
 		return fmt.Errorf("Bad info: %s", errS)
 	}
-	err = ClearUsersRoles(a)
+	_, err = o.QueryM2M(a, "Roles").Clear()
 	if err != nil {
 		o.Rollback()
 		return err
@@ -132,13 +132,12 @@ func UpdateUser(a *Users) error {
 		return err
 	}
 	if a.Roles != nil && len(a.Roles) != 0 {
-		err = ClearUsersRoles(a)
+		_, err = o.QueryM2M(a, "Roles").Clear()
 		if err != nil {
 			o.Rollback()
 			return err
 		}
 		_, err = o.QueryM2M(a, "Roles").Add(a.Roles)
-		err = AddUsersRoles(a, a.Roles)
 		if err != nil {
 			o.Rollback()
 			return err
@@ -180,53 +179,4 @@ func GetUser(cond *Users, limit, index int) ([]*Users, error) {
 		o.LoadRelated(v, "Roles", common.RelDepth)
 	}
 	return r, nil
-}
-
-func AddUsersRoles(user *Users, roles []*Roles) error {
-	o := orm.NewOrm()
-	err := o.Begin()
-	if err != nil {
-		return err
-	}
-	if roles != nil {
-		_, err = o.QueryM2M(user, "Roles").Add(roles)
-		if err != nil {
-			o.Rollback()
-			return err
-		}
-	}
-	o.Commit()
-	return nil
-}
-
-func DeleteUsersRoles(user *Users, roles []*Roles) error {
-	o := orm.NewOrm()
-	err := o.Begin()
-	if err != nil {
-		return err
-	}
-	if roles != nil {
-		_, err = o.QueryM2M(user, "Roles").Remove(roles)
-		if err != nil {
-			o.Rollback()
-			return err
-		}
-	}
-	o.Commit()
-	return nil
-}
-
-func ClearUsersRoles(user *Users) error {
-	o := orm.NewOrm()
-	err := o.Begin()
-	if err != nil {
-		return err
-	}
-	_, err = o.QueryM2M(user, "Roles").Clear()
-	if err != nil {
-		o.Rollback()
-		return err
-	}
-	o.Commit()
-	return nil
 }
