@@ -56,8 +56,6 @@ func AddSignal(hostId string, signal Signal) (string, error) {
 }
 
 func GetSignals(hostId string) []Signal {
-	lock.Lock()
-	defer lock.Unlock()
 	keyName := fmt.Sprintf("%s%s", common.DefaultRedisKey, hostId)
 	v := common.DefaultRedisClient.Get(keyName)
 	n, ok := v.([]Signal)
@@ -68,8 +66,6 @@ func GetSignals(hostId string) []Signal {
 }
 
 func GetSignal(hostId, id string) (Signal, error) {
-	lock.Lock()
-	defer lock.Unlock()
 	signals := GetSignals(hostId)
 	for _, v := range signals {
 		if v["id"] == id {
@@ -80,15 +76,11 @@ func GetSignal(hostId, id string) (Signal, error) {
 }
 
 func TruncateSignals(hostId string) {
-	lock.Lock()
-	defer lock.Unlock()
 	keyName := fmt.Sprintf("%s%s", common.DefaultRedisKey, hostId)
 	common.DefaultRedisClient.Delete(keyName)
 }
 
 func DeleteSignal(hostId string, signalId string) error {
-	lock.Lock()
-	defer lock.Unlock()
 	keyName := fmt.Sprintf("%s%s", common.DefaultRedisKey, hostId)
 	if common.DefaultRedisClient.IsExist(keyName) {
 		v := common.DefaultRedisClient.Get(keyName)
@@ -96,7 +88,7 @@ func DeleteSignal(hostId string, signalId string) error {
 		if !ok {
 			return ErrorSignalBadDataType
 		}
-		a := make([]Signal, 0)
+		var a = make([]Signal, 0)
 		for _, v := range n {
 			if v["id"] != signalId {
 				a = append(a, v)
