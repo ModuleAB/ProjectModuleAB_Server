@@ -275,10 +275,14 @@ func (h *RecordsController) Recover() {
 				records[0].BackupSet.Oss.Endpoint,
 				records[0].BackupSet.Oss.BucketName,
 			)
-			id, _ := models.AddSignal(
+			id, err := models.AddSignal(
 				records[0].Host.Id,
 				signal,
 			)
+			if err != nil {
+				beego.Warn("[C] Got error:", err)
+			}
+
 			err = models.NotifySignal(
 				records[0].Host.Id,
 				id,

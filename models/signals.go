@@ -1,12 +1,15 @@
 package models
 
 import (
+	"bytes"
+	"encoding/gob"
 	"errors"
 	"fmt"
 	"moduleab_server/common"
 
 	"time"
 
+	"github.com/astaxie/beego"
 	"github.com/pborman/uuid"
 )
 
@@ -38,35 +41,49 @@ func AddSignal(hostId string, signal Signal) (string, error) {
 	keyName := fmt.Sprintf("%s%s", common.DefaultRedisKey, hostId)
 	newId := uuid.New()
 	signal["id"] = newId
+	var (
+		buf []byte
+		err error
+	)
 	if !common.DefaultRedisClient.IsExist(keyName) {
-		v := make([]Signal, 0)
+		var v = make([]Signal, 0)
 		v = append(v, signal)
 		// You have 30 minutes to take it out, or failed
-		return newId, common.DefaultRedisClient.Put(keyName, v, 30*time.Minute)
-	} else {
-		v := common.DefaultRedisClient.Get(keyName)
-		n, ok := v.([]Signal)
-		if !ok {
-			return "", ErrorSignalBadDataType
+		buf, err = toGob(v)
+		if err != nil {
+			return "", err
 		}
-		n = append(n, signal)
-		return newId, common.DefaultRedisClient.Put(keyName, v, 30*time.Minute)
+	} else {
+		b := common.DefaultRedisClient.Get(keyName)
+		v, err := fromGob(b.([]byte))
+		if err != nil {
+			return "", err
+		}
+		beego.Debug("Got from redis:", v)
+		v = append(v, signal)
+		buf, err = toGob(v)
+		if err != nil {
+			return "", err
+		}
 	}
-	return "", nil
+	return newId, common.DefaultRedisClient.Put(keyName, buf, 30*time.Minute)
 }
 
 func GetSignals(hostId string) []Signal {
 	keyName := fmt.Sprintf("%s%s", common.DefaultRedisKey, hostId)
-	v := common.DefaultRedisClient.Get(keyName)
-	n, ok := v.([]Signal)
-	if !ok {
+	b := common.DefaultRedisClient.Get(keyName)
+	beego.Debug("Got from redis:", b)
+	v, err := fromGob(b.([]byte))
+	if err != nil {
+		beego.Warn(err)
 		return nil
 	}
-	return n
+	return v
 }
 
 func GetSignal(hostId, id string) (Signal, error) {
 	signals := GetSignals(hostId)
+	beego.Debug("Signals", signals)
 	for _, v := range signals {
 		if v["id"] == id {
 			return v, nil
@@ -119,4 +136,17 @@ func MakeDownloadSignal(path, endpoint, bucket string) Signal {
 	s["endpoint"] = endpoint
 	s["bucket"] = bucket
 	return s
+}
+
+func toGob(v interface{}) ([]byte, error) {
+	var buf bytes.Buffer
+	err := gob.NewEncoder(&buf).Encode(v)
+	return buf.Bytes(), err
+}
+
+func fromGob(b []byte) ([]Signal, error) {
+	var v = make([]Signal, 0)
+	var buf = bytes.NewBuffer(b)
+	err := gob.NewDecoder(buf).Decode(&v)
+	return v, err
 }
