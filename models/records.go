@@ -239,15 +239,6 @@ func GetRecords(cond *Records, limit, index int,
 		if !times[archiveTimeEnd].IsZero() {
 			q = q.Filter("archived_time__lte", times[backupTimeEnd])
 		}
-		switch {
-		case !times[backupTimeStart].IsZero() || !times[backupTimeEnd].IsZero():
-			q = q.Filter("backup_time")
-		case !times[archiveTimeStart].IsZero() || !times[archiveTimeEnd].IsZero():
-			q = q.Filter("archived_time")
-		case (!times[backupTimeStart].IsZero() || !times[backupTimeEnd].IsZero()) &&
-			(!times[archiveTimeStart].IsZero() || !times[archiveTimeEnd].IsZero()):
-			q = q.Filter("backup_time", "archived_time")
-		}
 	}
 
 	if limit > 0 {

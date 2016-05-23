@@ -26,6 +26,8 @@ func StaticFileServer(ctx *context.Context) {
 }
 
 func init() {
+	beego.InsertFilter("/", beego.BeforeRouter, StaticFileServer)
+	beego.InsertFilter("/*", beego.BeforeRouter, StaticFileServer)
 	beego.ErrorController(&controllers.ErrorController{})
 	ns := beego.NewNamespace("/api/v1",
 		beego.NSNamespace("/hosts",
@@ -105,6 +107,4 @@ func init() {
 		),
 	)
 	beego.AddNamespace(ns)
-	beego.InsertFilter("/", beego.BeforeRouter, StaticFileServer)
-	beego.InsertFilter("/*", beego.BeforeRouter, StaticFileServer)
 }

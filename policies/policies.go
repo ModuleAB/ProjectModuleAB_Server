@@ -79,6 +79,11 @@ func RunPolicies() {
 				continue
 			}
 
+			if len(records) == 0 {
+				beego.Debug("No records.")
+				continue
+			}
+
 			baseLine := records[0]
 			for _, r := range records {
 				oas, err := common.NewOasClient(r.BackupSet.Oas.Endpoint)
