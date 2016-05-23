@@ -131,7 +131,7 @@ func UpdateUser(a *Users) error {
 		o.Rollback()
 		return err
 	}
-	if a.Roles != nil {
+	if a.Roles != nil && len(a.Roles) != 0 {
 		err = ClearUsersRoles(a)
 		if err != nil {
 			o.Rollback()

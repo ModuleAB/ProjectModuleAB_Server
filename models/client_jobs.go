@@ -147,7 +147,7 @@ func UpdateClientJob(a *ClientJobs) error {
 		o.Rollback()
 		return err
 	}
-	if a.Host != nil {
+	if a.Host != nil && len(a.Host) != 0 {
 		_, err = o.QueryM2M(a, "Host").Clear()
 		if err != nil {
 			o.Rollback()
@@ -159,7 +159,7 @@ func UpdateClientJob(a *ClientJobs) error {
 			return err
 		}
 	}
-	if a.Paths != nil {
+	if a.Paths != nil && len(a.Paths) != 0 {
 		_, err = o.QueryM2M(a, "Paths").Clear()
 		if err != nil {
 			o.Rollback()

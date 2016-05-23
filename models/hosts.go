@@ -226,7 +226,7 @@ func AddHostPaths(host *Hosts, paths []*Paths) error {
 		return err
 	}
 
-	if paths != nil {
+	if paths != nil && len(paths) != 0 {
 		_, err = o.QueryM2M(host, "Paths").Add(paths)
 		if err != nil {
 			o.Rollback()

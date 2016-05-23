@@ -85,7 +85,7 @@ func AddPolicy(a *Policies) (string, error) {
 		o.Rollback()
 		return "", err
 	}
-	if a.AppSets != nil {
+	if a.AppSets != nil && len(a.AppSets) != 0 {
 		_, err = o.QueryM2M(a, "AppSets").Add(a.AppSets)
 		if err != nil {
 			o.Rollback()
