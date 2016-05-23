@@ -32,6 +32,7 @@ var (
 
 func init() {
 	SignalChannels = make(map[string]chan Signal)
+	lock = new(sync.Mutex)
 }
 
 type Signal map[string]interface{}
