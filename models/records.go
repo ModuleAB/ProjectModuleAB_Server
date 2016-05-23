@@ -252,6 +252,13 @@ func GetRecords(cond *Records, limit, index int,
 		return nil, err
 	}
 	for _, v := range r {
+		if !v.BackupTime.IsZero() {
+			v.BackupTime = v.BackupTime.Local()
+		}
+		if !v.ArchivedTime.IsZero() {
+			v.ArchivedTime = v.ArchivedTime.Local()
+		}
+
 		o.LoadRelated(v, "Jobs", common.RelDepth)
 	}
 	return r, nil
