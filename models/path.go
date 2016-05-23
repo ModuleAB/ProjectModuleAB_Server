@@ -190,7 +190,7 @@ func AddPathsAppSets(path *Paths, appSets []*AppSets) error {
 		return err
 	}
 
-	if appSets != nil && len(appSet) != 0 {
+	if appSets != nil && len(appSets) != 0 {
 		_, err = o.QueryM2M(path, "AppSet").Add(appSets)
 		if err != nil {
 			o.Rollback()
