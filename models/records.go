@@ -40,7 +40,7 @@ type Records struct {
 }
 
 func (r *Records) GetFullPath() string {
-	return fmt.Sprintf("%s/%s/%s/%s",
+	return fmt.Sprintf("%s/%s%s/%s",
 		r.AppSet.Name,
 		r.Host.Name,
 		r.Path.Path,
