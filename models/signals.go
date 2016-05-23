@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"moduleab_server/common"
 
-	"sync"
 	"time"
 
 	"github.com/pborman/uuid"
@@ -27,19 +26,15 @@ var (
 
 var (
 	SignalChannels map[string]chan Signal
-	lock           *sync.Mutex
 )
 
 func init() {
 	SignalChannels = make(map[string]chan Signal)
-	lock = new(sync.Mutex)
 }
 
 type Signal map[string]interface{}
 
 func AddSignal(hostId string, signal Signal) (string, error) {
-	lock.Lock()
-	defer lock.Unlock()
 	keyName := fmt.Sprintf("%s%s", common.DefaultRedisKey, hostId)
 	newId := uuid.New()
 	signal["id"] = newId
