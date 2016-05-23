@@ -122,7 +122,7 @@ func UpdateOss(a *Oss) error {
 
 // If get all, just use &Oss{}
 func GetOss(cond *Oss, limit, index int) ([]*Oss, error) {
-	r := make([]*Oss, 0)
+	var r = make([]*Oss, 0)
 	o := orm.NewOrm()
 	q := o.QueryTable("oss")
 	if cond.Id != "" {
@@ -132,7 +132,7 @@ func GetOss(cond *Oss, limit, index int) ([]*Oss, error) {
 		q = q.Filter("endpoint", cond.Id)
 	}
 	if cond.BucketName != "" {
-		q = q.Filter("name", cond.BucketName)
+		q = q.Filter("bucket_name", cond.BucketName)
 	}
 	if limit > 0 {
 		q = q.Limit(limit)
