@@ -115,8 +115,7 @@ func RunPolicies() {
 							switch r.Type {
 							case models.RecordTypeBackup:
 								step := r.BackupTime.Sub(baseLine.BackupTime)
-								if (step >= time.Duration(p.Step)*time.Second ||
-									p.Step == models.PolicyReserveAll) &&
+								if step >= time.Duration(p.Step)*time.Second &&
 									p.Step != models.PolicyReserveNone {
 									baseLine = r
 									var reqId, jobId string
@@ -162,19 +161,16 @@ func RunPolicies() {
 										"Cannot update record:", r.Id,
 										"error:", err,
 									)
-									continue
 								}
 
 							case models.RecordTypeArchive:
 								beego.Debug("Skip archived data:", r.Id)
-								continue
 							}
 						case models.PolicyActionDelete:
 							switch r.Type {
 							case models.RecordTypeBackup:
 								step := r.BackupTime.Sub(baseLine.BackupTime)
-								if (step >= time.Duration(p.Step)*time.Second ||
-									p.Step == models.PolicyReserveAll) &&
+								if step >= time.Duration(p.Step)*time.Second &&
 									p.Step != models.PolicyReserveNone {
 									baseLine = r
 									continue
@@ -193,13 +189,11 @@ func RunPolicies() {
 										"Cannot delete record:", r.Id,
 										"error:", err,
 									)
-									continue
 								}
 
 							case models.RecordTypeArchive:
 								step := r.ArchivedTime.Sub(baseLine.ArchivedTime)
-								if (step >= time.Duration(p.Step)*time.Second ||
-									p.Step == models.PolicyReserveAll) &&
+								if step >= time.Duration(p.Step)*time.Second &&
 									p.Step != models.PolicyReserveNone {
 									baseLine = r
 									continue
@@ -225,7 +219,6 @@ func RunPolicies() {
 								)
 								if err != nil {
 									beego.Warn("Cannot make oas job:", err)
-									continue
 								}
 							}
 						}
@@ -376,8 +369,12 @@ func CheckOasJob() {
 								job.Records.BackupSet.Oss.Endpoint,
 								job.Records.BackupSet.Oss.BucketName,
 							)
-							id, _ := models.AddSignal(
+							id, err := models.AddSignal(
 								job.Records.Host.Id, signal)
+							if err != nil {
+								beego.Warn("Got error on add signal:", err)
+								continue
+							}
 							err = models.NotifySignal(
 								job.Records.Host.Id, id)
 							if err != nil {

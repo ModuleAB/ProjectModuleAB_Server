@@ -24,8 +24,8 @@ const (
 )
 
 const (
-	PolicyReserveAll  = -1
-	PolicyReserveNone = 0
+	PolicyReserveNone = -1
+	PolicyReserveAll  = 0
 )
 
 const (
