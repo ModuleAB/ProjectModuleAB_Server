@@ -247,7 +247,8 @@ func GetRecords(cond *Records, limit, index int,
 	if index > 0 {
 		q = q.Offset(index)
 	}
-	_, err := q.RelatedSel(common.RelDepth).All(&r)
+	_, err := q.OrderBy("backup_time", "archived_time").
+		RelatedSel(common.RelDepth).All(&r)
 	if err != nil {
 		return nil, err
 	}
