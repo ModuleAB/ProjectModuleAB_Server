@@ -6,6 +6,7 @@ import (
 	"moduleab_server/common"
 	"moduleab_server/models"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/astaxie/beego"
@@ -128,9 +129,15 @@ func (c *ClientController) WebSocket() {
 		ws.SetReadDeadline(time.Now().Add(
 			time.Duration(timeout) * time.Second),
 		)
+		ws.SetWriteDeadline(time.Now().Add(
+			time.Duration(timeout) * time.Second),
+		)
 		ws.SetPongHandler(func(string) error {
 			beego.Debug("Host:", name, "is still alive.")
 			ws.SetReadDeadline(time.Now().Add(
+				time.Duration(timeout) * time.Second),
+			)
+			ws.SetWriteDeadline(time.Now().Add(
 				time.Duration(timeout) * time.Second),
 			)
 			return nil
@@ -142,22 +149,30 @@ func (c *ClientController) WebSocket() {
 			models.SignalChannels[HostId] = c
 		}
 
-		for {
-			select {
-			case s := <-models.SignalChannels[HostId]:
-				ws.WriteJSON(s)
+		// Start read routine
+		go func() {
+			defer ws.Close()
+			for {
 				_, bConfirm, err := ws.ReadMessage()
 				if websocket.IsCloseError(err,
 					websocket.CloseGoingAway) {
 					beego.Info("Host", name, "is offline.")
-					break
+					return
 				} else if err != nil {
 					beego.Warn("Error on reading:", err.Error())
-					break
+					return
 				}
-				if string(bConfirm) == ClientWebSocketReplyDone {
-					models.DeleteSignal(HostId, s["id"].(string))
+				s := strings.Split(string(bConfirm), " ")
+				if s[0] == ClientWebSocketReplyDone {
+					models.DeleteSignal(HostId, s[1])
 				}
+			}
+		}()
+
+		for {
+			select {
+			case s := <-models.SignalChannels[HostId]:
+				ws.WriteJSON(s)
 			case <-ticker.C:
 				beego.Debug("Websocket ping:", name)
 				err := ws.WriteMessage(websocket.PingMessage, []byte{})
