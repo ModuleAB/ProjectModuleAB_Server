@@ -129,6 +129,7 @@ func (c *ClientController) WebSocket() {
 			time.Duration(timeout) * time.Second),
 		)
 		ws.SetPongHandler(func(string) error {
+			beego.Debug("Host:", name, "is still alive.")
 			ws.SetReadDeadline(time.Now().Add(
 				time.Duration(timeout) * time.Second),
 			)
@@ -158,6 +159,7 @@ func (c *ClientController) WebSocket() {
 					models.DeleteSignal(HostId, s["id"].(string))
 				}
 			case <-ticker.C:
+				beego.Debug("Websocket ping:", name)
 				err := ws.WriteMessage(websocket.PingMessage, []byte{})
 				if err != nil {
 					beego.Warn("Got error on ping", err.Error())
