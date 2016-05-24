@@ -63,6 +63,7 @@ func RunPolicies() {
 				continue
 			}
 		}
+
 		for _, appSet := range p.AppSets {
 			for _, host := range p.Hosts {
 				for _, path := range p.Paths {
@@ -95,24 +96,24 @@ func RunPolicies() {
 							beego.Warn("Cannot connect OAS Service:", err)
 							continue
 						}
+						oss, err := common.NewOssClient(r.BackupSet.Oss.Endpoint)
+						if err != nil {
+							beego.Warn("Cannot connect OSS Service:", err)
+							continue
+						}
+						bucket, err := oss.Bucket(r.BackupSet.Oss.BucketName)
+						if err != nil {
+							beego.Warn(
+								"Cannot get bucket:", r.BackupSet.Oss.BucketName,
+								"error:", err,
+							)
+							continue
+						}
+
 						switch p.Action {
 						case models.PolicyActionArchive:
 							switch r.Type {
 							case models.RecordTypeBackup:
-								oss, err := common.NewOssClient(r.BackupSet.Oss.Endpoint)
-								if err != nil {
-									beego.Warn("Cannot connect OSS Service:", err)
-									continue
-								}
-								bucket, err := oss.Bucket(r.BackupSet.Oss.BucketName)
-								if err != nil {
-									beego.Warn(
-										"Cannot get bucket:", r.BackupSet.Oss.BucketName,
-										"error:", err,
-									)
-									continue
-								}
-
 								step := r.BackupTime.Sub(baseLine.BackupTime)
 								if (step >= time.Duration(p.Step)*time.Second ||
 									p.Step == models.PolicyReserveAll) &&
@@ -171,19 +172,6 @@ func RunPolicies() {
 						case models.PolicyActionDelete:
 							switch r.Type {
 							case models.RecordTypeBackup:
-								oss, err := common.NewOssClient(r.BackupSet.Oss.Endpoint)
-								if err != nil {
-									beego.Warn("Cannot connect OSS Service:", err)
-									continue
-								}
-								bucket, err := oss.Bucket(r.BackupSet.Oss.BucketName)
-								if err != nil {
-									beego.Warn(
-										"Cannot get bucket:", r.BackupSet.Oss.BucketName,
-										"error:", err,
-									)
-									continue
-								}
 								step := r.BackupTime.Sub(baseLine.BackupTime)
 								if (step >= time.Duration(p.Step)*time.Second ||
 									p.Step == models.PolicyReserveAll) &&
