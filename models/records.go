@@ -69,8 +69,19 @@ func AddRecord(record *Records) (string, error) {
 		return "", err
 	}
 
-	record.Id = uuid.New()
-	beego.Debug("[M] Got id:", record.Id)
+	records, err := GetRecords(record, 1, 0, OrderDesc, OrderDesc)
+	if err != nil {
+		o.Rollback()
+		return "", err
+	}
+	beego.Debug("Records:", records)
+	if len(records) != 0 {
+		record.Id = records[0].Id
+	} else {
+		record.Id = uuid.New()
+		beego.Debug("[M] Got id:", record.Id)
+	}
+
 	validator := new(validation.Validation)
 	valid, err := validator.Valid(record)
 	if err != nil {
@@ -86,15 +97,15 @@ func AddRecord(record *Records) (string, error) {
 		return "", fmt.Errorf("Bad info: %s", errS)
 	}
 
-	beego.Debug("[M] Got new data:", record)
-	created, _, err := o.ReadOrCreate(
-		record, "Filename", "Path", "BackupSet", "Host")
-	if err != nil {
-		o.Rollback()
-		return "", err
-	}
-	if !created {
+	if len(records) != 0 {
 		_, err = o.Update(record)
+		if err != nil {
+			o.Rollback()
+			return "", err
+		}
+	} else {
+		beego.Debug("[M] Got new data:", record)
+		_, err = o.Insert(record)
 		if err != nil {
 			o.Rollback()
 			return "", err
@@ -103,7 +114,6 @@ func AddRecord(record *Records) (string, error) {
 	beego.Debug("[M] Record data saved")
 	o.Commit()
 	return record.Id, nil
-
 }
 
 func DeleteRecord(h *Records) error {
@@ -232,7 +242,7 @@ func GetRecords(cond *Records, limit, index int, orderB, orderA bool,
 			}
 			backupSets, err := GetBackupSets(backupSet, 1, 0)
 			if err == nil && len(backupSets) != 0 {
-				cond.AppSet.Id = backupSets[0].Id
+				cond.BackupSet.Id = backupSets[0].Id
 			}
 		}
 		if cond.BackupSet.Id != "" {
