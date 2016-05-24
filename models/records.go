@@ -19,6 +19,11 @@ const (
 )
 
 const (
+	OrderAsc  = false
+	OrderDesc = true
+)
+
+const (
 	backupTimeStart = iota
 	backupTimeEnd
 	archiveTimeStart
@@ -82,10 +87,18 @@ func AddRecord(record *Records) (string, error) {
 	}
 
 	beego.Debug("[M] Got new data:", record)
-	_, err = o.Insert(record)
+	created, _, err := o.ReadOrCreate(
+		record, "Filename", "Path", "BackupSet", "Host")
 	if err != nil {
 		o.Rollback()
 		return "", err
+	}
+	if !created {
+		_, err = o.Update(record)
+		if err != nil {
+			o.Rollback()
+			return "", err
+		}
 	}
 	beego.Debug("[M] Record data saved")
 	o.Commit()
@@ -154,7 +167,7 @@ func UpdateRecord(h *Records) error {
 }
 
 // If get all, just use &Record{}
-func GetRecords(cond *Records, limit, index int,
+func GetRecords(cond *Records, limit, index int, orderB, orderA bool,
 	times ...time.Time) ([]*Records, error) {
 	r := make([]*Records, 0)
 	o := orm.NewOrm()
@@ -247,7 +260,15 @@ func GetRecords(cond *Records, limit, index int,
 	if index > 0 {
 		q = q.Offset(index)
 	}
-	_, err := q.OrderBy("backup_time", "archived_time").
+	sOrderB := "backup_time"
+	sOrderA := "archived_time"
+	if orderB == OrderDesc {
+		sOrderB = "-" + sOrderB
+	}
+	if orderA == OrderDesc {
+		sOrderA = "-" + sOrderA
+	}
+	_, err := q.OrderBy(sOrderB, sOrderA).
 		RelatedSel(common.RelDepth).All(&r)
 	if err != nil {
 		return nil, err

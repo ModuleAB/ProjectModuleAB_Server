@@ -70,7 +70,7 @@ func RunPolicies() {
 					AppSet:    appSet,
 					Type:      p.Target,
 				},
-				0, 0,
+				0, 0, models.OrderAsc, models.OrderAsc,
 				backupStart, backupEnd,
 				archiveStart, archiveEnd,
 			)

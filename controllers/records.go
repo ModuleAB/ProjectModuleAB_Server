@@ -129,6 +129,7 @@ func (h *RecordsController) GetAll() {
 	tAtStart, _ := time.Parse(time.RFC3339, atStart)
 	tAtEnd, _ := time.Parse(time.RFC3339, atEnd)
 	records, err := models.GetRecords(record, limit, index,
+		models.OrderDesc, models.OrderDesc,
 		tBtStart, tBtEnd, tAtStart, tAtEnd)
 	defer h.ServeJSON()
 	if err != nil {
@@ -162,7 +163,8 @@ func (h *RecordsController) Delete() {
 		record := &models.Records{
 			Id: id,
 		}
-		records, err := models.GetRecords(record, 0, 0)
+		records, err := models.GetRecords(record, 0, 0,
+			models.OrderAsc, models.OrderAsc)
 		if err != nil {
 			h.Data["json"] = map[string]string{
 				"message": fmt.Sprint("Failed to get with id:", id),
@@ -201,7 +203,8 @@ func (h *RecordsController) Recover() {
 		record := &models.Records{
 			Id: id,
 		}
-		records, err := models.GetRecords(record, 0, 0)
+		records, err := models.GetRecords(record, 0, 0,
+			models.OrderAsc, models.OrderAsc)
 		if err != nil {
 			h.Data["json"] = map[string]string{
 				"message": fmt.Sprint("Failed to get with id:", id),
