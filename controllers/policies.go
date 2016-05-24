@@ -188,6 +188,8 @@ func (a *PolicyController) Put() {
 		policy := &models.Policies{
 			Name:      name,
 			AppSets:   make([]*models.AppSets, 0),
+			Paths:     make([]*models.Paths, 0),
+			Hosts:     make([]*models.Hosts, 0),
 			BackupSet: new(models.BackupSets),
 		}
 		policies, err := models.GetPolicies(policy, 0, 0)

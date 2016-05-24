@@ -40,6 +40,8 @@ type Policies struct {
 	Desc        string      `orm:"size(128);null" json:"description"`
 	BackupSet   *BackupSets `orm:"rel(fk)" json:"backupset"`
 	AppSets     []*AppSets  `orm:"rel(m2m);null" json:"appsets"` // null means all
+	Hosts       []*Hosts    `orm:"rel(m2m);null" json:"hosts"`
+	Paths       []*Paths    `orm:"rel(m2m);null" json:"paths"`
 	Target      int         `json:"target"`
 	Action      int         `json:"action"`
 	TargetStart int         `orm:"default(0)" json:"starttime"` // Seconds, 0 means now
@@ -92,6 +94,20 @@ func AddPolicy(a *Policies) (string, error) {
 			return "", err
 		}
 	}
+	if a.Hosts != nil && len(a.Hosts) != 0 {
+		_, err = o.QueryM2M(a, "Hosts").Add(a.Hosts)
+		if err != nil {
+			o.Rollback()
+			return "", err
+		}
+	}
+	if a.Paths != nil && len(a.Paths) != 0 {
+		_, err = o.QueryM2M(a, "Paths").Add(a.Paths)
+		if err != nil {
+			o.Rollback()
+			return "", err
+		}
+	}
 	beego.Debug("[M] Policy info saved")
 	o.Commit()
 	return a.Id, nil
@@ -119,6 +135,16 @@ func DeletePolicy(a *Policies) error {
 		return fmt.Errorf("Bad info: %s", errS)
 	}
 	_, err = o.QueryM2M(a, "AppSets").Clear()
+	if err != nil {
+		o.Rollback()
+		return err
+	}
+	_, err = o.QueryM2M(a, "Hosts").Clear()
+	if err != nil {
+		o.Rollback()
+		return err
+	}
+	_, err = o.QueryM2M(a, "Paths").Clear()
 	if err != nil {
 		o.Rollback()
 		return err
@@ -170,6 +196,30 @@ func UpdatePolicy(a *Policies) error {
 			return err
 		}
 	}
+	if a.Hosts != nil {
+		_, err = o.QueryM2M(a, "Hosts").Clear()
+		if err != nil {
+			o.Rollback()
+			return err
+		}
+		_, err = o.QueryM2M(a, "Hosts").Add(a.Hosts)
+		if err != nil {
+			o.Rollback()
+			return err
+		}
+	}
+	if a.Paths != nil {
+		_, err = o.QueryM2M(a, "Paths").Clear()
+		if err != nil {
+			o.Rollback()
+			return err
+		}
+		_, err = o.QueryM2M(a, "Paths").Add(a.Paths)
+		if err != nil {
+			o.Rollback()
+			return err
+		}
+	}
 	o.Commit()
 	return nil
 }
@@ -205,6 +255,8 @@ func GetPolicies(cond *Policies, limit, index int) ([]*Policies, error) {
 	for _, v := range r {
 		o.LoadRelated(v, "BackupSet", common.RelDepth)
 		o.LoadRelated(v, "AppSets", common.RelDepth)
+		o.LoadRelated(v, "Hosts", common.RelDepth)
+		o.LoadRelated(v, "Paths", common.RelDepth)
 	}
 	return r, nil
 }
