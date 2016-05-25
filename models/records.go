@@ -74,7 +74,7 @@ func AddRecord(record *Records) (string, error) {
 		o.Rollback()
 		return "", err
 	}
-	beego.Debug("Records:", records)
+	beego.Debug("[M] Records:", records)
 	if len(records) != 0 {
 		record.Id = records[0].Id
 	} else {
@@ -198,11 +198,8 @@ func GetRecords(cond *Records, limit, index int, orderB, orderA bool,
 			}
 			paths, err := GetPaths(path, 1, 0)
 			if err == nil && len(paths) != 0 {
-				cond.Path.Id = paths[0].Id
+				q = q.Filter("path_id", paths[0].Id)
 			}
-		}
-		if cond.Path.Id != "" {
-			q = q.Filter("path_id", cond.Path.Id)
 		}
 	}
 	if cond.Host != nil {
@@ -212,11 +209,8 @@ func GetRecords(cond *Records, limit, index int, orderB, orderA bool,
 			}
 			hosts, err := GetHosts(host, 1, 0)
 			if err == nil && len(hosts) != 0 {
-				cond.Host.Id = hosts[0].Id
+				q = q.Filter("host_id", hosts[0].Id)
 			}
-		}
-		if cond.Host.Id != "" {
-			q = q.Filter("host_id", cond.Host.Id)
 		}
 	}
 
@@ -227,11 +221,8 @@ func GetRecords(cond *Records, limit, index int, orderB, orderA bool,
 			}
 			appSets, err := GetAppSets(appSet, 1, 0)
 			if err == nil && len(appSets) != 0 {
-				cond.AppSet.Id = appSets[0].Id
+				q = q.Filter("app_set_id", appSets[0].Id)
 			}
-		}
-		if cond.AppSet.Id != "" {
-			q = q.Filter("app_set_id", cond.AppSet.Id)
 		}
 	}
 
@@ -242,11 +233,8 @@ func GetRecords(cond *Records, limit, index int, orderB, orderA bool,
 			}
 			backupSets, err := GetBackupSets(backupSet, 1, 0)
 			if err == nil && len(backupSets) != 0 {
-				cond.BackupSet.Id = backupSets[0].Id
+				q = q.Filter("backup_set_id", backupSets[0].Id)
 			}
-		}
-		if cond.BackupSet.Id != "" {
-			q = q.Filter("backup_set_id", cond.BackupSet.Id)
 		}
 	}
 	if len(times) != 0 {
