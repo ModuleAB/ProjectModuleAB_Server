@@ -121,7 +121,9 @@ func RunPolicies() {
 									var reqId, jobId string
 									reqId, jobId, err = oas.ArchiveToOas(
 										r.BackupSet.Oas.VaultId,
-										r.BackupSet.Oss.Endpoint,
+										common.ConvertVpcOssAddrToInternal(
+											r.BackupSet.Oss.Endpoint,
+										),
 										r.BackupSet.Oss.BucketName,
 										r.GetFullPath(),
 										r.GetFullPath(),
@@ -311,6 +313,7 @@ func CheckOasJob() {
 	)
 	defer ticker.Stop()
 	beego.Debug("checkOasJob() running...")
+	defer beego.Debug("checkOasJob() STOPPED!")
 	for {
 		select {
 		case <-ticker.C:
@@ -387,5 +390,4 @@ func CheckOasJob() {
 			}
 		}
 	}
-	defer beego.Debug("checkOasJob() STOPPED!")
 }

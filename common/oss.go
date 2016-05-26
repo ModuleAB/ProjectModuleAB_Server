@@ -2,6 +2,7 @@ package common
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
@@ -28,4 +29,16 @@ func NewOssClient(endpoint string) (*OssClient, error) {
 		beego.AppConfig.String("aliapi::secret"),
 	)
 	return o, err
+}
+
+// ConvertVpcOssAddrToInternal: Aliyun may not support
+// OAS pull from OSS with VPC Address
+func ConvertVpcOssAddrToInternal(vpcAddr string) string {
+	const vpcReg = "vpc100-oss-cn-([a-z]+).aliyuncs.com"
+	reg := regexp.MustCompile(vpcReg)
+	if reg.MatchString(vpcAddr) {
+		region := reg.ReplaceAllString(vpcAddr, "$1")
+		return fmt.Sprintf("oss-cn-%s-internal.aliyuncs.com", region)
+	}
+	return vpcAddr
 }
