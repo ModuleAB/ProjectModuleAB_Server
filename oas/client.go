@@ -149,11 +149,7 @@ func (o *OasClient) httpRequest(method, url string, headers http.Header,
 	}
 
 	req.Header = headers
-	res, err := o.h.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	return res, nil
+	return o.h.Do(req)
 }
 
 func (o *OasClient) createSignForNormalAuth(method string, headers http.Header,
@@ -249,7 +245,7 @@ func (o *OasClient) ArchiveToOas(vaultID, ossHost, bucket,
 		return
 	}
 	requestId = r.Header.Get("x-oas-request-id")
-	if err = checkResponse(r, http.StatusOK); err != nil {
+	if err = checkResponse(r, http.StatusAccepted); err != nil {
 		return
 	}
 
@@ -293,7 +289,7 @@ func (o *OasClient) RecoverToOss(vaultID, archiveId, ossHost,
 		return
 	}
 	requestId = r.Header.Get("x-oas-request-id")
-	if err = checkResponse(r, http.StatusOK); err != nil {
+	if err = checkResponse(r, http.StatusAccepted); err != nil {
 		return
 	}
 
@@ -350,7 +346,7 @@ func (o *OasClient) DeleteArchive(vaultID, archiveId string) (requestId,
 		return
 	}
 	requestId = r.Header.Get("x-oas-request-id")
-	if err = checkResponse(r, http.StatusOK); err != nil {
+	if err = checkResponse(r, http.StatusNoContent); err != nil {
 		return
 	}
 	jobId = r.Header.Get("x-oas-job-id")
