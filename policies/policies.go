@@ -174,6 +174,8 @@ func RunPolicies() {
 									continue
 								}
 
+								// Don't delete record with ArchiveId,
+								// Convert it to Archive.
 								if r.ArchiveId == "" {
 									err = models.DeleteRecord(r)
 									if err != nil {
