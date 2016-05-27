@@ -30,6 +30,10 @@ const (
 	badHttpResponse       = "Bad HTTP Response"
 
 	OasDescNoContent = ""
+
+	OasJobStatusCodeSucceeded  = "Succeeded"
+	OasJobStatusCodeInProgress = "InProgress"
+	OasJobStatusCodeFailed     = "Failed"
 )
 
 type VaultsList struct {

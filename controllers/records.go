@@ -227,8 +227,9 @@ func (h *RecordsController) Recover() {
 				Vault:   records[0].BackupSet.Oas,
 				Records: records[0],
 			}
-			oasJob.RequestId, oasJob.JobId, err = common.DefaultOasClient.ArchiveToOas(
+			oasJob.RequestId, oasJob.JobId, err = common.DefaultOasClient.RecoverToOss(
 				records[0].BackupSet.Oas.VaultId,
+				records[0].ArchiveId,
 				records[0].BackupSet.Oss.Endpoint,
 				records[0].BackupSet.Oss.BucketName,
 				records[0].GetFullPath(),

@@ -334,6 +334,10 @@ func CheckOasJob() {
 						continue
 					}
 					if jl.Completed {
+						if jl.StatusCode == "Failed" {
+							beego.Warn("Oas job failed:", jl.StatusMessage)
+							continue
+						}
 						job.Status = jl.Completed
 						err = models.UpdateOasJobs(job)
 						if err != nil {
