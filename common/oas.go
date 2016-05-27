@@ -2,9 +2,9 @@ package common
 
 import (
 	"fmt"
-	"moduleab_server/oas"
 
 	"github.com/astaxie/beego"
+	"github.com/tonychee7000/oas"
 )
 
 type OasClient struct {
