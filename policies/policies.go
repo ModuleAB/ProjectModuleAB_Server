@@ -126,7 +126,7 @@ func RunPolicies() {
 									var reqId, jobId string
 									reqId, jobId, err = oas.ArchiveToOas(
 										r.BackupSet.Oas.VaultId,
-										common.ConvertVpcOssAddrToInternal(
+										common.ConvertOssAddrToInternal(
 											r.BackupSet.Oss.Endpoint,
 										),
 										r.BackupSet.Oss.BucketName,

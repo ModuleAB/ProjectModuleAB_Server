@@ -244,7 +244,7 @@ func (h *RecordsController) Recover() {
 			oasJob.RequestId, oasJob.JobId, err = oasClient.RecoverToOss(
 				records[0].BackupSet.Oas.VaultId,
 				records[0].ArchiveId,
-				common.ConvertVpcOssAddrToInternal(
+				common.ConvertOssAddrToInternal(
 					records[0].BackupSet.Oss.Endpoint,
 				),
 				records[0].BackupSet.Oss.BucketName,
