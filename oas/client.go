@@ -299,7 +299,7 @@ func (o *OasClient) RecoverToOss(vaultID, archiveId, ossHost,
 }
 
 func (o *OasClient) GetJobInfo(vaultID, jobId string) (requestId string,
-	j *JobResult, err error) {
+	jr *JobResult, err error) {
 	defer func() {
 		x := recover()
 		if x != nil {
@@ -323,7 +323,8 @@ func (o *OasClient) GetJobInfo(vaultID, jobId string) (requestId string,
 		return
 	}
 
-	err = json.Unmarshal(b, j)
+	jr = new(JobResult)
+	err = json.Unmarshal(b, jr)
 	if err != nil {
 		return
 	}
