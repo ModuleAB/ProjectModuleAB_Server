@@ -366,6 +366,7 @@ func CheckOasJob() {
 							if err != nil {
 								beego.Warn("Got error on push signal:", err)
 							}
+
 						case models.OasJobTypePullFromOSS:
 							record := job.Records
 							oss, err := common.NewOssClient(record.BackupSet.Oss.Endpoint)
