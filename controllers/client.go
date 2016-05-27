@@ -114,18 +114,12 @@ func (c *ClientController) WebSocket() {
 		}
 		defer ws.Close()
 
-		tick, err := beego.AppConfig.Int64("websocket::pingperiod")
-		if err != nil {
-			tick = 5
-		}
+		tick := beego.AppConfig.DefaultInt64("websocket::pingperiod", 5)
 		ticker := time.NewTicker(
 			time.Duration(tick) * time.Second)
 		defer ticker.Stop()
 
-		timeout, err := beego.AppConfig.Int64("websocket::timeout")
-		if err != nil {
-			timeout = 10
-		}
+		timeout := beego.AppConfig.DefaultInt64("websocket::timeout", 10)
 		ws.SetReadDeadline(time.Now().Add(
 			time.Duration(timeout) * time.Second),
 		)

@@ -306,10 +306,7 @@ func InitDb() {
 }
 
 func CheckOasJob() {
-	period, err := beego.AppConfig.Int64("misc::checkoasjobperiod")
-	if err != nil {
-		period = 5
-	}
+	period := beego.AppConfig.DefaultInt64("misc::checkoasjobperiod", 5)
 	ticker := time.NewTicker(
 		time.Duration(period) * time.Minute,
 	)

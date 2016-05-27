@@ -95,7 +95,7 @@ func main() {
 	}
 	beego.Debug("Current PID:", os.Getpid())
 	ioutil.WriteFile(
-		beego.AppConfig.String("pidFile"),
+		beego.AppConfig.DefaultString("pidFile", "moduleab_server.pid"),
 		[]byte(fmt.Sprint(os.Getpid())),
 		0600,
 	)
