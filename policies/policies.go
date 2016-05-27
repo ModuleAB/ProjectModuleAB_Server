@@ -147,23 +147,6 @@ func RunPolicies() {
 										continue
 									}
 								}
-								err = bucket.DeleteObject(r.GetFullPath())
-								if err != nil {
-									beego.Warn(
-										"Cannot delete backup:", r.GetFullPath(),
-										"error:", err,
-									)
-									continue
-								}
-								r.Type = models.RecordTypeArchive
-								r.ArchivedTime = time.Now()
-								err = models.UpdateRecord(r)
-								if err != nil {
-									beego.Warn(
-										"Cannot update record:", r.Id,
-										"error:", err,
-									)
-								}
 
 							case models.RecordTypeArchive:
 								beego.Debug("Skip archived data:", r.Id)
@@ -382,6 +365,39 @@ func CheckOasJob() {
 								job.Records.Host.Id, id)
 							if err != nil {
 								beego.Warn("Got error on push signal:", err)
+							}
+						case models.OasJobTypePullFromOSS:
+							record := job.Records
+							oss, err := common.NewOssClient(record.BackupSet.Oss.Endpoint)
+							if err != nil {
+								beego.Warn("Cannot connect OSS Service:", err)
+								continue
+							}
+							bucket, err := oss.Bucket(record.BackupSet.Oss.BucketName)
+							if err != nil {
+								beego.Warn(
+									"Cannot get bucket:", record.BackupSet.Oss.BucketName,
+									"error:", err,
+								)
+								continue
+							}
+							err = bucket.DeleteObject(record.GetFullPath())
+							if err != nil {
+								beego.Warn(
+									"Cannot delete backup:", record.GetFullPath(),
+									"error:", err,
+								)
+								continue
+							}
+							record.ArchiveId = jl.ArchiveId
+							record.Type = models.RecordTypeArchive
+							record.ArchivedTime = time.Now()
+							err = models.UpdateRecord(record)
+							if err != nil {
+								beego.Warn(
+									"Cannot update record:", record.Id,
+									"error:", err,
+								)
 							}
 						}
 					}
