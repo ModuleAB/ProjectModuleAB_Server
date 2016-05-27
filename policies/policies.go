@@ -114,10 +114,15 @@ func RunPolicies() {
 						case models.PolicyActionArchive:
 							switch r.Type {
 							case models.RecordTypeBackup:
+								if r.ArchiveId != "" {
+									beego.Debug("Record", r.Id, "have archived, skip.")
+									continue
+								}
 								step := r.BackupTime.Sub(baseLine.BackupTime)
 								if step >= time.Duration(p.Step)*time.Second &&
 									p.Step != models.PolicyReserveNone {
 									baseLine = r
+
 									var reqId, jobId string
 									reqId, jobId, err = oas.ArchiveToOas(
 										r.BackupSet.Oas.VaultId,
@@ -348,6 +353,7 @@ func CheckOasJob() {
 						switch job.JobType {
 						case models.OasJobTypePushToOSS:
 							record.BackupTime = time.Now()
+							record.Type = models.RecordTypeBackup
 
 							signal := models.MakeDownloadSignal(
 								job.Records.GetFullPath(),
