@@ -32,8 +32,6 @@ func (o *OasClient) GetOasVaultId(name string) (string, error) {
 	}
 }
 
-var DefaultOasClient *OasClient
-
 func NewOasClient(endpoint string) (*OasClient, error) {
 	oasPort, err := beego.AppConfig.Int("aliapi::oasport")
 	if err != nil {

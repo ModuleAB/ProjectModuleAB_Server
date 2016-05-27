@@ -227,10 +227,26 @@ func (h *RecordsController) Recover() {
 				Vault:   records[0].BackupSet.Oas,
 				Records: records[0],
 			}
-			oasJob.RequestId, oasJob.JobId, err = common.DefaultOasClient.RecoverToOss(
+
+			oasClient, err := common.NewOasClient(
+				records[0].BackupSet.Oas.Endpoint,
+			)
+			if err != nil {
+				h.Data["json"] = map[string]string{
+					"message": fmt.Sprint("Failed to connect to OAS"),
+					"error":   err.Error(),
+				}
+				beego.Warn("[C] Got error:", err)
+				h.Ctx.Output.SetStatus(http.StatusInternalServerError)
+				return
+			}
+
+			oasJob.RequestId, oasJob.JobId, err = oasClient.RecoverToOss(
 				records[0].BackupSet.Oas.VaultId,
 				records[0].ArchiveId,
-				records[0].BackupSet.Oss.Endpoint,
+				common.ConvertVpcOssAddrToInternal(
+					records[0].BackupSet.Oss.Endpoint,
+				),
 				records[0].BackupSet.Oss.BucketName,
 				records[0].GetFullPath(),
 				records[0].GetFullPath(),

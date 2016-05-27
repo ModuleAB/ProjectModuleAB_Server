@@ -344,15 +344,10 @@ func CheckOasJob() {
 							beego.Warn("Got error on update oas jobs:", err)
 							continue
 						}
+						record := job.Records
 						switch job.JobType {
 						case models.OasJobTypePushToOSS:
-							record := job.Records
 							record.BackupTime = time.Now()
-							err := models.UpdateRecord(record)
-							if err != nil {
-								beego.Warn("Got error on updating record:", err)
-								continue
-							}
 
 							signal := models.MakeDownloadSignal(
 								job.Records.GetFullPath(),
@@ -372,7 +367,6 @@ func CheckOasJob() {
 							}
 
 						case models.OasJobTypePullFromOSS:
-							record := job.Records
 							oss, err := common.NewOssClient(record.BackupSet.Oss.Endpoint)
 							if err != nil {
 								beego.Warn("Cannot connect OSS Service:", err)
@@ -397,13 +391,14 @@ func CheckOasJob() {
 							record.ArchiveId = jl.ArchiveId
 							record.Type = models.RecordTypeArchive
 							record.ArchivedTime = time.Now()
-							err = models.UpdateRecord(record)
-							if err != nil {
-								beego.Warn(
-									"Cannot update record:", record.Id,
-									"error:", err,
-								)
-							}
+						}
+
+						err = models.UpdateRecord(record)
+						if err != nil {
+							beego.Warn(
+								"Cannot update record:", record.Id,
+								"error:", err,
+							)
 						}
 					}
 				}
