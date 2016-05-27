@@ -173,12 +173,24 @@ func RunPolicies() {
 									)
 									continue
 								}
-								err = models.DeleteRecord(r)
-								if err != nil {
-									beego.Warn(
-										"Cannot delete record:", r.Id,
-										"error:", err,
-									)
+
+								if r.ArchiveId == "" {
+									err = models.DeleteRecord(r)
+									if err != nil {
+										beego.Warn(
+											"Cannot delete record:", r.Id,
+											"error:", err,
+										)
+									}
+								} else {
+									r.Type = models.RecordTypeArchive
+									err = models.UpdateRecord(r)
+									if err != nil {
+										beego.Warn(
+											"Cannot update recovered record:", r.Id,
+											"error:", err,
+										)
+									}
 								}
 
 							case models.RecordTypeArchive:
