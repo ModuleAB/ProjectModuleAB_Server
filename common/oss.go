@@ -34,12 +34,14 @@ func NewOssClient(endpoint string) (*OssClient, error) {
 // ConvertOssAddrToInternal: Aliyun may not support
 // OAS pull from OSS with VPC Address
 func ConvertOssAddrToInternal(addr string) string {
-	const Reg = "(vpc100-)?oss-cn-([a-z]+).aliyuncs.com"
+	const Reg = "(?:vpc100-)?oss-cn-([a-z0-9-]+).aliyuncs.com"
 	reg := regexp.MustCompile(Reg)
 
 	if reg.MatchString(addr) {
-		region := reg.ReplaceAllString(addr, "$2")
-		return fmt.Sprintf("oss-cn-%s-internal.aliyuncs.com", region)
+		region := reg.ReplaceAllString(addr, "$1")
+		if !regexp.MustCompile("-internal").MatchString(region) {
+			return fmt.Sprintf("oss-cn-%s-internal.aliyuncs.com", region)
+		}
 	}
 	return addr
 }
