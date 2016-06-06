@@ -39,6 +39,16 @@ func init() {
 }
 
 func main() {
+	defer func() {
+		x := recover()
+		if x != nil {
+			beego.Error("Got fatal error:", x)
+			var stack = make([]byte, 0)
+			runtime.Stack(stack, true)
+			beego.Error("Stack trace:\n", string(stack))
+			os.Exit(1)
+		}
+	}()
 	beego.Info("ModuleAB server", version.Version, "starting...")
 	logfile := beego.AppConfig.String("logFile")
 	if logfile == "" {
@@ -105,14 +115,4 @@ func main() {
 	beego.BConfig.WebConfig.Session.SessionOn = true
 	beego.BConfig.WebConfig.Session.SessionName = "Session_MobuleAB"
 	beego.Run()
-	defer func() {
-		x := recover()
-		if x != nil {
-			beego.Error("Got fatal error:", x)
-			stack := make([]byte, 0)
-			runtime.Stack(stack, true)
-			beego.Error("Stack trace:\n", string(stack))
-			os.Exit(1)
-		}
-	}()
 }

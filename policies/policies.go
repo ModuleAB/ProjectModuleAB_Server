@@ -88,17 +88,18 @@ func RunPolicies() {
 						beego.Debug("No records.")
 						continue
 					}
+					beego.Debug("Got matched records length:", len(records))
 
 					baseLine := records[0]
 					for _, r := range records {
 						oas, err := common.NewOasClient(r.BackupSet.Oas.Endpoint)
 						if err != nil {
-							beego.Warn("Cannot connect OAS Service:", err)
+							beego.Warn("Cannot connect to OAS Service:", err)
 							continue
 						}
 						oss, err := common.NewOssClient(r.BackupSet.Oss.Endpoint)
 						if err != nil {
-							beego.Warn("Cannot connect OSS Service:", err)
+							beego.Warn("Cannot connect to OSS Service:", err)
 							continue
 						}
 						bucket, err := oss.Bucket(r.BackupSet.Oss.BucketName)
@@ -124,6 +125,15 @@ func RunPolicies() {
 									baseLine = r
 
 									var reqId, jobId string
+									beego.Debug(
+										"ArchiveToOas:",
+										r.BackupSet.Oas.VaultId,
+										common.ConvertOssAddrToInternal(
+											r.BackupSet.Oss.Endpoint,
+										),
+										r.BackupSet.Oss.BucketName,
+										r.GetFullPath(),
+									)
 									reqId, jobId, err = oas.ArchiveToOas(
 										r.BackupSet.Oas.VaultId,
 										common.ConvertOssAddrToInternal(
