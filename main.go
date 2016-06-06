@@ -42,10 +42,10 @@ func main() {
 	defer func() {
 		x := recover()
 		if x != nil {
-			beego.Error("Got fatal error:", x)
+			beego.Emergency("Got fatal error:", x)
 			var stack = make([]byte, 0)
 			runtime.Stack(stack, true)
-			beego.Error("Stack trace:\n", string(stack))
+			beego.Emergency("Stack trace:\n", string(stack))
 			os.Exit(1)
 		}
 	}()
