@@ -113,13 +113,16 @@ func RunPolicies() {
 
 						switch p.Action {
 						case models.PolicyActionArchive:
+							beego.Debug("Action type: Archive")
 							switch r.Type {
 							case models.RecordTypeBackup:
+								beego.Debug("Record type: Backup")
 								if r.ArchiveId != "" {
 									beego.Debug("Record", r.Id, "have archived, skip.")
 									continue
 								}
 								step := r.BackupTime.Sub(baseLine.BackupTime)
+								beego.Debug("Step=", step)
 								if step >= time.Duration(p.Step)*time.Second &&
 									p.Step != models.PolicyReserveNone {
 									baseLine = r
@@ -159,17 +162,20 @@ func RunPolicies() {
 									)
 									if err != nil {
 										beego.Warn("Cannot make oas job:", err)
-										continue
 									}
 								}
 
 							case models.RecordTypeArchive:
+								beego.Debug("Record type: Archive")
 								beego.Debug("Skip archived data:", r.Id)
 							}
 						case models.PolicyActionDelete:
+							beego.Debug("Action type: Delete")
 							switch r.Type {
 							case models.RecordTypeBackup:
+								beego.Debug("Record type: Backup")
 								step := r.BackupTime.Sub(baseLine.BackupTime)
+								beego.Debug("Step=", step)
 								if step >= time.Duration(p.Step)*time.Second &&
 									p.Step != models.PolicyReserveNone {
 									baseLine = r
@@ -206,7 +212,9 @@ func RunPolicies() {
 								}
 
 							case models.RecordTypeArchive:
+								beego.Debug("Record type: Archive")
 								step := r.ArchivedTime.Sub(baseLine.ArchivedTime)
+								beego.Debug("Step=", step)
 								if step >= time.Duration(p.Step)*time.Second &&
 									p.Step != models.PolicyReserveNone {
 									baseLine = r
@@ -359,7 +367,7 @@ func CheckOasJob() {
 						beego.Warn("Got error on retrieving job info:", err)
 						continue
 					}
-					if jl.Completed {
+					if jl.Completed && !job.Status {
 						if jl.StatusCode == "Failed" {
 							beego.Warn("Oas job failed:", jl.StatusMessage)
 							continue
@@ -373,6 +381,7 @@ func CheckOasJob() {
 						record := job.Records
 						switch job.JobType {
 						case models.OasJobTypePushToOSS:
+							beego.Debug("Job type: Push to OSS")
 							record.BackupTime = time.Now()
 							record.Type = models.RecordTypeBackup
 
@@ -394,6 +403,7 @@ func CheckOasJob() {
 							}
 
 						case models.OasJobTypePullFromOSS:
+							beego.Debug("Job type: Pull from OSS")
 							oss, err := common.NewOssClient(record.BackupSet.Oss.Endpoint)
 							if err != nil {
 								beego.Warn("Cannot connect OSS Service:", err)
