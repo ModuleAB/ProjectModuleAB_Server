@@ -3,6 +3,7 @@ package models
 import (
 	"fmt"
 	"moduleab_server/common"
+	"time"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
@@ -25,13 +26,14 @@ const (
 )
 
 type OasJobs struct {
-	Id        string   `orm:"pk;size(36)" json:"id" valid:"Match(/^[A-Fa-f0-9]{8}-([A-Fa-f0-9]{4}-){3}[A-Fa-f0-9]{12}$/)"`
-	Vault     *Oas     `orm:"rel(fk)" json:"vault" valid:"Required"`
-	RequestId string   `json:"request_id valid:"Required"`
-	JobId     string   `json:"job_id" valid:"Required"`
-	JobType   int      `json:"job_type" valid:"Required"`
-	Status    bool     `orm:"default(0)"`
-	Records   *Records `orm:"rel(fk);null" valid:"Required"`
+	Id          string    `orm:"pk;size(36)" json:"id" valid:"Match(/^[A-Fa-f0-9]{8}-([A-Fa-f0-9]{4}-){3}[A-Fa-f0-9]{12}$/)"`
+	Vault       *Oas      `orm:"rel(fk)" json:"vault" valid:"Required"`
+	RequestId   string    `json:"request_id valid:"Required"`
+	JobId       string    `json:"job_id" valid:"Required"`
+	JobType     int       `json:"job_type" valid:"Required"`
+	Status      bool      `orm:"default(0)"`
+	Records     *Records  `orm:"rel(fk);null" valid:"Required"`
+	CreatedTime time.Time `orm:"type(datetime)"`
 }
 
 func init() {
@@ -52,6 +54,7 @@ func AddOasJobs(a *OasJobs) (string, error) {
 
 	a.Id = uuid.New()
 	beego.Debug("[M] Got new id:", a.Id)
+	a.CreatedTime = time.Now()
 
 	validator := new(validation.Validation)
 	valid, err := validator.Valid(a)

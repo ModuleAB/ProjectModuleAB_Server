@@ -328,6 +328,7 @@ func CheckOasJob() {
 	ticker := time.NewTicker(
 		time.Duration(period) * time.Minute,
 	)
+	reservedays := beego.AppConfig.DefaultInt64("misc::oasjobsreservedays", 7)
 	defer ticker.Stop()
 	beego.Debug("checkOasJob() running...")
 	defer beego.Debug("checkOasJob() STOPPED!")
@@ -436,6 +437,12 @@ func CheckOasJob() {
 								"Cannot update record:", record.Id,
 								"error:", err,
 							)
+						}
+					} else if job.Status {
+						duration := time.Now().Sub(job.CreatedTime)
+						if duration > time.Duration(reservedays*24)*time.Hour {
+							models.DeleteOasJobs(job)
+							beego.Info("Job", job.Id, "is too old, delete.")
 						}
 					}
 				}
