@@ -442,7 +442,7 @@ func CheckOasJob() {
 						duration := time.Now().Sub(job.CreatedTime)
 						if duration > time.Duration(reservedays*24)*time.Hour {
 							models.DeleteOasJobs(job)
-							beego.Info("Job", job.Id, "is too old, delete.")
+							beego.Info("Oas job record", job.Id, "is out of date, delete.")
 						}
 					}
 				}
