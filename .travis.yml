@@ -1,8 +1,7 @@
 language: go
 
 go:
-  - 1.3
-  - tip
+  - master
 
 go_import_path: moduleab_server
 
