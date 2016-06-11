@@ -1,0 +1,12 @@
+language: go
+
+go:
+  - 1.3
+  - tip
+
+go_import_path: moduleab_server
+
+install:
+  - go get github.com/beego/bee
+  - export PATH="$GOPATH/bin:$PATH"
+  - make
