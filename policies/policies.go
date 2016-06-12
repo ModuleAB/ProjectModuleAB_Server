@@ -405,6 +405,13 @@ func CheckOasJob() {
 							if err != nil {
 								beego.Warn("Got error on push signal:", err)
 							}
+							err = models.UpdateRecord(record)
+							if err != nil {
+								beego.Warn(
+									"Cannot update record:", record.Id,
+									"error:", err,
+								)
+							}
 
 						case models.OasJobTypePullFromOSS:
 							beego.Debug("Job type: Pull from OSS")
@@ -432,15 +439,26 @@ func CheckOasJob() {
 							record.ArchiveId = jl.ArchiveId
 							record.Type = models.RecordTypeArchive
 							record.ArchivedTime = time.Now()
+
+							err = models.UpdateRecord(record)
+							if err != nil {
+								beego.Warn(
+									"Cannot update record:", record.Id,
+									"error:", err,
+								)
+							}
+
+						case models.OasJobTypeDeleteArchive:
+							beego.Debug("Job type: Delete archive")
+							err = models.DeleteRecord(record)
+							if err != nil {
+								beego.Warn(
+									"Cannot delete record:", record.Id,
+									"error:", err,
+								)
+							}
 						}
 
-						err = models.UpdateRecord(record)
-						if err != nil {
-							beego.Warn(
-								"Cannot update record:", record.Id,
-								"error:", err,
-							)
-						}
 					} else if job.Status {
 						duration := time.Now().Sub(job.CreatedTime)
 						if duration > time.Duration(reservedays*24)*time.Hour {
