@@ -1,8 +1,6 @@
 ModuleAB Server
 =====
 
-[![Build Status](https://travis-ci.org/ProjectModuleAngelaBaby/ProjectModuleAB_Server.svg?branch=master)](https://travis-ci.org/ProjectModuleAngelaBaby/ProjectModuleAB_Server)
-
 An easy way to backup and archive @ aliyun
 
 Requirements
