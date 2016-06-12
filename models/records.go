@@ -245,10 +245,10 @@ func GetRecords(cond *Records, limit, index int, orderB, orderA bool,
 			q = q.Filter("backup_time__lte", times[backupTimeEnd])
 		}
 		if !times[archiveTimeStart].IsZero() {
-			q = q.Filter("archived_time__gte", times[backupTimeStart])
+			q = q.Filter("archived_time__gte", times[archiveTimeStart])
 		}
 		if !times[archiveTimeEnd].IsZero() {
-			q = q.Filter("archived_time__lte", times[backupTimeEnd])
+			q = q.Filter("archived_time__lte", times[archiveTimeEnd])
 		}
 	}
 
