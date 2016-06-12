@@ -266,8 +266,15 @@ func GetRecords(cond *Records, limit, index int, orderB, orderA bool,
 	if orderA == OrderDesc {
 		sOrderA = "-" + sOrderA
 	}
-	_, err := q.OrderBy(sOrderB, sOrderA).
-		RelatedSel(common.RelDepth).All(&r)
+	switch cond.Type {
+	case RecordTypeBackup:
+		q = q.OrderBy(sOrderB)
+	case RecordTypeArchive:
+		q = q.OrderBy(sOrderA)
+	default:
+		q = q.OrderBy(sOrderB, sOrderA)
+	}
+	_, err := q.RelatedSel(common.RelDepth).All(&r)
 	if err != nil {
 		return nil, err
 	}

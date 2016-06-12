@@ -125,6 +125,7 @@ func RunPolicies() {
 								beego.Debug("Step=", step)
 								if step >= time.Duration(p.Step)*time.Second &&
 									p.Step != models.PolicyReserveNone {
+									beego.Debug("New baseline is:", r.Id)
 									baseLine = r
 
 									var reqId, jobId string
@@ -217,9 +218,11 @@ func RunPolicies() {
 								beego.Debug("Step=", step)
 								if step >= time.Duration(p.Step)*time.Second &&
 									p.Step != models.PolicyReserveNone {
+									beego.Debug("New baseline is:", r.Id)
 									baseLine = r
 									continue
 								}
+								beego.Debug("Will delete archive:", r.Id)
 								var reqId, jobId string
 								reqId, jobId, err = oas.DeleteArchive(
 									r.BackupSet.Oas.VaultId,
