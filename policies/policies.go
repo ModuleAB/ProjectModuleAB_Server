@@ -222,9 +222,9 @@ func RunPolicies() {
 									baseLine = r
 									continue
 								}
+
 								beego.Debug("Will delete archive:", r.Id)
-								var reqId, jobId string
-								reqId, jobId, err = oas.DeleteArchive(
+								_, err = oas.DeleteArchive(
 									r.BackupSet.Oas.VaultId,
 									r.ArchiveId,
 								)
@@ -232,18 +232,13 @@ func RunPolicies() {
 									beego.Warn("Cannot make job to delete archive:", err)
 									continue
 								}
-								_, err = models.AddOasJobs(
-									&models.OasJobs{
-										Vault:     r.BackupSet.Oas,
-										RequestId: reqId,
-										JobId:     jobId,
-										JobType:   models.OasJobTypeDeleteArchive,
-										Status:    models.OasJobStatusIncomplete,
-										Records:   r,
-									},
-								)
+
+								err = models.DeleteRecord(r)
 								if err != nil {
-									beego.Warn("Cannot make oas job:", err)
+									beego.Warn(
+										"Cannot delete record:", r.Id,
+										"error:", err,
+									)
 								}
 							}
 						}
@@ -423,16 +418,6 @@ func CheckOasJob() {
 							if err != nil {
 								beego.Warn(
 									"Cannot update record:", record.Id,
-									"error:", err,
-								)
-							}
-
-						case models.OasJobTypeDeleteArchive:
-							beego.Debug("Job type: Delete archive")
-							err = models.DeleteRecord(record)
-							if err != nil {
-								beego.Warn(
-									"Cannot delete record:", record.Id,
 									"error:", err,
 								)
 							}
