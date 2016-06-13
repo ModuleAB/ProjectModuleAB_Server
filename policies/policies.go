@@ -206,7 +206,7 @@ func RunPolicies() {
 									err = models.UpdateRecord(r)
 									if err != nil {
 										beego.Warn(
-											"Cannot update recovered record:", r.Id,
+											"Cannot update archived record:", r.Id,
 											"error:", err,
 										)
 									}
@@ -415,29 +415,8 @@ func CheckOasJob() {
 
 						case models.OasJobTypePullFromOSS:
 							beego.Debug("Job type: Pull from OSS")
-							oss, err := common.NewOssClient(record.BackupSet.Oss.Endpoint)
-							if err != nil {
-								beego.Warn("Cannot connect OSS Service:", err)
-								continue
-							}
-							bucket, err := oss.Bucket(record.BackupSet.Oss.BucketName)
-							if err != nil {
-								beego.Warn(
-									"Cannot get bucket:", record.BackupSet.Oss.BucketName,
-									"error:", err,
-								)
-								continue
-							}
-							err = bucket.DeleteObject(record.GetFullPath())
-							if err != nil {
-								beego.Warn(
-									"Cannot delete backup:", record.GetFullPath(),
-									"error:", err,
-								)
-								continue
-							}
+
 							record.ArchiveId = jl.ArchiveId
-							record.Type = models.RecordTypeArchive
 							record.ArchivedTime = time.Now()
 
 							err = models.UpdateRecord(record)
