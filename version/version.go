@@ -29,7 +29,7 @@ func init() {
 	Version = version{
 		main:  0,
 		sub:   0,
-		build: 152,
+		build: 154,
 		code:  "Husky",
 	}
 }
