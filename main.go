@@ -43,7 +43,7 @@ func main() {
 		x := recover()
 		if x != nil {
 			beego.Emergency("Got fatal error:", x)
-			var stack = make([]byte, 0)
+			var stack = make([]byte, 2<<10)
 			runtime.Stack(stack, true)
 			beego.Emergency("Stack trace:\n", string(stack))
 			os.Exit(1)
