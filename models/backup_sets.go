@@ -18,7 +18,6 @@ type BackupSets struct {
 	Oss      *Oss        `orm:"null;rel(fk);on_delete(set_null)" json:"oss"`
 	Oas      *Oas        `orm:"null;rel(fk);on_delete(set_null)" json:"oas"`
 	Policies []*Policies `orm:"reverse(many)" json:"policies"`
-	Hosts    []*Hosts    `orm:"reverse(many)" json:"hosts"`
 	Paths    []*Paths    `orm:"reverse(many)" json:"paths"`
 }
 
@@ -148,7 +147,6 @@ func GetBackupSets(cond *BackupSets, limit, index int) ([]*BackupSets, error) {
 		return nil, err
 	}
 	for _, v := range r {
-		o.LoadRelated(v, "Hosts", common.RelDepth)
 		o.LoadRelated(v, "Policies", common.RelDepth)
 		o.LoadRelated(v, "Paths", common.RelDepth)
 	}

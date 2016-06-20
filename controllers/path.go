@@ -207,6 +207,7 @@ func (h *PathsController) Put() {
 			Id: id,
 			// 外键关系也需要初始化，否则会出现问题，反向关系则不用
 			BackupSet: new(models.BackupSets),
+			AppSet:    make([]*models.AppSets, 0),
 		}
 		paths, err := models.GetPaths(path, 0, 0)
 		if err != nil {

@@ -16,7 +16,6 @@ type Hosts struct {
 	Name       string        `orm:"index;unique;size(64)" json:"name" valid:"Required"`
 	IpAddr     string        `orm:"index;unique;size(15)" json:"ip" valid:"Required;IP"`
 	AppSet     *AppSets      `orm:"rel(fk);on_delete(set_null);null" json:"appset"`
-	BackupSets []*BackupSets `orm:"rel(m2m);on_delete(set_null)" json:"backupsets"`
 	Paths      []*Paths      `orm:"rel(m2m);on_delete(set_null)" json:"path"`
 	ClientJobs []*ClientJobs `orm:"reverse(many);" json:"jobs"`
 }
@@ -62,13 +61,6 @@ func AddHost(host *Hosts) (string, error) {
 	}
 	if host.Paths != nil && len(host.Paths) != 0 {
 		_, err = o.QueryM2M(host, "Paths").Add(host.Paths)
-		if err != nil {
-			o.Rollback()
-			return "", err
-		}
-	}
-	if host.BackupSets != nil && len(host.BackupSets) != 0 {
-		_, err = o.QueryM2M(host, "BackupSets").Add(host.BackupSets)
 		if err != nil {
 			o.Rollback()
 			return "", err
@@ -163,18 +155,7 @@ func UpdateHost(h *Hosts) error {
 			return err
 		}
 	}
-	if h.BackupSets != nil {
-		_, err = o.QueryM2M(h, "BackupSets").Clear()
-		if err != nil {
-			o.Rollback()
-			return err
-		}
-		_, err = o.QueryM2M(h, "BackupSets").Add(h.BackupSets)
-		if err != nil {
-			o.Rollback()
-			return err
-		}
-	}
+
 	o.Commit()
 	return nil
 }
