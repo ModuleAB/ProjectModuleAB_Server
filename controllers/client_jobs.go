@@ -187,7 +187,9 @@ func (a *ClientJobsController) Put() {
 	beego.Debug("[C] Got clientJob id:", id)
 	if id != "" {
 		clientJob := &models.ClientJobs{
-			Id: id,
+			Id:    id,
+			Host:  make([]*models.Hosts, 0),
+			Paths: make([]*models.Paths, 0),
 		}
 		clientJobs, err := models.GetClientJobs(clientJob, 0, 0)
 		if err != nil {
