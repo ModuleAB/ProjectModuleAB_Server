@@ -186,7 +186,6 @@ func GetHosts(cond *Hosts, limit, index int) ([]*Hosts, error) {
 		return nil, err
 	}
 	for _, v := range r {
-		o.LoadRelated(v, "BackupSets", common.RelDepth)
 		o.LoadRelated(v, "Paths", common.RelDepth+5)
 		o.LoadRelated(v, "ClientJobs", common.RelDepth)
 	}
