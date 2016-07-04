@@ -7,6 +7,7 @@ import (
 	"moduleab_server/models"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/astaxie/beego"
@@ -19,39 +20,67 @@ const (
 	ClientWebSocketReplyBye  = "BYE"
 )
 
+const (
+	ClientRunStatusAll = iota
+	ClientRunStatusRunning
+	ClientRunStatusStopped
+)
+
+type ClientStatusMsg struct {
+	HostId string
+	Status int
+}
+
+var (
+	ClientStatus     map[string]int
+	ChanClientStatus chan ClientStatusMsg
+)
+
 func init() {
+	ClientRunning = make(map[string]int)
+	ChanClientStatus = make(chan ClientStatusMsg, 2<<10)
+	go clientStatus()
 	AddPrivilege("GET", "^/api/v1/client/signal/(.+)/ws$", models.RoleFlagNone)
+}
+
+func clientStatus() {
+	for {
+		select {
+		case s := <-ChanClientStatus:
+			ClientStatus[s.HostId] = s.Status
+		}
+	}
 }
 
 type ClientController struct {
 	beego.Controller
 }
 
-func (h *ClientController) Prepare() {
-	if h.Ctx.Input.Header("Signature") != "" {
-		err := common.AuthWithKey(h.Ctx)
+func (c *ClientController) Prepare() {
+	if c.Ctx.Input.Header("Signature") != "" {
+		err := common.AuthWithKey(c.Ctx)
 		if err != nil {
-			h.Data["json"] = map[string]string{
+			c.Data["json"] = map[string]string{
 				"error": err.Error(),
 			}
-			h.Ctx.Output.SetStatus(http.StatusForbidden)
-			h.ServeJSON()
+			c.Ctx.Output.SetStatus(http.StatusForbidden)
+			c.ServeJSON()
 		}
 	} else {
-		id := h.GetSession("id")
+		id := c.GetSession("id")
 		if id == nil {
-			h.Data["json"] = map[string]string{
+			c.Data["json"] = map[string]string{
 				"error": "You need login first.",
 			}
-			h.Ctx.Output.SetStatus(http.StatusUnauthorized)
-			h.ServeJSON()
+			c.Ctx.Output.SetStatus(http.StatusUnauthorized)
+			c.ServeJSON()
 		} else {
-			if !CheckPrivileges(id.(string), h.Ctx) {
-				h.Data["json"] = map[string]string{
+			if !CheckPrivileges(id.(string), c.Ctx) {
+				c.Data["json"] = map[string]string{
 					"error": "No privileges.",
 				}
-				h.Ctx.Output.SetStatus(http.StatusForbidden)
-				h.ServeJSON()
+				c.Ctx.Output.SetStatus(http.StatusForbidden)
+				c.ServeJSON()
 			}
 		}
 	}
@@ -142,6 +171,17 @@ func (c *ClientController) WebSocket() {
 			c = make(chan models.Signal, 1024)
 			models.SignalChannels[HostId] = c
 		}
+
+		var runningStatus = ClientStatusMsg{
+			HostId: HostId,
+			Status: ClientRunStatusRunning,
+		}
+		ChanClientStatus <- runningStatus
+
+		defer func() {
+			runningStatus.Status = ClientRunStatusStopped
+			ChanClientStatus <- runningStatus
+		}()
 
 		// Start read routine
 		go func() {
@@ -394,4 +434,16 @@ func (c *ClientController) NotifySignal() {
 		c.Ctx.Output.SetStatus(http.StatusOK)
 		return
 	}
+}
+
+// @Title getClientStatus
+// @router /config/status [get]
+func (c *ClientController) GetStatus() {
+	defer c.ServeJSON()
+	var lock = new(sync.Mutex)
+	lock.Lock()
+	defer lock.Unlock()
+
+	c.Data["json"] = ClientStatus
+	c.Ctx.Output.SetStatus(http.StatusOK)
 }
