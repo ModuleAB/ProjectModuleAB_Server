@@ -37,7 +37,7 @@ var (
 )
 
 func init() {
-	ClientRunning = make(map[string]int)
+	ClientStatus = make(map[string]int)
 	ChanClientStatus = make(chan ClientStatusMsg, 2<<10)
 	go clientStatus()
 	AddPrivilege("GET", "^/api/v1/client/signal/(.+)/ws$", models.RoleFlagNone)
