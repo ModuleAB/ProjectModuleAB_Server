@@ -115,9 +115,8 @@ func main() {
 	beego.BConfig.WebConfig.Session.SessionOn = true
 	beego.BConfig.WebConfig.Session.SessionName = "Session_MobuleAB"
 	timeout, err := beego.AppConfig.Int64("timeout")
-	if err != nil {
-		timeout = 10
+	if err == nil {
+		beego.BConfig.Listen.ServerTimeOut = timeout
 	}
-	beego.BConfig.Listen.ServerTimeOut = timeout
 	beego.Run()
 }
