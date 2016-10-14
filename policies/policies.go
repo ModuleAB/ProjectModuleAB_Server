@@ -145,7 +145,7 @@ func RunPolicies() {
 										),
 										r.BackupSet.Oss.BucketName,
 										r.GetFullPath(),
-										r.GetFullPath(),
+										"",
 									)
 									if err != nil {
 										beego.Warn("Cannot make job to archive:", err)
