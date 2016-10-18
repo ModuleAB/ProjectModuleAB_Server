@@ -3,6 +3,7 @@ package models
 import (
 	"fmt"
 	"moduleab_server/common"
+	"strings"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
@@ -38,6 +39,7 @@ func AddAppSet(a *AppSets) (string, error) {
 	}
 
 	a.Id = uuid.New()
+	a.Name = strings.TrimSpace(a.Name)
 	beego.Debug("[M] Got new id:", a.Id)
 	validator := new(validation.Validation)
 	valid, err := validator.Valid(a)

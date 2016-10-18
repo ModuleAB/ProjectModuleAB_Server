@@ -3,6 +3,7 @@ package models
 import (
 	"fmt"
 	"moduleab_server/common"
+	"strings"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
@@ -37,6 +38,7 @@ func AddHost(host *Hosts) (string, error) {
 	}
 
 	host.Id = uuid.New()
+	host.Name = strings.TrimSpace(host.Name)
 	beego.Debug("[M] Got id:", host.Id)
 	validator := new(validation.Validation)
 	valid, err := validator.Valid(host)
