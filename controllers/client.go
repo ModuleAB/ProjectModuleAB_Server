@@ -155,6 +155,8 @@ func (c *ClientController) WebSocket() {
 		ws.SetWriteDeadline(time.Now().Add(
 			time.Duration(timeout) * time.Second),
 		)
+
+		var runningStatus ClientStatusMsg
 		ws.SetPongHandler(func(string) error {
 			beego.Debug("Host:", name, "is still alive.")
 			ws.SetReadDeadline(time.Now().Add(
@@ -163,20 +165,22 @@ func (c *ClientController) WebSocket() {
 			ws.SetWriteDeadline(time.Now().Add(
 				time.Duration(timeout) * time.Second),
 			)
+
+			runningStatus = ClientStatusMsg{
+				HostId: HostId,
+				Status: ClientRunStatusRunning,
+			}
+			ChanClientStatus <- runningStatus
+
 			return nil
 		})
+
 		var c chan models.Signal
 		c, ok := models.SignalChannels[HostId]
 		if !ok {
 			c = make(chan models.Signal, 1024)
 			models.SignalChannels[HostId] = c
 		}
-
-		var runningStatus = ClientStatusMsg{
-			HostId: HostId,
-			Status: ClientRunStatusRunning,
-		}
-		ChanClientStatus <- runningStatus
 
 		defer func() {
 			runningStatus.Status = ClientRunStatusStopped
