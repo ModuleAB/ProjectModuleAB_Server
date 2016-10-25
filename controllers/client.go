@@ -175,17 +175,17 @@ func (c *ClientController) WebSocket() {
 			return nil
 		})
 
+		defer func() {
+			runningStatus.Status = ClientRunStatusStopped
+			ChanClientStatus <- runningStatus
+		}()
+
 		var c chan models.Signal
 		c, ok := models.SignalChannels[HostId]
 		if !ok {
 			c = make(chan models.Signal, 1024)
 			models.SignalChannels[HostId] = c
 		}
-
-		defer func() {
-			runningStatus.Status = ClientRunStatusStopped
-			ChanClientStatus <- runningStatus
-		}()
 
 		// Start read routine
 		go func() {
