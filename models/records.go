@@ -4,6 +4,7 @@ package models
 import (
 	"fmt"
 	"moduleab_server/common"
+	"strings"
 	"time"
 
 	"github.com/astaxie/beego"
@@ -45,11 +46,13 @@ type Records struct {
 }
 
 func (r *Records) GetFullPath() string {
-	return fmt.Sprintf("%s/%s%s/%s",
-		r.AppSet.Name,
-		r.Host.Name,
-		r.Path.Path,
-		r.Filename,
+	return strings.TrimSpace(
+		fmt.Sprintf("%s/%s%s/%s",
+			r.AppSet.Name,
+			r.Host.Name,
+			r.Path.Path,
+			r.Filename,
+		),
 	)
 }
 

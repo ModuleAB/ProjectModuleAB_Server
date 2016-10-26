@@ -28,8 +28,8 @@ var Version version
 func init() {
 	Version = version{
 		main:  0,
-		sub:   0,
-		build: 167,
-		code:  "Husky",
+		sub:   1,
+		build: 178,
+		code:  "Poodle",
 	}
 }

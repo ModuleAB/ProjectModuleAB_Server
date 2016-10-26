@@ -1,5 +1,4 @@
-/*
- * ModulesAB server
+/* ModulesAB server
  * TonyChyi <tonychee1989@gmail.com>
  */
 package main
@@ -7,6 +6,8 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"os/exec"
+	"path/filepath"
 	"runtime"
 
 	_ "moduleab_server/docs"
@@ -20,6 +21,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
+// DBS is template for make database connection string.
 const DBS = "%s:%s@tcp(%s)/%s?charset=utf8"
 
 func init() {
@@ -49,11 +51,18 @@ func main() {
 			os.Exit(1)
 		}
 	}()
-	beego.Info("ModuleAB server", version.Version, "starting...")
-	logfile := beego.AppConfig.String("logFile")
-	if logfile == "" {
-		logfile = "logs/moduleab_server.log"
+
+	// Don't run me with root, or will be unexpected security problem.
+	if os.Getuid() == 0 {
+		beego.Alert("Hey! You're running this server with user root!")
+		panic("Don't run me with root!")
 	}
+
+	beego.Info("ModuleAB server", version.Version, "starting...")
+	logfile := beego.AppConfig.DefaultString(
+		"logFile",
+		"logs/moduleab_server.log",
+	)
 	err := beego.SetLogger("file", fmt.Sprintf(`{"filename":"%s"}`, logfile))
 	if err != nil {
 		panic(err)
@@ -61,12 +70,6 @@ func main() {
 	beego.SetLevel(beego.LevelInformational)
 
 	beego.Info("Hello!")
-
-	// 别用root运行我！
-	if os.Getuid() == 0 {
-		beego.Alert("Hey! You're running this server with user root!")
-		panic("Don't run me with root!")
-	}
 
 	switch beego.BConfig.RunMode {
 	case "initdb":
@@ -96,9 +99,22 @@ func main() {
 		err = orm.RunSyncdb("default", false, true)
 
 	default:
+		// Run as Daemon
+		if os.Getppid() != 1 {
+			exePath, _ := filepath.Abs(os.Args[0])
+			cmd := exec.Command(exePath, os.Args[1:]...)
+			cmd.Stdin = os.Stdin
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
+			cmd.Start()
+			beego.Info("ModuleAB will run as daemon.")
+			os.Exit(0)
+		}
+
 		beego.BeeLogger.DelLogger("console")
 		err = orm.RunSyncdb("default", false, false)
 	}
+
 	if err != nil {
 		beego.Alert("Database error:", err, ". go exit.")
 		os.Exit(1)
@@ -114,5 +130,8 @@ func main() {
 	beego.Info("All is ready, go running...")
 	beego.BConfig.WebConfig.Session.SessionOn = true
 	beego.BConfig.WebConfig.Session.SessionName = "Session_MobuleAB"
+	beego.BConfig.Listen.ServerTimeOut = beego.AppConfig.DefaultInt64(
+		"timeout", 0,
+	)
 	beego.Run()
 }
