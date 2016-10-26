@@ -1,3 +1,8 @@
+/*ModuleAB policies/policies.go -- Running policies.
+ * Copyright (C) 2016 TonyChyi <tonychee1989@gmail.com>
+ * License: GPL v3 or later.
+ */
+
 package policies
 
 import (

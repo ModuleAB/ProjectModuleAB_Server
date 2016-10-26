@@ -1,3 +1,8 @@
+/*ModuleAB routers/router.go -- all http router here.
+ * Copyright (C) 2016 TonyChyi <tonychee1989@gmail.com>
+ * License: GPL v3 or later.
+ */
+
 // @APIVersion 1.0.0
 // @Title ModuleAB API
 // @Description ModuleAB server API

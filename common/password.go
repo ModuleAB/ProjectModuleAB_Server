@@ -1,3 +1,8 @@
+/*ModuleAB common/password.go -- encrypt password with sha1.
+ * Copyright (C) 2016 TonyChyi <tonychee1989@gmail.com>
+ * License: GPL v3 or later.
+ */
+
 package common
 
 import (
