@@ -1,3 +1,8 @@
+/*ModuleAB common/redis.go -- connect to redis.
+ * Copyright (C) 2016 TonyChyi <tonychee1989@gmail.com>
+ * License: GPL v3 or later.
+ */
+
 package common
 
 import (
@@ -5,7 +10,7 @@ import (
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/cache"
-	_ "github.com/astaxie/beego/cache/redis"
+	_ "github.com/astaxie/beego/cache/redis" // redis driver
 )
 
 const DefaultRedisKey = "ModuleAB"

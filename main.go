@@ -1,5 +1,6 @@
-/* ModulesAB server
- * TonyChyi <tonychee1989@gmail.com>
+/*ModuleAB server
+ * Copyright (C) 2016 TonyChyi <tonychee1989@gmail.com>
+ * License: GPL v3 or later.
  */
 package main
 

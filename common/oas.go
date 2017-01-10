@@ -1,3 +1,8 @@
+/*ModuleAB common/oas.go -- Aliyun OAS instance
+ * Copyright (C) 2016 TonyChyi <tonychee1989@gmail.com>
+ * License: GPL v3 or later.
+ */
+
 package common
 
 import (
@@ -7,10 +12,12 @@ import (
 	"github.com/tonychee7000/oas"
 )
 
+//OasClient is encapsulation for Aliyun OAS instance.
 type OasClient struct {
 	*oas.OasClient
 }
 
+//GetOasVaultId get OAS Vault ID
 func (o *OasClient) GetOasVaultId(name string) (string, error) {
 	v := new(oas.VaultsList)
 	for {
@@ -32,6 +39,7 @@ func (o *OasClient) GetOasVaultId(name string) (string, error) {
 	}
 }
 
+//NewOasClient make a new OAS instance.
 func NewOasClient(endpoint string) (*OasClient, error) {
 	oasPort := beego.AppConfig.DefaultInt("aliapi::oasport", 80)
 	oasUseSSL := beego.AppConfig.DefaultBool("aliapi::oasusessl", false)

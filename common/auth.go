@@ -1,3 +1,8 @@
+/*ModuleAB common/auth.go -- define auth algorithm
+ * Copyright (C) 2016 TonyChyi <tonychee1989@gmail.com>
+ * License: GPL v3 or later.
+ */
+
 package common
 
 import (
@@ -11,8 +16,10 @@ import (
 	"github.com/astaxie/beego/context"
 )
 
+//AuthExpireDuration is 10 minutes
 const AuthExpireDuration = 10 * time.Minute
 
+//Auth whether http request is valid.
 func AuthWithKey(ctx *context.Context) error {
 	key := beego.AppConfig.String("loginkey")
 	sTime := ctx.Input.Header("Date")
