@@ -3,8 +3,9 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
-	"moduleab_server/models"
 	"net/http"
+
+	"github.com/ModuleAB/ModuleAB/server/models"
 
 	"github.com/astaxie/beego"
 )

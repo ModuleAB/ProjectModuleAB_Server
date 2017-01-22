@@ -6,10 +6,11 @@
 package policies
 
 import (
-	"moduleab_server/common"
-	"moduleab_server/models"
 	"os"
 	"time"
+
+	"github.com/ModuleAB/ModuleAB/server/common"
+	"github.com/ModuleAB/ModuleAB/server/models"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"

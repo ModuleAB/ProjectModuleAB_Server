@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"moduleab_server/version"
+	"github.com/ModuleAB/ModuleAB/server/version"
 
 	"github.com/astaxie/beego"
 )

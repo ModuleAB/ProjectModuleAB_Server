@@ -11,11 +11,12 @@ import (
 	"path/filepath"
 	"runtime"
 
-	_ "moduleab_server/docs"
-	"moduleab_server/policies"
-	_ "moduleab_server/routers"
-	"moduleab_server/version"
 	"os"
+
+	_ "github.com/ModuleAB/ModuleAB/server/docs"
+	"github.com/ModuleAB/ModuleAB/server/policies"
+	_ "github.com/ModuleAB/ModuleAB/server/routers"
+	"github.com/ModuleAB/ModuleAB/server/version"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
@@ -62,7 +63,7 @@ func main() {
 	beego.Info("ModuleAB server", version.Version, "starting...")
 	logfile := beego.AppConfig.DefaultString(
 		"logFile",
-		"logs/moduleab_server.log",
+		"logs/github.com/ModuleAB/ModuleAB/server.log",
 	)
 	err := beego.SetLogger("file", fmt.Sprintf(`{"filename":"%s"}`, logfile))
 	if err != nil {
@@ -122,7 +123,7 @@ func main() {
 	}
 	beego.Debug("Current PID:", os.Getpid())
 	ioutil.WriteFile(
-		beego.AppConfig.DefaultString("pidFile", "moduleab_server.pid"),
+		beego.AppConfig.DefaultString("pidFile", "github.com/ModuleAB/ModuleAB/server.pid"),
 		[]byte(fmt.Sprint(os.Getpid())),
 		0600,
 	)

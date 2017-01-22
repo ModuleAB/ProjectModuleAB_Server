@@ -3,9 +3,10 @@ package models
 
 import (
 	"fmt"
-	"moduleab_server/common"
 	"strings"
 	"time"
+
+	"github.com/ModuleAB/ModuleAB/server/common"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"

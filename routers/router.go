@@ -12,10 +12,11 @@
 package routers
 
 import (
-	"moduleab_server/controllers"
 	"net/http"
 	"path"
 	"strings"
+
+	"github.com/ModuleAB/ModuleAB/server/controllers"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/context"
