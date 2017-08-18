@@ -111,6 +111,11 @@ func init() {
 				&controllers.VersionController{},
 			),
 		),
+		beego.NSNamespace("/faillogs",
+			beego.NSInclude(
+				&controllers.FailLogContoller{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }
