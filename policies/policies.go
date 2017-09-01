@@ -185,7 +185,8 @@ func RunPolicies() {
 									beego.Debug("Record type: Backup")
 									step := r.BackupTime.Sub(baseLine.BackupTime)
 									beego.Debug("Step=", step)
-									if step >= time.Duration(p.Step)*time.Second &&
+									if (step >= time.Duration(p.Step)*time.Second ||
+										step < time.Duration(p.Step)*time.Hour*24) &&
 										p.Step != models.PolicyReserveNone {
 										baseLine = r
 										continue
@@ -224,7 +225,8 @@ func RunPolicies() {
 									beego.Debug("Record type: Archive")
 									step := r.ArchivedTime.Sub(baseLine.ArchivedTime)
 									beego.Debug("Step=", step)
-									if step >= time.Duration(p.Step)*time.Second &&
+									if (step >= time.Duration(p.Step)*time.Second ||
+										step < time.Duration(p.Step)*time.Hour*24) &&
 										p.Step != models.PolicyReserveNone {
 										beego.Debug("New baseline is:", r.Id)
 										baseLine = r
