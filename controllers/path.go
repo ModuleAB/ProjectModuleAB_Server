@@ -237,7 +237,7 @@ func (h *PathsController) Put() {
 			return
 		}
 		path.Id = paths[0].Id
-		if path.AppSet != nil {
+		if path.AppSet == nil || len(path.AppSet) == 0 {
 			path.AppSet = paths[0].AppSet
 		}
 		beego.Debug("[C] Got path data:", path)
