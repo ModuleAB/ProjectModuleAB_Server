@@ -2,9 +2,10 @@ package controllers
 
 import (
 	"fmt"
-	"moduleab_server/common"
-	"moduleab_server/models"
 	"net/http"
+
+	"github.com/ModuleAB/ModuleAB/server/common"
+	"github.com/ModuleAB/ModuleAB/server/models"
 
 	"github.com/astaxie/beego"
 )

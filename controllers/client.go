@@ -3,12 +3,13 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
-	"moduleab_server/common"
-	"moduleab_server/models"
 	"net/http"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/ModuleAB/ModuleAB/server/common"
+	"github.com/ModuleAB/ModuleAB/server/models"
 
 	"github.com/astaxie/beego"
 	"github.com/gorilla/websocket"

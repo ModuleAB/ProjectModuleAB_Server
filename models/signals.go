@@ -5,7 +5,8 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
-	"moduleab_server/common"
+
+	"github.com/ModuleAB/ModuleAB/server/common"
 
 	"time"
 

@@ -3,9 +3,10 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
-	"moduleab_server/common"
-	"moduleab_server/models"
 	"net/http"
+
+	"github.com/ModuleAB/ModuleAB/server/common"
+	"github.com/ModuleAB/ModuleAB/server/models"
 
 	"github.com/astaxie/beego"
 )
@@ -236,7 +237,7 @@ func (h *PathsController) Put() {
 			return
 		}
 		path.Id = paths[0].Id
-		if path.AppSet != nil {
+		if path.AppSet == nil || len(path.AppSet) == 0 {
 			path.AppSet = paths[0].AppSet
 		}
 		beego.Debug("[C] Got path data:", path)

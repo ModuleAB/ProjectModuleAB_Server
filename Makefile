@@ -6,7 +6,7 @@ staticpage:
 	cd web && bower i
 
 pack:
-	bee pack -exs=".go:.DS_Store:.tmp:.log:.pid:.pprof:.memprof:Makefile:.bowerrc:.git:.gitignore:.travis.yml" -exp=".:swagger:oas"
+	bee pack -ba "-o moduleab_server" -exs=".go:.DS_Store:.tmp:.log:.pid:.pprof:.memprof:Makefile:.bowerrc:.git:.gitignore:.travis.yml" -exp=".:swagger:oas"
 
 clean:
 	rm -rf *.pprof *.memprof

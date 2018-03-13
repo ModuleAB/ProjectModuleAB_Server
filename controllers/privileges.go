@@ -1,8 +1,9 @@
 package controllers
 
 import (
-	"moduleab_server/models"
 	"regexp"
+
+	"github.com/ModuleAB/ModuleAB/server/models"
 
 	"github.com/astaxie/beego/context"
 )
